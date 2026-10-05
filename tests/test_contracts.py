@@ -287,56 +287,84 @@ def test_the_sweep_fixture_shows_the_safety_versus_throughput_tension():
 
 
 # --- The service façade --------------------------------------------------------------------------
+#
+# These assert the *contract*: the signatures and return types the API and UI were built against. The
+# façade used to return fixture data and now runs the real graph, which changed none of them -- that is
+# the whole point of having had the contract. What the real behaviour does is covered in
+# tests/test_service.py, which seeds a corpus; these stay deliberately free of that setup so a failure
+# here means the interface moved rather than the graph.
 
 
-def test_the_stub_service_returns_the_real_return_types():
-    """So a consumer written against the stub needs no change when the graph lands."""
-    run_id = service.start_run(tenant_id="acme_pharma", product_id="zelvoran", document="copy")
-    assert isinstance(run_id, str) and run_id
-
-    report = service.get_status(run_id)
-    assert isinstance(report, ReviewReport)
-
-    task = service.get_review_task(run_id)
-    assert isinstance(task, ReviewTask)
-
-    assert all(isinstance(t, ReviewTask) for t in service.get_queue())
-    assert all(isinstance(r, ReviewReport) for r in service.list_runs())
-    assert isinstance(service.get_audit(run_id), list)
-    assert "graph TD" in service.get_graph_mermaid()
+def test_the_service_is_no_longer_a_stub():
+    """The API reports this on /health, so it must say what is actually happening."""
+    assert service.IS_STUB is False
 
 
-def test_the_stub_declares_that_it_is_a_stub():
-    """A demo quietly serving fixture data would be worse than one that says so."""
-    assert service.IS_STUB is True
+def test_the_service_exposes_every_function_the_contract_promises():
+    """Named explicitly: the API and UI were written against this list before the graph existed."""
+    for name in (
+        "start_run",
+        "get_status",
+        "get_review_task",
+        "get_queue",
+        "resume",
+        "get_audit",
+        "list_runs",
+        "get_graph_mermaid",
+    ):
+        assert callable(getattr(service, name, None)), f"service.{name} is missing"
 
 
-def test_resume_validates_the_decision_before_accepting_it():
-    """It arrives over HTTP; an invalid decision must not record an approval nobody gave."""
-    with pytest.raises(ValidationError):
-        service.resume("r1", {"decision": "approve"})  # no reviewer
-    with pytest.raises(ValidationError):
-        service.resume("r1", {"decision": "auto_approve", "reviewer": "r", "tier": "t"})
-
-    report = service.resume(
-        "r1", {"decision": "reject", "reviewer": "a.reviewer", "tier": "senior_regulatory"}
-    )
-    assert report.status == "complete"
-
-
-def test_an_empty_run_id_is_not_found_rather_than_a_crash():
-    with pytest.raises(service.RunNotFoundError):
-        service.get_status("")
+def test_the_additive_functions_exist_for_stepping_and_replay():
+    """Added for the UI's live progress and audit replay views; additive, so nothing else moved."""
+    for name in (
+        "advance",
+        "get_state",
+        "get_history",
+        "get_audit_integrity",
+        "describe_backend_note",
+    ):
+        assert callable(getattr(service, name, None)), f"service.{name} is missing"
 
 
-def test_the_queue_can_be_filtered_by_reviewer_tier():
-    """How the demo simulates logging in as a senior reviewer rather than a standard one."""
-    assert service.get_queue("senior_regulatory")
-    assert service.get_queue("legal") == []
+def test_start_run_keeps_its_documented_keyword_arguments():
+    """The API calls this with keywords, so a renamed parameter is a breaking change."""
+    import inspect
+
+    params = inspect.signature(service.start_run).parameters
+    for name in (
+        "tenant_id",
+        "product_id",
+        "document",
+        "label_version",
+        "audience",
+        "channel",
+        "market",
+        "doc_meta",
+        "run_id",
+    ):
+        assert name in params, f"start_run lost its '{name}' parameter"
+    # Additions must be optional, or every existing caller breaks.
+    for name in ("step", "block"):
+        assert params[name].default is not inspect.Parameter.empty
+
+
+def test_an_unknown_run_raises_the_error_the_api_maps_to_404():
+    for call in (service.get_status, service.get_audit, service.get_state, service.get_history):
+        with pytest.raises(service.RunNotFoundError):
+            call("definitely-not-a-run")
+
+
+def test_the_backend_note_tells_the_ui_what_to_say():
+    """Returned by the service so there is one wording, and it cannot drift from what is happening."""
+    note = service.describe_backend_note()
+    assert note and note[0].isupper()
+    # Under the fake backend the UI must say the findings are a fixture.
+    assert "fixture, not a model" in note
 
 
 def test_the_graph_shape_matches_the_documented_pipeline():
-    """The mermaid stub is the pipeline other sessions are told to expect."""
+    """The mermaid source is what other sessions were told to expect."""
     mermaid = service.get_graph_mermaid()
     for node in (
         "ingest",
@@ -355,4 +383,4 @@ def test_the_graph_shape_matches_the_documented_pipeline():
         "human_review",
         "finalize",
     ):
-        assert node in mermaid, f"{node} missing from the documented graph"
+        assert node in mermaid, f"{node} missing from the compiled graph"

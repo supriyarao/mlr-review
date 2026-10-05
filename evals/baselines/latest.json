@@ -1,9 +1,9 @@
 {
-  "eval_run_id": "50062fe53867",
-  "started_at": "2026-10-05T22:37:00.031277+00:00",
-  "finished_at": "2026-10-05T22:37:32.490915+00:00",
+  "eval_run_id": "af910c51bf7f",
+  "started_at": "2026-10-05T23:42:59.255170+00:00",
+  "finished_at": "2026-10-05T23:43:30.681417+00:00",
   "mode": "offline",
-  "git_sha": "3429549",
+  "git_sha": "c5612a8",
   "backend": "fake",
   "model_strong": "fake-strong",
   "model_fast": "fake-fast",
@@ -64,20 +64,12 @@
           "matched_finding_id": "ref-1"
         }
       ],
-      "unexpected_findings": [
-        {
-          "id": "rd-ACME-DOC-001-1",
-          "check_type": "business_rule",
-          "severity": null,
-          "quote": "",
-          "issue": "Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material b"
-        }
-      ],
+      "unexpected_findings": [],
       "false_alarms": [],
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 9952,
+      "latency_ms": 11550,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -96,30 +88,44 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:label:zelvoran:v1.0:1",
-              "passage": "## 1. Indications and Usage\n\nZELVORAN is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who\nare candidates for systemic therapy or phototherapy.\n\nLimitations of use.",
+              "source_id": "acme_pharma:label:zelvoran:v1.0:8",
+              "passage": "### 6.2 ZEL-302 \u2014 PASI-90 at Week 16, with a prespecified subgroup\n\nRandomised, double-blind, placebo-controlled trial in 744 adults.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "evidence",
-              "title": "",
+              "title": "Zelvoran label v1.0 \u2014 6.2 ZEL-302 \u2014 PASI-90 at Week 16, with a prespecified subgroup",
               "rule_id": "",
               "rule_version": 0
+            },
+            {
+              "source_id": "acme-promotional-code.md",
+              "passage": "A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A subgroup figure must never be presented as the result in the overall population.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "doc_clause",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
+              "rule_id": "ACME-DOC-001",
+              "rule_version": 1
             }
           ],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
           "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
-          "confidence": 92,
+          "confidence": 97,
           "low_confidence": false,
           "grounded": true,
           "grounded_by": "evidence",
-          "rule_id": "",
-          "rule_version": 0,
+          "rule_id": "ACME-DOC-001",
+          "rule_version": 1,
           "model": "fake-strong",
           "prompt_version": "substantiation-v1",
-          "merged_from": []
+          "merged_from": [
+            "rd-ACME-DOC-001-1"
+          ]
         },
         {
           "id": "sub-2",
@@ -172,14 +178,14 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:reference:zel-303:1",
-              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | Result |\n|---|---|---|\n| PASI-75 | Week 16 | 71.2% |\n| PASI-75 maintained among Week 16 responders | Week 52 | 64.8% |\n\nEndpoints not assessed.",
+              "source_id": "acme_pharma:label:zelvoran:v1.0:9",
+              "passage": "### 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52\n\nOpen-label extension enrolling 610 adults who completed ZEL-301 or ZEL-302.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "evidence",
-              "title": "ZEL-303 \u2014 Endpoints and timepoints",
+              "title": "Zelvoran label v1.0 \u2014 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52",
               "rule_id": "",
               "rule_version": 0
             }
@@ -196,44 +202,6 @@
           "model": "fake-strong",
           "prompt_version": "reference_support-v1",
           "merged_from": []
-        },
-        {
-          "id": "rd-ACME-DOC-001-1",
-          "check_type": "business_rule",
-          "claim_id": "",
-          "quote": "",
-          "char_span": [
-            0,
-            0
-          ],
-          "issue": "Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
-          "suggested_fix": "",
-          "citations": [
-            {
-              "source_id": "acme-promotional-code.md",
-              "passage": "A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A subgroup figure must never be presented as the result in the overall population.",
-              "char_span": [
-                0,
-                0
-              ],
-              "kind": "doc_clause",
-              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
-              "rule_id": "ACME-DOC-001",
-              "rule_version": 1
-            }
-          ],
-          "severity_proposed": "blocker",
-          "severity_final": "blocker",
-          "severity_rule_id": "rule:ACME-DOC-001",
-          "confidence": 88,
-          "low_confidence": false,
-          "grounded": true,
-          "grounded_by": "doc_clause",
-          "rule_id": "ACME-DOC-001",
-          "rule_version": 1,
-          "model": "fake-strong",
-          "prompt_version": "rule-check-v1",
-          "merged_from": []
         }
       ],
       "gate_results": [
@@ -248,7 +216,7 @@
         {
           "gate": "confidence",
           "passed": true,
-          "details": "all 4 finding(s) met the tenant threshold of 70",
+          "details": "all 3 finding(s) met the tenant threshold of 70",
           "failed_items": [],
           "on_fail_route": null,
           "reason_code": "low_confidence"
@@ -324,7 +292,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7784,
+      "latency_ms": 7990,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -419,8 +387,8 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:reference:zel-302:1",
-              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | ZELVORAN | Placebo |\n|---|---|---|---|\n| PASI-90 (primary) | Week 16 | 44.2% | 4.8% |\n| PASI-75 (secondary) | Week 16 | 70.1% | 10.6% |",
+              "source_id": "acme_pharma:label:zelvoran:v1.0:10",
+              "passage": "### 6.4 Studies not conducted\n\nNo head-to-head comparison against another biologic therapy has been conducted. No cardiovascular\noutcomes trial has been conducted.",
               "char_span": [
                 0,
                 0
@@ -457,14 +425,14 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:reference:zel-301:2",
-              "passage": "## Notes\n\nThe population is adults only. The study ran 16 weeks and reports no durability data beyond that\npoint.",
+              "source_id": "acme_pharma:label:zelvoran:v1.0:10",
+              "passage": "### 6.4 Studies not conducted\n\nNo head-to-head comparison against another biologic therapy has been conducted. No cardiovascular\noutcomes trial has been conducted.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "evidence",
-              "title": "ZEL-301 \u2014 Notes",
+              "title": "",
               "rule_id": "",
               "rule_version": 0
             }
@@ -601,7 +569,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 10547,
+      "latency_ms": 9542,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -620,14 +588,14 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:reference:zel-303:1",
-              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | Result |\n|---|---|---|\n| PASI-75 | Week 16 | 71.2% |\n| PASI-75 maintained among Week 16 responders | Week 52 | 64.8% |\n\nEndpoints not assessed.",
+              "source_id": "acme_pharma:label:zelvoran:v1.0:9",
+              "passage": "### 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52\n\nOpen-label extension enrolling 610 adults who completed ZEL-301 or ZEL-302.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "evidence",
-              "title": "ZEL-303 \u2014 Endpoints and timepoints",
+              "title": "Zelvoran label v1.0 \u2014 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52",
               "rule_id": "",
               "rule_version": 0
             }
@@ -688,7 +656,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7861,
+      "latency_ms": 7007,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -775,7 +743,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 5358,
+      "latency_ms": 7474,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -848,35 +816,27 @@
           "matched_finding_id": "sub-1"
         }
       ],
-      "unexpected_findings": [
-        {
-          "id": "lr-1",
-          "check_type": "substantiation",
-          "severity": null,
-          "quote": "Nexapril\u00ae (nexapril) is indicated in adults with type 2 diabetes mellitus and established\natherosclerotic cardiovascular",
-          "issue": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head "
-        }
-      ],
+      "unexpected_findings": [],
       "false_alarms": [],
       "expected_route": "legal",
       "actual_route": "legal",
       "route_correct": true,
-      "latency_ms": 10252,
+      "latency_ms": 9536,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
       "error": "",
       "findings": [
         {
-          "id": "lr-1",
+          "id": "sub-1",
           "check_type": "substantiation",
-          "claim_id": "",
-          "quote": "Nexapril\u00ae (nexapril) is indicated in adults with type 2 diabetes mellitus and established\natherosclerotic cardiovascular disease to reduce the risk of major adverse cardiovascular events.",
+          "claim_id": "c1",
+          "quote": "Nexapril works better than the leading therapies for cardiovascular risk reduction [1].",
           "char_span": [
             0,
             0
           ],
-          "issue": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head clinical trial against that comparator. No head-to-head trial exists for any Borealis product.",
+          "issue": "No head-to-head cardiovascular outcomes trial exists.",
           "suggested_fix": "",
           "citations": [
             {
@@ -894,41 +854,18 @@
           ],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
-          "severity_rule_id": "rule:BOR-LLM-001",
-          "confidence": 88,
-          "low_confidence": false,
-          "grounded": true,
-          "grounded_by": "rule",
-          "rule_id": "BOR-LLM-001",
-          "rule_version": 1,
-          "model": "fake-fast",
-          "prompt_version": "rule-check-v1",
-          "merged_from": []
-        },
-        {
-          "id": "sub-1",
-          "check_type": "substantiation",
-          "claim_id": "c1",
-          "quote": "Nexapril works better than the leading therapies for cardiovascular risk reduction [1].",
-          "char_span": [
-            0,
-            0
-          ],
-          "issue": "No head-to-head cardiovascular outcomes trial exists.",
-          "suggested_fix": "",
-          "citations": [],
-          "severity_proposed": "blocker",
-          "severity_final": "blocker",
           "severity_rule_id": "BOR-SEV-SUBSTANTIATION",
           "confidence": 45,
           "low_confidence": true,
           "grounded": false,
           "grounded_by": "none",
-          "rule_id": "",
-          "rule_version": 0,
+          "rule_id": "BOR-LLM-001",
+          "rule_version": 1,
           "model": "fake-strong",
           "prompt_version": "substantiation-v1",
-          "merged_from": []
+          "merged_from": [
+            "lr-1"
+          ]
         }
       ],
       "gate_results": [
@@ -945,7 +882,7 @@
         {
           "gate": "confidence",
           "passed": false,
-          "details": "1 of 2 finding(s) fell below the tenant threshold of 80",
+          "details": "1 of 1 finding(s) fell below the tenant threshold of 80",
           "failed_items": [
             "sub-1"
           ],
@@ -964,7 +901,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 7485,
+      "latency_ms": 7338,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1014,13 +951,20 @@
           "severity": null,
           "quote": "PASI-75 at Week 16",
           "issue": "Claim carries no reference marker."
+        },
+        {
+          "id": "fai-1",
+          "check_type": "fair_balance",
+          "severity": null,
+          "quote": "",
+          "issue": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence."
         }
       ],
       "false_alarms": [],
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7179,
+      "latency_ms": 7787,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1035,7 +979,7 @@
             0,
             0
           ],
-          "issue": "Section 'important_safety_information' is 1747 characters from 'efficacy', beyond the 600 allowed, so it does not read as part of the same message. Also noted: BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
+          "issue": "Section 'important_safety_information' is 1747 characters from 'efficacy', beyond the 600 allowed, so it does not read as part of the same message.",
           "suggested_fix": "",
           "citations": [
             {
@@ -1049,18 +993,6 @@
               "title": "BOR-ISI-001 v1",
               "rule_id": "BOR-ISI-001",
               "rule_version": 1
-            },
-            {
-              "source_id": "borealis_bio:label:zelvoran:v1.0:9",
-              "passage": "### 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52\n\nOpen-label extension enrolling 610 adults who completed ZEL-301 or ZEL-302.",
-              "char_span": [
-                0,
-                0
-              ],
-              "kind": "evidence",
-              "title": "Zelvoran label v1.0 \u2014 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52",
-              "rule_id": "",
-              "rule_version": 0
             }
           ],
           "severity_proposed": "blocker",
@@ -1074,9 +1006,7 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": [
-            "fai-1"
-          ]
+          "merged_from": []
         },
         {
           "id": "dr-2",
@@ -1115,6 +1045,44 @@
           "model": "",
           "prompt_version": "",
           "merged_from": []
+        },
+        {
+          "id": "fai-1",
+          "check_type": "fair_balance",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "borealis_bio:label:zelvoran:v1.0:9",
+              "passage": "### 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52\n\nOpen-label extension enrolling 610 adults who completed ZEL-301 or ZEL-302.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Zelvoran label v1.0 \u2014 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "BOR-SEV-BALANCE",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-fast",
+          "prompt_version": "fair_balance-v1",
+          "merged_from": []
         }
       ],
       "gate_results": [
@@ -1129,7 +1097,7 @@
         {
           "gate": "confidence",
           "passed": true,
-          "details": "all 2 finding(s) met the tenant threshold of 80",
+          "details": "all 3 finding(s) met the tenant threshold of 80",
           "failed_items": [],
           "on_fail_route": null,
           "reason_code": "low_confidence"
@@ -1167,7 +1135,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 4947,
+      "latency_ms": 5141,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1186,14 +1154,14 @@
           "suggested_fix": "",
           "citations": [
             {
-              "source_id": "acme_pharma:label:zelvoran:v1.0:1",
-              "passage": "## 1. Indications and Usage\n\nZELVORAN is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who\nare candidates for systemic therapy or phototherapy.\n\nLimitations of use.",
+              "source_id": "acme_pharma:reference:zel-301:2",
+              "passage": "## Notes\n\nThe population is adults only. The study ran 16 weeks and reports no durability data beyond that\npoint.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "evidence",
-              "title": "Zelvoran label v1.0 \u2014 1. Indications and Usage",
+              "title": "ZEL-301 \u2014 Notes",
               "rule_id": "",
               "rule_version": 0
             }
@@ -1279,7 +1247,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 10837,
+      "latency_ms": 10441,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1327,7 +1295,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7597,
+      "latency_ms": 7199,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1405,7 +1373,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 6425,
+      "latency_ms": 7547,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1483,7 +1451,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7849,
+      "latency_ms": 7705,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1578,7 +1546,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 10688,
+      "latency_ms": 9980,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1698,7 +1666,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 10894,
+      "latency_ms": 10013,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1785,7 +1753,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 10891,
+      "latency_ms": 9028,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1862,10 +1830,10 @@
       "recall": 1.0
     },
     "finding_precision": {
-      "produced": 26,
+      "produced": 25,
       "accounted_for": 17,
-      "unexpected": 9,
-      "precision": 0.6538
+      "unexpected": 8,
+      "precision": 0.68
     },
     "routing": {
       "scored": 16,
@@ -1882,9 +1850,9 @@
     },
     "cost_and_latency": {
       "runs": 16,
-      "latency_p50_ms": 7861.0,
-      "latency_p95_ms": 10891.0,
-      "latency_mean_ms": 8534.1,
+      "latency_p50_ms": 7990.0,
+      "latency_p95_ms": 10441.0,
+      "latency_mean_ms": 8454.9,
       "tokens_in_total": 0,
       "tokens_out_total": 0,
       "cost_usd_total": 0.0,
@@ -1908,14 +1876,14 @@
       "recall": 1.0
     },
     "grounding_rate": {
-      "findings": 26,
-      "grounded": 22,
-      "rate": 0.8462,
+      "findings": 25,
+      "grounded": 21,
+      "rate": 0.84,
       "by_mode": {
-        "doc_clause": 2,
-        "evidence": 9,
+        "doc_clause": 1,
+        "evidence": 10,
         "none": 4,
-        "rule": 11
+        "rule": 10
       }
     },
     "severity_calibration": {
@@ -1975,7 +1943,7 @@
           "threshold": 90,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 7
+          "low_confidence_findings": 5
         }
       ],
       "tenant_thresholds": {
@@ -1997,10 +1965,10 @@
         "recall": 1.0
       },
       "finding_precision": {
-        "produced": 20,
+        "produced": 19,
         "accounted_for": 14,
-        "unexpected": 6,
-        "precision": 0.7
+        "unexpected": 5,
+        "precision": 0.7368
       },
       "routing": {
         "scored": 13,
@@ -2017,9 +1985,9 @@
       },
       "cost_and_latency": {
         "runs": 13,
-        "latency_p50_ms": 7849.0,
-        "latency_p95_ms": 10891.0,
-        "latency_mean_ms": 8340.5,
+        "latency_p50_ms": 7705.0,
+        "latency_p95_ms": 10441.0,
+        "latency_mean_ms": 8305.8,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
@@ -2058,9 +2026,9 @@
       },
       "cost_and_latency": {
         "runs": 3,
-        "latency_p50_ms": 10252.0,
-        "latency_p95_ms": 10688.0,
-        "latency_mean_ms": 9373.0,
+        "latency_p50_ms": 9536.0,
+        "latency_p95_ms": 9980.0,
+        "latency_mean_ms": 9101.0,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,

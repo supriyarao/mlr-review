@@ -37,14 +37,22 @@ UNGROUNDED_CEILING = 45
 
 
 def merge_key(finding: Finding) -> tuple[str, str]:
-    """What makes two findings the same problem: one claim, one piece of offending text.
+    """What makes two findings the same problem: the same offending text.
 
-    An absence is keyed by its check type instead, since there is no quote to compare -- two checks
-    both reporting a missing safety section are reporting one problem.
+    Keyed on the quote alone, not on the quote plus the claim id. The quote identifies the text more
+    precisely than a claim id does, and including the claim id made the merge depend on every producer
+    remembering to fill that field -- which the rule checkers do not reliably do, because a rule is
+    about the copy rather than about a claim. The result was a reference-document finding and a
+    substantiation finding quoting the identical sentence and arriving as two separate items, which is
+    exactly the duplication this node exists to remove.
+
+    An absence has no quote, so it is keyed by what produced it: two checks both reporting a missing
+    safety section are reporting one problem, but a missing disclaimer and a missing safety section are
+    not.
     """
     if finding.is_absence:
-        return (finding.claim_id, f"absence:{finding.check_type}")
-    return (finding.claim_id, normalize_whitespace(finding.quote).lower())
+        return ("absence", f"{finding.check_type}:{finding.rule_id}")
+    return ("quote", normalize_whitespace(finding.quote).lower())
 
 
 def _merge(group: list[Finding]) -> Finding:

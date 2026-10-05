@@ -103,8 +103,15 @@ def _allowlist(types: Iterable[type]) -> list[tuple[str, str]]:
     return [(cls.__module__, cls.__name__) for cls in types]
 
 
-def compile_graph(builder: Any, *, saver: Any) -> Any:
-    """Compile a ``StateGraph`` with checkpointing enabled."""
+def compile_graph(builder: Any, *, saver: Any, interrupt_before: list[str] | None = None) -> Any:
+    """Compile a ``StateGraph`` with checkpointing enabled.
+
+    ``interrupt_before`` names nodes the run should pause before, which is how a caller steps through
+    a graph one node at a time. Generic: the platform does not care which nodes a use case considers
+    worth pausing at.
+    """
+    if interrupt_before:
+        return builder.compile(checkpointer=saver, interrupt_before=interrupt_before)
     return builder.compile(checkpointer=saver)
 
 

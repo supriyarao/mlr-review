@@ -4,7 +4,7 @@
 # Ollama model; the test suite forces the FakeLLM backend so it needs neither.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup seed api ui demo test lint fmt eval eval-offline eval-replay eval-baseline graph fixtures smoke clean
+.PHONY: help setup seed api ui demo loop test lint fmt eval eval-offline eval-replay eval-baseline graph fixtures smoke clean
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -29,6 +29,9 @@ demo: ## Run API + UI together (the screen-share entry point)
 	uv run uvicorn api.main:app --port 8000 & \
 	uv run streamlit run ui/Home.py --server.port 8501 & \
 	wait
+
+loop: ## Drive one review through the full human-in-the-loop cycle (no API key needed)
+	MLR_LLM_BACKEND=fake uv run python -m scripts.loop $(if $(PIECE),--piece $(PIECE),) $(if $(STEP),--step,) $(if $(TENANT),--tenant $(TENANT),)
 
 test: ## Run the test suite (offline, no API key, no Ollama)
 	uv run pytest

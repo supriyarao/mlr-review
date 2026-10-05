@@ -139,11 +139,11 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
 
         quote = find_quote(document, expected.claim_contains)
         claim_id = _claim_id_for(claims_payload, quote or expected.claim_contains)
-        citation = (
-            None
-            if _is_unverifiable(expected.claim_contains)
-            else find_citation(case, expected.claim_contains or case.title)
-        )
+        # Query with the case author's note as well as the claim text. The note says what is wrong,
+        # which is what the apt passage talks about -- querying on the claim alone retrieves the
+        # passage the claim resembles, which is usually the indication statement.
+        query = " ".join(filter(None, (expected.claim_contains, expected.note))) or case.title
+        citation = None if _is_unverifiable(expected.claim_contains) else find_citation(case, query)
 
         by_check.setdefault(expected.check_type, []).append(
             {
@@ -243,11 +243,16 @@ def _rule_findings(case: GoldenCase, document: str, *, kind: str) -> list[dict[s
         if rule is None or rule.kind != kind:
             continue
 
+        # Prefer a business_rule expectation. Failing that, fall back to the case's first expectation,
+        # so the rule finding lands on the SAME claim and the SAME quote as the core finding about it --
+        # which is what makes the editor's merge path get exercised. Without this the rule finding has
+        # no quote, reads as an absence, and silently never merges.
         expected = next(
-            (e for e in case.expected_findings if e.check_type == "business_rule"), None
+            (e for e in case.expected_findings if e.check_type == "business_rule"),
+            next(iter(case.expected_findings), None),
         )
         needle = expected.claim_contains if expected else ""
-        quote = find_quote(document, needle) or find_quote(document, case.title.split()[0])
+        quote = find_quote(document, needle)
 
         entry: dict[str, Any] = {
             "rule_id": rule_id,

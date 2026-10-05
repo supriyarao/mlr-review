@@ -54,6 +54,26 @@ CORE_CHECKS: tuple[str, ...] = (
 
 RULE_BRANCHES: tuple[str, ...] = ("deterministic_rules", "llm_rules", "reference_doc_review")
 
+# Nodes a stepped run pauses before.
+#
+# ``human_review`` is excluded because it already interrupts on its own: pausing before it as well would
+# make the demo stop twice in the same place for two different reasons.
+#
+# ``finalize`` is excluded because pausing there shows nothing -- it only records the outcome -- and
+# because it would leave a resumed run sitting at "running" after the reviewer had already decided,
+# needing one more unexplained click before it read "complete".
+STEPPABLE_NODES: tuple[str, ...] = (
+    "ingest",
+    "extract_claims",
+    "preapproved_filter",
+    "select_rules",
+    "grounding_gate",
+    "severity",
+    "editor",
+    "confidence_gate",
+    "route",
+)
+
 # Node names in pipeline order, for the UI timeline and for tests that assert the shape.
 PIPELINE: tuple[str, ...] = (
     "ingest",
@@ -189,8 +209,19 @@ def checkpointer() -> Iterator[Any]:
         yield saver
 
 
-def compile_with(saver: Any, *, fake: Any = None) -> Any:
-    """Compile the graph with a checkpointer. The checkpointer is what makes the human step work."""
+def compile_with(saver: Any, *, fake: Any = None, step: bool = False) -> Any:
+    """Compile the graph with a checkpointer. The checkpointer is what makes the human step work.
+
+    ``step=True`` pauses before every node, so a caller can advance the run one node at a time and read
+    the state in between. That exists for the demo: watching a review proceed node by node, with the
+    findings accumulating, is the clearest way to show what the pipeline actually does -- and far more
+    convincing than a spinner followed by a finished report.
+
+    Trade-off: stepping writes a checkpoint per node instead of per superstep, so it is slower and
+    produces a longer history. That is the right trade for a demo and the wrong one for production,
+    which is why it is opt-in rather than the default.
+    """
     from platform_core.runtime import compile_graph
 
-    return compile_graph(build(fake=fake), saver=saver)
+    interrupt_before = list(STEPPABLE_NODES) if step else None
+    return compile_graph(build(fake=fake), saver=saver, interrupt_before=interrupt_before)
