@@ -373,23 +373,61 @@ def test_deterministic_evaluation_makes_no_model_call(monkeypatch):
     assert deterministic.evaluate_all([rule(), tm_rule(), ref_rule()], inp("A cure."))
 
 
-def test_trademark_check_is_case_sensitive_so_the_generic_name_does_not_trip_it():
+def test_the_generic_name_does_not_trip_the_trademark_rule():
     """Regression guard for a false positive found by running the rule on real copy.
 
-    Pharmaceutical copy writes the brand capitalised and the generic name lower case, as in
-    "Zelvoran(R) (zelvoran)". A case-insensitive search finds the generic name and reports a
-    trademark violation on a piece that is correctly marked.
+    Copy writes "Zelvoran® (zelvoran)": the capitalised form is the trademark, the lower-case form
+    is the generic name. A plain case-insensitive search finds the generic name inside the
+    parentheses and reports a violation on a piece that is correctly marked.
     """
-    text = "Zelvoran® (zelvoran) is indicated for adults."
-    assert deterministic.evaluate(tm_rule(), inp(text)) == []
+    assert deterministic.evaluate(tm_rule(), inp("Zelvoran® (zelvoran) is indicated.")) == []
 
 
-def test_a_tenant_can_opt_into_case_insensitive_trademark_matching():
-    r = rule(
-        id="ACME-TM-002",
-        severity="advisory",
-        title="Trademark on first mention, any casing",
-        description="The brand name must carry a trademark symbol however it is capitalised.",
-        params={"type": "trademark_first_mention", "brand": "Zelvoran", "case_sensitive": False},
+def test_an_all_caps_mention_still_needs_a_symbol():
+    """Regression guard for the false negative the first fix introduced.
+
+    Making the match case-sensitive stopped the generic name tripping the rule, but it also stopped
+    "ZELVORAN" matching at all -- and the shipped label writes the brand in capitals 14 times, which
+    promotional safety blocks quote. An all-caps piece with no symbol anywhere passed silently.
+    """
+    violations = deterministic.evaluate(
+        tm_rule(), inp("ZELVORAN (zelvoran) injection, for subcutaneous use.")
     )
+    assert len(violations) == 1
+    assert violations[0].quote == "ZELVORAN"
+    assert deterministic.evaluate(tm_rule(), inp("ZELVORAN® (zelvoran) injection.")) == []
+
+
+def test_first_mention_means_first_whatever_its_casing():
+    """The other half of the same false negative.
+
+    With a case-sensitive match, "ZELVORAN ... Zelvoran" reported the violation against the SECOND
+    mention. Marking that later one would then have made the rule pass while the genuine first
+    mention stayed unmarked.
+    """
+    text = "ZELVORAN is indicated for adults. Ask about Zelvoran today."
+    violations = deterministic.evaluate(tm_rule(), inp(text))
+    assert len(violations) == 1
+    assert violations[0].char_span == (0, 8)
+    assert text[slice(*violations[0].char_span)] == "ZELVORAN"
+
+
+def test_a_piece_using_only_the_generic_name_is_not_a_trademark_use():
+    """No brand mention means no first mention to mark."""
+    assert deterministic.evaluate(tm_rule(), inp("zelvoran is the active moiety.")) == []
+
+
+def test_a_tenant_can_name_a_generic_form_that_differs_from_the_brand():
+    r = rule(
+        id="ACME-TM-003",
+        severity="advisory",
+        title="Trademark on first mention with a distinct generic name",
+        description="The brand name must carry a trademark symbol on its first mention.",
+        params={
+            "type": "trademark_first_mention",
+            "brand": "Zelvoran",
+            "generic_name": "zelvoranib",
+        },
+    )
+    # "zelvoran" is no longer the generic form, so the lower-case mention is a brand use.
     assert deterministic.evaluate(r, inp("zelvoran is indicated for adults."))

@@ -45,18 +45,35 @@ _STUDY_PREFIX = {"zel": "zelvoran", "nex": "nexapril"}
 # because the reviewer has to be able to read the passage and judge it.
 _HEADING = re.compile(r"^(#{1,3})\s+(.*)$", re.MULTILINE)
 
+# A paragraph is a run of non-blank lines. Matched rather than split, so each chunk carries its true
+# offset in the document instead of one accumulated from assumed separator lengths.
+_PARAGRAPH = re.compile(r"[^\n]+(?:\n[^\n]+)*")
+
 
 def _chunks(text: str, *, max_chars: int = 2400) -> list[tuple[str, str, tuple[int, int]]]:
     """Split a markdown document into (heading, body, char_span) chunks.
 
+    ``char_span`` is the chunk's exact offset in the source document, which is what lets the UI
+    highlight a cited passage inside the original rather than showing it as a floating quote. So the
+    spans are derived from real match positions throughout -- an earlier version advanced an offset by
+    ``len(paragraph) + 2``, assuming the separator was always exactly one blank line, and the spans
+    drifted further out of alignment with every paragraph.
+
     A section longer than ``max_chars`` is split on paragraph boundaries, because an oversized chunk
     both dilutes its embedding and makes a citation hard to check by eye.
     """
+    out: list[tuple[str, str, tuple[int, int]]] = []
     matches = list(_HEADING.finditer(text))
+
     if not matches:
         return [("", text.strip(), (0, len(text)))]
 
-    out: list[tuple[str, str, tuple[int, int]]] = []
+    # Text before the first heading is still content. Dropping it silently would mean a document
+    # with a preamble -- a disclaimer above the title, say -- had that text missing from retrieval
+    # with nothing reporting it.
+    if matches[0].start() > 0 and text[: matches[0].start()].strip():
+        out.append(("", text[: matches[0].start()].strip(), (0, matches[0].start())))
+
     for i, match in enumerate(matches):
         start = match.start()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
@@ -67,19 +84,23 @@ def _chunks(text: str, *, max_chars: int = 2400) -> list[tuple[str, str, tuple[i
             out.append((heading, body.strip(), (start, end)))
             continue
 
-        offset = start
-        for para in re.split(r"\n\s*\n", body):
-            if para.strip():
-                out.append((heading, para.strip(), (offset, offset + len(para))))
-            offset += len(para) + 2
+        # Paragraph spans come from finditer on the section itself, so every offset is real.
+        for para in _PARAGRAPH.finditer(body):
+            chunk = para.group(0).strip()
+            if chunk:
+                out.append((heading, chunk, (start + para.start(), start + para.end())))
     return out
 
 
 def _label_documents(tenant_id: str, product_id: str, label_version: str) -> list[Document]:
     path = LABELS_DIR / f"{product_id}-v{label_version}.md"
     if not path.is_file():
-        print(f"  ! no label extract at {path.relative_to(REPO_ROOT)}", file=sys.stderr)
-        return []
+        # Raised rather than warned. A tenant seeded with no label evidence does not fail visibly --
+        # it fails as "cannot verify" on every single claim, days later, looking like a model problem.
+        raise FileNotFoundError(
+            f"no label extract for {product_id} v{label_version} at "
+            f"{path.relative_to(REPO_ROOT)}; check the tenant's label_version"
+        )
 
     text = path.read_text(encoding="utf-8")
     return [
@@ -172,12 +193,23 @@ def seed_evidence(tenant_id: str) -> dict[str, int]:
     return counts
 
 
-def seed_rules(tenant_id: str, *, activate: bool = True) -> list[str]:
-    """Load one tenant's business rules from YAML into the registry."""
-    rules = RuleRegistry(tenant_id).seed_from_yaml(
-        tenancy.tenant_rules_dir(tenant_id), activate=activate
+def seed_rules(tenant_id: str, *, activate: bool = True) -> tuple[list[str], list[str]]:
+    """Load one tenant's business rules from YAML into the registry.
+
+    Returns the loaded rules and any that were refused activation. A refused rule is stored as a
+    draft rather than discarded, so the author's work survives, but it does not take effect.
+    """
+    registry = RuleRegistry(tenant_id)
+    rules = registry.seed_from_yaml(
+        tenancy.tenant_rules_dir(tenant_id),
+        activate=activate,
+        reference_docs_dir=tenancy.tenant_reference_docs_dir(tenant_id),
     )
-    return [f"{r.id} v{r.version} ({r.status})" for r in rules]
+    refused = [
+        f"{label}: {report.summary() if report else 'validation failed'}"
+        for label, report in getattr(registry, "rejected", [])
+    ]
+    return [f"{r.id} v{r.version} ({r.status})" for r in rules], refused
 
 
 def main() -> int:
@@ -196,6 +228,9 @@ def main() -> int:
         print("No tenants found under corpus/tenants/.", file=sys.stderr)
         return 1
 
+    # Collected rather than raised immediately, so one bad tenant does not hide problems in another.
+    problems: list[str] = []
+
     for tenant_id in tenant_ids:
         config = tenancy.load_tenant(tenant_id)
         print(f"\n{config.name} ({tenant_id})  config v{config.version}")
@@ -206,10 +241,15 @@ def main() -> int:
             detail = ", ".join(f"{n} {kind}" for kind, n in sorted(counts.items()))
             print(f"  evidence: {total} passages indexed ({detail})")
 
-        rules = seed_rules(tenant_id, activate=not args.draft)
+        rules, refused = seed_rules(tenant_id, activate=not args.draft)
         print(f"  rules:    {len(rules)} loaded")
         for line in rules:
             print(f"            {line}")
+        if refused:
+            problems.append(f"{tenant_id}: {len(refused)} rule(s) refused activation")
+            print(f"  REFUSED:  {len(refused)} rule(s) left as drafts and NOT in force")
+            for line in refused:
+                print(f"            {line}", file=sys.stderr)
 
     # Printed last because it is the value an auditor will be asked about: it identifies the
     # complete policy -- config plus rules -- that any run after this seed will have applied.
@@ -223,6 +263,12 @@ def main() -> int:
             f"config={parts['config_hash']}  rules={parts['rules_hash']}  "
             f"active_rules={parts['active_rule_count']}"
         )
+
+    if problems:
+        print("\nSeeding completed with problems:", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
     return 0
 
 

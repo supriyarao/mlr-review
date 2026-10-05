@@ -196,40 +196,59 @@ def check_trademark_first_mention(rule: Rule, data: RuleInput) -> list[RuleViola
     """Brand name must carry (R) or (TM) on its first mention.
 
     params: ``brand`` (required), ``window`` (characters after the mention to search, default 3),
-    ``case_sensitive`` (default True).
+    ``generic_name`` (defaults to the brand lower-cased).
 
     Only the *first* mention is checked. House style almost universally requires the mark once and
     then drops it, so flagging later mentions would produce a finding on every correctly written
     piece -- the kind of false positive that trains reviewers to ignore a whole check.
 
-    Case-sensitive by default, which matters more than it looks: pharmaceutical copy writes the brand
-    capitalised and the generic name in lower case, as in "Zelvoran(R) (zelvoran)". A
-    case-insensitive search finds the *generic* name first and reports a trademark violation on copy
-    that is correctly marked -- which is exactly what happened when this rule was first run against
-    the real promotional pieces.
+    The subtlety is telling a brand mention from the generic name. Pharmaceutical copy writes
+    "Zelvoran(R) (zelvoran)": the capitalised form is the trademark and needs the symbol, the
+    lower-case form is the international non-proprietary name and does not. Two naive approaches
+    both fail, and both were tried here:
+
+    * **Case-insensitive** matching finds the generic name inside "Zelvoran(R) (zelvoran)" and
+      reports a violation on correctly marked copy.
+    * **Case-sensitive** matching misses "ZELVORAN", which labels and quoted safety information use
+      constantly -- so an all-caps piece carrying no symbol at all passes silently, and when an
+      all-caps mention is followed by a capitalised one the violation is reported against the
+      *second* mention, breaking the first-mention semantics outright.
+
+    So: find every mention case-insensitively, discard the ones written in the all-lower-case generic
+    form, and check the first remaining one. A piece that only ever uses the generic name is not
+    using the trademark and needs no symbol.
     """
     brand = str(rule.params.get("brand", ""))
     if not brand.strip():
         raise RuleEvaluationError(f"{rule.label()}: trademark_first_mention needs params.brand")
 
+    generic = str(rule.params.get("generic_name", "") or brand).lower()
     window = int(rule.params.get("window", 3))
-    flags = 0 if rule.params.get("case_sensitive", True) else re.IGNORECASE
-    match = re.search(rf"\b{re.escape(brand)}\b", data.text, flags)
-    if match is None:
-        # The brand is never mentioned, so there is no first mention to mark.
+    pattern = re.compile(rf"\b{re.escape(brand)}\b", re.IGNORECASE)
+
+    first_brand_mention = None
+    for match in pattern.finditer(data.text):
+        # The all-lower-case form is the generic name, not the trademark.
+        if match.group(0) == generic:
+            continue
+        first_brand_mention = match
+        break
+
+    if first_brand_mention is None:
+        # The brand is never used as a brand, so there is no first mention to mark.
         return []
 
-    trailing = data.text[match.end() : match.end() + max(window, 1)]
+    trailing = data.text[first_brand_mention.end() : first_brand_mention.end() + max(window, 1)]
     if any(mark in trailing for mark in TRADEMARK_MARKS):
         return []
 
     return [
         _violation(
             rule,
-            quote=match.group(0),
-            char_span=match.span(),
+            quote=first_brand_mention.group(0),
+            char_span=first_brand_mention.span(),
             message=f"First mention of {brand} does not carry a trademark symbol.",
-            suggested_fix=f"Write {brand}® on first mention.",
+            suggested_fix=f"Write {brand}\u00ae on first mention.",
         )
     ]
 

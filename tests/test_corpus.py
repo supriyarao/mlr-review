@@ -172,12 +172,60 @@ def test_no_head_to_head_study_exists_for_either_product():
         assert "No head-to-head" in read(LABELS / f"{name}.md")
 
 
+def zelvoran_evidence() -> list[Path]:
+    return sorted(REFERENCES.glob("zel-*.md")) + [LABELS / "zelvoran-v1.0.md"]
+
+
+def affirmative_sentences(path: Path, needle: str) -> list[str]:
+    """Sentences mentioning ``needle`` that are not denying something.
+
+    Evidence files state what was *not* studied as well as what was, so a plain "needle not in text"
+    assertion is defeated by the corpus's own disclaimers. What matters is whether the mention is a
+    reported result or a denial, so negated sentences are filtered out.
+    """
+    negations = ("no ", "not ", "never ", "none ", "cannot ", "did not")
+    out = []
+    for sentence in re.split(r"(?<=[.!])\s+", flat(path)):
+        if needle.lower() not in sentence.lower():
+            continue
+        lowered = sentence.lower()
+        if any(n in lowered for n in negations):
+            continue
+        out.append(sentence)
+    return out
+
+
 def test_no_zelvoran_data_exist_beyond_week_52():
-    """Case 9, ungrounded durability claim. A two-year claim must have nothing to cite."""
-    ref = flat(REFERENCES / "zel-303.md")
-    assert "No data on ZELVORAN beyond 52 weeks exist" in ref
-    corpus_text = " ".join(flat(p) for p in REFERENCES.glob("zel-*.md"))
-    assert "two years" not in corpus_text.lower() or "no data" in corpus_text.lower()
+    """Case 9, ungrounded durability claim. A two-year claim must have nothing to cite.
+
+    Asserted on the actual timepoints the evidence reports, not on the absence of a phrase. An
+    earlier version of this test read ``"two years" not in text or "no data" in text``, which could
+    never fail, because zel-303 contains "No data on ZELVORAN beyond 52 weeks exist" and so the
+    second clause was always true. Two-year data could have been added and this test would have
+    stayed green -- defeating the one case it exists to protect.
+    """
+    assert "No data on ZELVORAN beyond 52 weeks exist" in flat(REFERENCES / "zel-303.md")
+
+    weeks = {
+        int(m.group(1))
+        for path in zelvoran_evidence()
+        for m in re.finditer(r"Week\s+(\d+)", read(path))
+    }
+    assert weeks, "no timepoints found at all, so this test is not checking anything"
+    assert max(weeks) == 52, (
+        f"Zelvoran evidence reports a timepoint beyond Week 52: {sorted(weeks)}"
+    )
+
+    # And no affirmative result stated in years or in months beyond 12.
+    for path in zelvoran_evidence():
+        assert affirmative_sentences(path, "two years") == [], path.name
+        assert affirmative_sentences(path, "2 years") == [], path.name
+        months = {
+            int(m.group(1))
+            for s in affirmative_sentences(path, "month")
+            for m in re.finditer(r"(\d+)\s+months", s)
+        }
+        assert not {m for m in months if m > 12}, f"{path.name} reports {months} months"
 
 
 def test_cardiovascular_evidence_exists_only_for_nexapril():
@@ -185,14 +233,25 @@ def test_cardiovascular_evidence_exists_only_for_nexapril():
 
     A Zelvoran piece claiming a cardiovascular outcome can only be supported by Nexapril's evidence,
     which belongs to a different tenant. The correct answer is "cannot verify", not "supported".
+
+    As above, an earlier version asserted ``"major adverse cardiovascular events" not in text or
+    "No cardiovascular" in text``, which could never fail: every Zelvoran file already contains "No
+    cardiovascular outcomes were assessed". Cardiovascular efficacy data could have been added to
+    Zelvoran's evidence with this guard still green.
     """
     nex = flat(REFERENCES / "nex-114.md")
     assert "22% relative risk reduction" in nex
+    assert "hazard ratio 0.78" in nex
 
-    for path in list(REFERENCES.glob("zel-*.md")) + [LABELS / "zelvoran-v1.0.md"]:
+    for path in zelvoran_evidence():
         text = flat(path)
+        # A hazard ratio is how a cardiovascular outcome is reported; Zelvoran has none at all.
+        assert "hazard ratio" not in text.lower(), f"{path.name} reports a hazard ratio"
         assert "22% relative risk reduction" not in text
-        assert "major adverse cardiovascular events" not in text or "No cardiovascular" in text
+        # Every cardiovascular mention must be a denial, never a reported result.
+        affirmative = affirmative_sentences(path, "cardiovascular")
+        assert affirmative == [], f"{path.name} states a cardiovascular result: {affirmative}"
+        assert affirmative_sentences(path, "MACE") == [], path.name
 
 
 def test_the_co_promoted_product_is_configured_for_both_tenants():

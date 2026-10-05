@@ -39,6 +39,18 @@ class RuleStorageError(Exception):
     """Raised on a versioning or tenant-scoping violation."""
 
 
+class RuleActivationError(Exception):
+    """Raised when a rule fails validation and activation was not explicitly overridden.
+
+    Carries the validation report so a caller -- the API, the UI, or ``make seed`` -- can show the
+    author exactly which examples disagree with the rule rather than just refusing.
+    """
+
+    def __init__(self, message: str, report: Any = None) -> None:
+        super().__init__(message)
+        self.report = report
+
+
 class RuleRow(SQLModel, table=True):
     """One version of one rule.
 
@@ -238,12 +250,46 @@ class RuleRegistry:
             session.flush()
             return row.to_rule()
 
-    def activate(self, rule_id: str, version: int, *, note: str = "") -> Rule:
+    def activate(
+        self,
+        rule_id: str,
+        version: int,
+        *,
+        note: str = "",
+        reference_docs_dir: Path | None = None,
+        force: bool = False,
+    ) -> Rule:
         """Make one version the active one, retiring whichever version was active before.
 
         Exactly one version of a rule can be active at a time; otherwise "which rule produced this
         finding" would have more than one answer.
+
+        **Validation is enforced here, not in the callers.** Activation is the moment a rule starts
+        affecting real reviews, and it is reachable from seeding, the API and the UI. Putting the bar
+        in each of those paths means it only holds in the ones someone remembered -- which is exactly
+        what happened: ``seed_from_yaml`` activated every rule file without validating, so a blocker
+        whose own examples contradicted it went live and ``make seed`` printed success.
+
+        ``force`` exists because a rule can legitimately need to go live against the checker's
+        advice. It requires a ``note``, so the override is recorded rather than silent.
         """
+        from platform_core.rules.validation import validate_rule
+
+        rule = self.get(rule_id, version=version)
+        report = validate_rule(rule, reference_docs_dir=reference_docs_dir)
+
+        if not report.can_activate:
+            if not force:
+                raise RuleActivationError(
+                    f"{rule.label()} cannot be activated: {report.summary()}", report
+                )
+            if not note.strip():
+                # An override with no reason is indistinguishable from a mistake six months later.
+                raise RuleActivationError(
+                    f"{rule.label()} fails validation; overriding requires a note explaining why",
+                    report,
+                )
+
         for existing in self.all_versions(rule_id):
             if existing.status == "active" and existing.version != version:
                 self._set_status(rule_id, existing.version, "retired")
@@ -277,13 +323,24 @@ class RuleRegistry:
 
     # --- YAML seed and export -------------------------------------------------------------------
 
-    def seed_from_yaml(self, rules_dir: Path, *, activate: bool = True) -> list[Rule]:
+    def seed_from_yaml(
+        self,
+        rules_dir: Path,
+        *,
+        activate: bool = True,
+        reference_docs_dir: Path | None = None,
+    ) -> list[Rule]:
         """Load rule YAML files into the registry.
 
         Idempotent in the sense that matters: re-seeding identical content does not create a new
         version, because a developer running ``make seed`` twice should not inflate the version
         history. Changed content does create one.
+
+        A rule that fails validation is still **stored** -- losing authored work would be worse --
+        but is left as a draft, and :attr:`rejected` records why. Seeding must not be able to put a
+        rule into force that the checker would refuse.
         """
+        self.rejected: list[tuple[str, Any]] = []
         if not rules_dir.is_dir():
             return []
 
@@ -312,7 +369,7 @@ class RuleRegistry:
             )
             if unchanged is not None:
                 if activate and unchanged.status != "active":
-                    self.activate(rule.id, unchanged.version, note=f"seeded from {path.name}")
+                    self._try_activate(unchanged.id, unchanged.version, path, reference_docs_dir)
                 loaded.append(self.get(rule.id))
                 continue
 
@@ -320,9 +377,31 @@ class RuleRegistry:
                 rule, created_by="seed", change_note=f"seeded from {path.name}"
             )
             if activate:
-                stored = self.activate(stored.id, stored.version, note=f"seeded from {path.name}")
+                stored = (
+                    self._try_activate(stored.id, stored.version, path, reference_docs_dir)
+                    or stored
+                )
             loaded.append(stored)
         return loaded
+
+    def _try_activate(
+        self, rule_id: str, version: int, path: Path, reference_docs_dir: Path | None
+    ) -> Rule | None:
+        """Activate a seeded rule, recording a refusal instead of raising.
+
+        One invalid rule file must not abort the whole seed: the other rules are still worth
+        loading, and the operator needs to see every problem at once rather than one per run.
+        """
+        try:
+            return self.activate(
+                rule_id,
+                version,
+                note=f"seeded from {path.name}",
+                reference_docs_dir=reference_docs_dir,
+            )
+        except RuleActivationError as exc:
+            self.rejected.append((f"{rule_id} v{version} ({path.name})", exc.report))
+            return None
 
     def export_to_yaml(self, rules_dir: Path) -> list[Path]:
         """Write the active rule set back to YAML so a UI change can be committed.

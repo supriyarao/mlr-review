@@ -8,7 +8,11 @@ import pytest
 import yaml
 
 from platform_core.rules import evals as rule_evals
-from platform_core.rules.registry import RuleRegistry, RuleStorageError
+from platform_core.rules.registry import (
+    RuleActivationError,
+    RuleRegistry,
+    RuleStorageError,
+)
 from platform_core.rules.schema import Rule, RuleScope
 from platform_core.rules.validation import validate_rule
 
@@ -486,3 +490,105 @@ def test_the_applied_set_records_what_a_run_actually_used():
     assert applied == [
         {"id": "ACME-BAN-001", "version": 1, "kind": "deterministic", "severity": "blocker"}
     ]
+
+
+# --- Activation is gated, on every path that reaches it ------------------------------------------
+
+
+def test_a_rule_that_fails_validation_cannot_be_activated():
+    """The bar lives in activate(), not in each caller.
+
+    Activation is reachable from seeding, the API and the UI. Enforcing the rule in each of those
+    means it only holds where someone remembered -- which is exactly what went wrong: seed_from_yaml
+    activated every rule file without validating, so a blocker whose own examples contradicted it
+    went live and `make seed` reported success.
+    """
+    registry = RuleRegistry("acme_pharma")
+    broken = make_rule(
+        examples=[
+            {"text": "No banned term in this sentence.", "expected": "fail"},
+            {"text": "Zelvoran treats plaque psoriasis.", "expected": "pass"},
+        ]
+    )
+    stored = registry.save_new_version(broken)
+
+    with pytest.raises(RuleActivationError, match="cannot be activated"):
+        registry.activate(stored.id, stored.version)
+    # And it really is still inactive, not merely reported as refused.
+    assert registry.get(stored.id, version=stored.version).status == "draft"
+    assert registry.active_rules() == []
+
+
+def test_a_failed_activation_can_be_overridden_but_only_with_a_reason():
+    """A rule can legitimately need to go live against the checker's advice.
+
+    An override with no recorded reason is indistinguishable from a mistake six months later, so the
+    note is required rather than optional.
+    """
+    registry = RuleRegistry("acme_pharma")
+    stored = registry.save_new_version(
+        make_rule(
+            examples=[
+                {"text": "No banned term here.", "expected": "fail"},
+                {"text": "Zelvoran treats psoriasis.", "expected": "pass"},
+            ]
+        )
+    )
+    with pytest.raises(RuleActivationError, match="requires a note"):
+        registry.activate(stored.id, stored.version, force=True)
+
+    activated = registry.activate(
+        stored.id, stored.version, force=True, note="Accepted by Regulatory pending rewording."
+    )
+    assert activated.status == "active"
+    assert "Accepted by Regulatory" in registry.history(stored.id)[-1]["change_note"]
+
+
+def test_a_valid_rule_activates_normally():
+    registry = RuleRegistry("acme_pharma")
+    stored = registry.save_new_version(make_rule())
+    assert registry.activate(stored.id, stored.version).status == "active"
+
+
+def test_seeding_leaves_an_invalid_rule_as_a_draft_and_records_why(tmp_path):
+    """Authored work is kept, but a rule the checker would refuse never takes effect."""
+    good = rule_data("ACME-BAN-001")
+    bad = rule_data(
+        "ACME-BAN-002",
+        examples=[
+            {"text": "No banned term in this sentence.", "expected": "fail"},
+            {"text": "Zelvoran treats psoriasis.", "expected": "pass"},
+        ],
+    )
+    (tmp_path / "good.yaml").write_text(yaml.safe_dump(good), encoding="utf-8")
+    (tmp_path / "bad.yaml").write_text(yaml.safe_dump(bad), encoding="utf-8")
+
+    registry = RuleRegistry("acme_pharma")
+    registry.seed_from_yaml(tmp_path)
+
+    assert [r.id for r in registry.active_rules()] == ["ACME-BAN-001"]
+    assert registry.get("ACME-BAN-002").status == "draft"
+    assert len(registry.rejected) == 1
+    assert "ACME-BAN-002" in registry.rejected[0][0]
+
+
+def test_a_reference_doc_rule_cannot_be_activated_without_its_document(tmp_path):
+    """Seeding must pass the reference docs directory, or validation cannot check the clauses."""
+    registry = RuleRegistry("acme_pharma")
+    stored = registry.save_new_version(
+        make_rule(
+            "ACME-DOC-001",
+            kind="reference_doc",
+            description="Content must comply with the Acme Brand and Promotional Code.",
+            params={"doc_path": "missing-code.md"},
+        )
+    )
+    with pytest.raises(RuleActivationError):
+        registry.activate(stored.id, stored.version, reference_docs_dir=tmp_path)
+
+    (tmp_path / "missing-code.md").write_text(
+        "## 1. Claims\nClaims match the label.\n", encoding="utf-8"
+    )
+    assert (
+        registry.activate(stored.id, stored.version, reference_docs_dir=tmp_path).status == "active"
+    )
