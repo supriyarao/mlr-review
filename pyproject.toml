@@ -1,0 +1,63 @@
+[project]
+name = "mlr-agent"
+version = "0.1.0"
+description = "Multi-tenant agentic MLR review demo: LangGraph, validation gates, human-in-the-loop escalation, audit trail, and an eval harness"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+
+dependencies = [
+    # Orchestration
+    "langgraph>=0.2.60",
+    "langgraph-checkpoint-sqlite>=2.0.1",
+    # Models (one factory, three backends: anthropic / ollama / fake)
+    "langchain-core>=0.3.29",
+    "langchain-anthropic>=0.3.1",
+    "langchain-ollama>=0.2.2",
+    # Schemas and storage
+    "pydantic>=2.10",
+    "sqlmodel>=0.0.22",
+    # Retrieval
+    "chromadb>=0.5.23",
+    "rank-bm25>=0.2.2",
+    # Chroma's default embedder runs on onnxruntime. onnxruntime stopped shipping
+    # Intel-macOS wheels after 1.23.x, so pin only on that platform and leave Linux
+    # (including CI) and Apple Silicon free to take the current release.
+    "onnxruntime>=1.23,<1.24 ; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    # Input parsing
+    "pymupdf>=1.25.1",
+    # Service + UI
+    "fastapi>=0.115.6",
+    "uvicorn>=0.34.0",
+    "python-multipart>=0.0.20",
+    "streamlit>=1.41.1",
+    "streamlit-mermaid>=0.3.0",
+    "openpyxl>=3.1.5",
+    "httpx>=0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "ruff>=0.8.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# The private build spec contains illustrative, deliberately unformatted code blocks.
+extend-exclude = ["PROMPT.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",  # line length is handled by the formatter
+    "B008",  # FastAPI's Depends()/File() defaults are the documented idiom
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

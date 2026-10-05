@@ -1,0 +1,28 @@
+# The private build spec. Never commit this.
+PROMPT.md
+
+# Secrets
+.env
+.env.local
+
+# Runtime data (SQLite databases, Chroma vector store)
+data/
+
+# Eval output. Baselines and cassettes ARE committed so the offline eval is reproducible.
+evals/results/
+evals/candidates/*
+!evals/candidates/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
