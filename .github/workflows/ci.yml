@@ -46,7 +46,7 @@ jobs:
       # The embedding model the vector store uses is downloaded on first use. Cached so the eval
       # step does not fetch it on every run.
       - name: Cache embedding model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/chroma
           key: chroma-onnx-${{ runner.os }}
