@@ -1,0 +1,76 @@
+# Acme Pharma — tenant policy
+#
+# Fictional. Compare with borealis_bio/tenant.yaml: the two differ on purpose, so the same
+# promotional piece can route differently under each. Acme is the more permissive of the two.
+
+tenant_id: acme_pharma
+name: Acme Pharma
+version: "2026.1"
+
+# Findings below this confidence are flagged low_confidence and escalate. Acme accepts more
+# machine judgement than Borealis does, trading a little safety for review throughput.
+confidence_threshold: 70
+
+products:
+  - product_id: zelvoran
+    name: Zelvoran
+    label_version: "1.0"
+    indication: moderate-to-severe plaque psoriasis in adults
+
+severity_rules:
+  # Promotion outside the approved label is never acceptable, however it arises.
+  - check_type: off_label
+    severity: blocker
+    rule_id: ACME-SEV-OFFLABEL
+    rationale: Promotion outside the approved population or indication is not correctable by wording.
+
+  # An efficacy claim the evidence does not support at the stated strength misleads a prescriber.
+  - check_type: substantiation
+    severity: blocker
+    rule_id: ACME-SEV-SUBSTANTIATION
+    rationale: An unsupported or overstated efficacy claim changes a prescribing decision.
+
+  # Citing a study that measured something else is unsupported, regardless of the wording.
+  - check_type: reference_support
+    severity: blocker
+    rule_id: ACME-SEV-REFERENCE
+    rationale: A citation that does not measure the claimed endpoint or population is no citation.
+
+  # Missing required safety information is a blocker; placement alone is advisory for Acme.
+  - check_type: safety_prominence
+    severity: blocker
+    rule_id: ACME-SEV-SAFETY
+    rationale: Required safety information must be present for a reader to weigh benefit and risk.
+
+  # Acme treats balance of prominence as a correctable editorial matter.
+  - check_type: fair_balance
+    severity: advisory
+    rule_id: ACME-SEV-BALANCE
+    rationale: Imbalance of emphasis is usually fixable in layout without changing the claim.
+
+  # Fallback for anything not matched above, including business rules that do not set a severity.
+  - check_type: "*"
+    severity: advisory
+    rule_id: ACME-SEV-DEFAULT
+    rationale: Unclassified observations go to a reviewer as advisory rather than being dropped.
+
+escalation:
+  # Even a piece with no findings goes to a person. The system never approves anything.
+  standard_tier: standard_reviewer
+  default_escalation_tier: senior_regulatory
+  rules:
+    # Acme funnels everything serious to one senior tier, rather than splitting by discipline.
+    - when_reason: off_label
+      tier: senior_regulatory
+    - when_reason: comparative_claim
+      tier: senior_regulatory
+
+policy_flags:
+  # A superiority claim needs a head-to-head trial. No such trial exists for Zelvoran, so any
+  # superiority claim is unsubstantiated by construction.
+  require_head_to_head_for_superiority: true
+  # Acme does not constrain where safety information sits, only that it is present.
+  require_isi_near_first_efficacy_claim: false
+  # Pre-approved claims skip substantiation but are still checked for fair balance and off-label
+  # implication, because approved wording in a new context can still mislead.
+  preapproved_claims_skip_substantiation: true

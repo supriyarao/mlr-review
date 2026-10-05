@@ -1,0 +1,40 @@
+id: BOR-DOC-001
+tenant_id: borealis_bio
+title: Compliance with the Borealis Promotional Style Guide
+description: >-
+  Promotional material must follow the Borealis Promotional Style Guide. A finding under this rule
+  must quote the exact clause of the guide that the material breaches.
+kind: reference_doc
+severity: advisory
+check_type: business_rule
+scope:
+  audience: any
+params:
+  doc_path: borealis-style-guide.md
+  clauses:
+    - >-
+      Any claim about a clinical outcome must state the population in which that outcome was
+      observed.
+    - >-
+      Percentages are written to one decimal place. Hazard ratios are written to two decimal places
+      and are accompanied by their 95% confidence interval.
+    - >-
+      Use "adults with type 2 diabetes and established atherosclerotic cardiovascular disease", not
+      "diabetics" or "at-risk patients".
+    - Expand every abbreviation on first use. Do not use an abbreviation in a headline.
+examples:
+  - text: "MACE cut by 22% in diabetics [1]."
+    expected: fail
+    note: >-
+      Abbreviation in a headline, percentage without a decimal place, prohibited term "diabetics",
+      and no population stated. Breaches several clauses.
+  - text: >-
+      In adults with type 2 diabetes and established atherosclerotic cardiovascular disease, Nexapril
+      reduced major adverse cardiovascular events by 22.0% versus placebo over a median of 36 months
+      (hazard ratio 0.78, 95% CI 0.69 to 0.88) [1].
+    expected: pass
+    note: Population, comparator, timeframe and number formatting all per the guide.
+owner: Medical Communications
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide

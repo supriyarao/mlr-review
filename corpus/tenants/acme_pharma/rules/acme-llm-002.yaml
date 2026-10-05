@@ -1,0 +1,39 @@
+id: ACME-LLM-002
+tenant_id: acme_pharma
+title: Depicted population must match the indication
+description: >-
+  Imagery, captions, testimonials and surrounding copy must not depict or imply use in a population
+  outside the approved indication, including by depicting or referring to children where the
+  indication is limited to adults.
+kind: llm
+severity: blocker
+check_type: off_label
+scope:
+  audience: any
+params:
+  guidance: >-
+    The approved population for Zelvoran is adults with moderate-to-severe plaque psoriasis. Treat
+    references to children, teenagers, families, "all ages", or image captions describing a child or
+    a family as implying use outside that population, even when the claim text itself is accurate and
+    even when the claim is a pre-approved one. Judge the piece as a reader would encounter it,
+    including captions and adjacent copy, not the claim sentence in isolation.
+examples:
+  - text: >-
+      Zelvoran is indicated for moderate-to-severe plaque psoriasis in adults. Photo caption: the
+      Hartley family, including nine-year-old Mia, back at the beach.
+    expected: fail
+    note: >-
+      The claim is the approved indication statement verbatim, but the caption implies paediatric use.
+      This is why a pre-approved claim still gets checked for off-label implication.
+  - text: Relief for the whole family, at every age.
+    expected: fail
+    note: Implies a population wider than adults.
+  - text: >-
+      Zelvoran is indicated for moderate-to-severe plaque psoriasis in adults who are candidates for
+      systemic therapy or phototherapy. Photo caption: Daniel, 42, three months into treatment.
+    expected: pass
+    note: Depicted individual is within the approved population.
+owner: Medical Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 6

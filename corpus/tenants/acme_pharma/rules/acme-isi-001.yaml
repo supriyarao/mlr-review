@@ -1,0 +1,40 @@
+id: ACME-ISI-001
+tenant_id: acme_pharma
+title: Important Safety Information must be present
+description: >-
+  Every promotional piece must carry the Important Safety Information for the product so a reader can
+  weigh benefit against risk.
+kind: deterministic
+severity: blocker
+check_type: safety_prominence
+scope:
+  audience: any
+params:
+  type: required_section
+  section: important_safety_information
+  # Acme requires presence only. Borealis additionally constrains placement, and that single
+  # difference is what makes the same piece route differently under the two tenants.
+examples:
+  - text: "Zelvoran® achieved PASI-75 in 68.4% of adults at Week 16.\n\nIMPORTANT SAFETY INFORMATION\nSerious infections have been reported."
+    expected: pass
+    note: Safety section present.
+    doc_meta:
+      sections:
+        efficacy:
+          start: 0
+          end: 62
+        important_safety_information:
+          start: 64
+          end: 150
+  - text: "Zelvoran® achieved PASI-75 in 68.4% of adults at Week 16."
+    expected: fail
+    note: No safety section anywhere in the piece.
+    doc_meta:
+      sections:
+        efficacy:
+          start: 0
+          end: 62
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 4

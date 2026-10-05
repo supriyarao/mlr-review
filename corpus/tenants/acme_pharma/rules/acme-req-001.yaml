@@ -1,0 +1,34 @@
+id: ACME-REQ-001
+tenant_id: acme_pharma
+title: Prescribing Information signpost
+description: >-
+  Every promotional piece must direct the reader to the full Prescribing Information using the
+  approved wording.
+kind: deterministic
+severity: blocker
+check_type: business_rule
+scope:
+  audience: any
+params:
+  type: required_text
+  text: Please see full Prescribing Information.
+  match: normalized
+  suggested_fix: Add "Please see full Prescribing Information." to the piece.
+examples:
+  - text: >-
+      Zelvoran achieved PASI-75 in 68.4% of adults at Week 16. Please see full Prescribing
+      Information.
+    expected: pass
+    note: Signpost present.
+  - text: >-
+      Zelvoran achieved PASI-75 in 68.4% of adults at Week 16. Please see full
+      Prescribing   Information.
+    expected: pass
+    note: Reflowed across lines but the wording is intact.
+  - text: Zelvoran achieved PASI-75 in 68.4% of adults at Week 16. See the label for details.
+    expected: fail
+    note: Signpost missing.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 11

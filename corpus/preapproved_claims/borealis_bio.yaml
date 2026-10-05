@@ -1,0 +1,50 @@
+# Claims Borealis's MLR committee has already cleared.
+#
+# Covers Nexapril and the co-promoted Zelvoran. A matched claim skips substantiation but is still
+# checked for fair balance and off-label implication.
+
+tenant_id: borealis_bio
+
+claims:
+  - id: BOR-PAC-001
+    product_id: nexapril
+    label_version: "2.1"
+    text: >-
+      In adults with type 2 diabetes and established atherosclerotic cardiovascular disease, Nexapril
+      reduced the risk of major adverse cardiovascular events by 22% versus placebo over a median of
+      36 months.
+    approved_on: "2026-03-09"
+    source: NEX-114
+    notes: >-
+      The population limit is part of the claim. Presenting it without "established atherosclerotic
+      cardiovascular disease" makes it off-label by implication.
+
+  - id: BOR-PAC-002
+    product_id: nexapril
+    label_version: "2.1"
+    text: >-
+      Nexapril is indicated in adults with type 2 diabetes mellitus and established atherosclerotic
+      cardiovascular disease to reduce the risk of major adverse cardiovascular events.
+    approved_on: "2026-03-09"
+    source: Label v2.1, section 1
+    notes: Indication statement.
+
+  - id: BOR-PAC-003
+    product_id: nexapril
+    label_version: "2.1"
+    text: >-
+      At Week 24, adults treated with Nexapril had a 1.1% reduction in HbA1c from baseline compared
+      with 0.2% for placebo.
+    approved_on: "2026-03-09"
+    source: NEX-115
+    notes: Week 24 only.
+
+  - id: BOR-PAC-004
+    product_id: zelvoran
+    label_version: "1.0"
+    text: >-
+      In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared
+      with 9.2% receiving placebo.
+    approved_on: "2026-04-01"
+    source: ZEL-301
+    notes: Co-promotion. Same claim Acme cleared, cleared separately by the Borealis committee.

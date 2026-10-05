@@ -1,0 +1,38 @@
+id: ACME-LLM-001
+tenant_id: acme_pharma
+title: Typical results in patient-directed material
+description: >-
+  Patient-directed material must not imply that the results described are typical of all patients
+  unless the approved label supports that characterisation, and must direct the reader to a
+  healthcare professional.
+kind: llm
+severity: blocker
+check_type: substantiation
+scope:
+  # Patient-facing only. The same wording in an HCP piece is read by someone trained to interpret a
+  # response rate, which is why this rule is scoped rather than universal.
+  audience: patient
+params:
+  guidance: >-
+    Look for language suggesting a reader should expect the described outcome themselves, such as
+    "you will", "most people see", "typical results", or a testimonial presented without
+    qualification. A response rate stated with its population, comparator and timepoint is not a
+    violation. Absence of a direction to speak to a healthcare professional is a violation only when
+    the piece also implies a personal expectation of benefit.
+examples:
+  - text: Most people see clear skin within weeks. You can expect the same.
+    expected: fail
+    note: Asserts a personal expectation of benefit with no qualification.
+  - text: Zelvoran works for everyone with plaque psoriasis.
+    expected: fail
+    note: Universal claim unsupported by any response rate.
+  - text: >-
+      In a 16-week study, 68.4% of adults treated with Zelvoran achieved at least a 75% improvement
+      in their psoriasis score, compared with 9.2% who received placebo. Individual results vary.
+      Talk to your doctor about whether Zelvoran is right for you.
+    expected: pass
+    note: Labelled result with comparator and timepoint, qualified, and directs to a clinician.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 10

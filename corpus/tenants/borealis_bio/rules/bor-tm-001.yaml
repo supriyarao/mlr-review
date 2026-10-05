@@ -1,0 +1,28 @@
+id: BOR-TM-001
+tenant_id: borealis_bio
+title: Trademark symbol on first mention
+description: >-
+  The product name must carry the registered trademark symbol on its first mention in every
+  promotional piece.
+kind: deterministic
+severity: advisory
+check_type: business_rule
+scope:
+  audience: any
+  product_ids:
+    - nexapril
+params:
+  type: trademark_first_mention
+  brand: Nexapril
+  window: 3
+examples:
+  - text: Nexapril is indicated in adults with type 2 diabetes and established cardiovascular disease.
+    expected: fail
+    note: First mention carries no symbol.
+  - text: "Nexapril® is indicated in adults with type 2 diabetes and established cardiovascular disease."
+    expected: pass
+    note: First mention carries the registered symbol.
+owner: Brand Marketing
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 5

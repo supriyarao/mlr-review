@@ -190,13 +190,17 @@ def _run_examples(rule: Rule) -> list[ExampleOutcome]:
             )
             continue
 
-        data = RuleInput(
-            text=example.text,
-            # A claim-level rule needs segments; treating the whole example as one segment is the
-            # right default, since an example for such a rule is written as a single claim.
-            segments=[Segment(id="example", text=example.text, char_span=(0, len(example.text)))],
-            doc_meta=dict(rule.params.get("example_doc_meta", {}) or {}),
+        # A claim-level rule needs segments. An example may list them explicitly; otherwise the
+        # whole example text is treated as one segment, which is how such examples are written.
+        segments = (
+            [
+                Segment(id=f"example-{i}", text=s, char_span=(0, len(s)))
+                for i, s in enumerate(example.segments)
+            ]
+            if example.segments
+            else [Segment(id="example", text=example.text, char_span=(0, len(example.text)))]
         )
+        data = RuleInput(text=example.text, segments=segments, doc_meta=dict(example.doc_meta))
         try:
             violations = deterministic.evaluate(rule, data)
         except deterministic.RuleEvaluationError as exc:

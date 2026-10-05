@@ -1,0 +1,40 @@
+id: BOR-BAN-001
+tenant_id: borealis_bio
+title: Prohibited risk-minimising language
+description: >-
+  Promotional material must not describe a Borealis product as safe without qualification, state that
+  it has no side effects, or otherwise minimise its risk profile.
+kind: deterministic
+severity: blocker
+check_type: business_rule
+scope:
+  audience: any
+params:
+  type: banned_terms
+  regex: true
+  terms:
+    - 'safe and effective'
+    - 'no side effects'
+    - 'without risk'
+    - 'risk[\s-]free'
+    - 'well tolerated by all'
+  allowed_contexts:
+    - '"[^"]{0,200}"'
+  suggested_fix: >-
+    Replace with the labelled adverse reaction profile and its frequencies.
+examples:
+  - text: Nexapril is safe and effective for adults with type 2 diabetes.
+    expected: fail
+    note: Unqualified safety assertion.
+  - text: A risk-free way to protect your heart.
+    expected: fail
+    note: Asserts absence of risk.
+  - text: >-
+      In NEX-114, urinary tract infection occurred in 6.4% of Nexapril patients compared with 4.9%
+      receiving placebo [1].
+    expected: pass
+    note: States the adverse reaction profile with frequencies and a comparator.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 1

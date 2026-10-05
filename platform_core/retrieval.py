@@ -183,17 +183,26 @@ class TenantRetriever:
     def _collection(self) -> Any:
         return _client().get_or_create_collection(collection_name(self.tenant_id))
 
-    def _where(self, product_id: str = "", label_version: str = "") -> dict[str, Any]:
+    def _where(
+        self, product_id: str = "", label_version: str = "", doc_type: str = ""
+    ) -> dict[str, Any]:
         """Metadata filter applied inside the query, before ranking.
 
         Filtering after ranking would mean the top-k was chosen from the wrong candidate pool: a
         tenant with more data could crowd out the correct passages before the filter ever ran.
+
+        ``doc_type`` narrows to one kind of source. The pre-approved claims filter needs it: asking
+        "does this claim match an already-cleared claim?" against a pool that also contains the label
+        and the studies would match the underlying evidence instead, and wrongly report the claim as
+        pre-approved.
         """
         clauses: list[dict[str, Any]] = [{"tenant_id": {"$eq": self.tenant_id}}]
         if product_id:
             clauses.append({"product_id": {"$eq": product_id}})
         if label_version:
             clauses.append({"label_version": {"$eq": label_version}})
+        if doc_type:
+            clauses.append({"doc_type": {"$eq": doc_type}})
         return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 
     def _passage(self, source_id: str, text: str, meta: dict[str, Any]) -> Passage:
@@ -208,7 +217,7 @@ class TenantRetriever:
             char_span=(int(meta.get("char_start", 0)), int(meta.get("char_end", 0))),
         )
 
-    def _candidates(self, product_id: str, label_version: str) -> list[Passage]:
+    def _candidates(self, product_id: str, label_version: str, doc_type: str = "") -> list[Passage]:
         """Every passage in scope, for BM25 to rank.
 
         Trade-off: BM25 is built over the filtered candidate set on each query rather than kept as
@@ -217,7 +226,7 @@ class TenantRetriever:
         (Elasticsearch, or SQLite FTS5) instead.
         """
         got = self._collection().get(
-            where=self._where(product_id, label_version),
+            where=self._where(product_id, label_version, doc_type),
             include=["documents", "metadatas"],
         )
         ids = got.get("ids") or []
@@ -233,6 +242,7 @@ class TenantRetriever:
         *,
         product_id: str = "",
         label_version: str = "",
+        doc_type: str = "",
         k: int = 6,
     ) -> list[Passage]:
         """Hybrid search within this tenant's evidence.
@@ -242,7 +252,7 @@ class TenantRetriever:
         if not query.strip():
             return []
 
-        candidates = self._candidates(product_id, label_version)
+        candidates = self._candidates(product_id, label_version, doc_type)
         if not candidates:
             return []
 
@@ -283,7 +293,7 @@ class TenantRetriever:
             result = self._collection().query(
                 query_texts=[query],
                 n_results=min(k * 3, max(len(candidates), 1)),
-                where=self._where(product_id, label_version),
+                where=self._where(product_id, label_version, doc_type),
                 include=["documents", "metadatas"],
             )
             dense_ids = (result.get("ids") or [[]])[0]
@@ -323,7 +333,7 @@ class TenantRetriever:
         return out
 
     def contains_verbatim(
-        self, needle: str, *, product_id: str = "", label_version: str = ""
+        self, needle: str, *, product_id: str = "", label_version: str = "", doc_type: str = ""
     ) -> bool:
         """Is this exact text present in this tenant's evidence, ignoring whitespace?
 
@@ -335,12 +345,14 @@ class TenantRetriever:
             return False
         return any(
             target in normalize_whitespace(p.text)
-            for p in self._candidates(product_id, label_version)
+            for p in self._candidates(product_id, label_version, doc_type)
         )
 
-    def all_passages(self, *, product_id: str = "", label_version: str = "") -> list[Passage]:
+    def all_passages(
+        self, *, product_id: str = "", label_version: str = "", doc_type: str = ""
+    ) -> list[Passage]:
         """Every in-scope passage. Used by the grounding gate and by the seeding report."""
-        return self._candidates(product_id, label_version)
+        return self._candidates(product_id, label_version, doc_type)
 
 
 def normalize_whitespace(text: str) -> str:

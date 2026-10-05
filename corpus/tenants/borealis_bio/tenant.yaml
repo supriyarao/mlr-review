@@ -1,0 +1,80 @@
+# Borealis Bio — tenant policy
+#
+# Fictional. The stricter of the two tenants, and deliberately different from acme_pharma in three
+# ways that change outcomes: a higher confidence threshold, fair balance as a blocker with a
+# placement requirement, and escalation split by discipline rather than funnelled to one tier.
+
+tenant_id: borealis_bio
+name: Borealis Bio
+version: "2026.3"
+
+# Higher bar than Acme: Borealis wants a human to look at anything the system is less than
+# confident about. Costs review throughput, buys fewer missed problems.
+confidence_threshold: 80
+
+products:
+  - product_id: nexapril
+    name: Nexapril
+    label_version: "2.1"
+    indication: >-
+      adults with type 2 diabetes mellitus and established atherosclerotic cardiovascular disease
+  # Zelvoran is co-promoted: Borealis promotes it in a second market and holds its own indexed copy
+  # of the evidence. This is what lets the same piece be reviewed under both tenants.
+  - product_id: zelvoran
+    name: Zelvoran
+    label_version: "1.0"
+    indication: moderate-to-severe plaque psoriasis in adults
+
+severity_rules:
+  - check_type: off_label
+    severity: blocker
+    rule_id: BOR-SEV-OFFLABEL
+    rationale: Promotion outside the approved population or indication is not correctable by wording.
+
+  - check_type: substantiation
+    severity: blocker
+    rule_id: BOR-SEV-SUBSTANTIATION
+    rationale: An unsupported or overstated efficacy claim changes a prescribing decision.
+
+  - check_type: reference_support
+    severity: blocker
+    rule_id: BOR-SEV-REFERENCE
+    rationale: A citation that does not measure the claimed endpoint or population is no citation.
+
+  - check_type: safety_prominence
+    severity: blocker
+    rule_id: BOR-SEV-SAFETY
+    rationale: Required safety information must be present and readable where the claim is made.
+
+  # The key divergence from Acme. Borealis treats prominence as substantive, not editorial: a
+  # benefit a reader meets pages before the risk is a benefit presented without its risk.
+  - check_type: fair_balance
+    severity: blocker
+    rule_id: BOR-SEV-BALANCE
+    rationale: >-
+      Risk information separated from the claim it qualifies does not reach the reader who needs it,
+      so imbalance of prominence is treated as a blocking defect rather than a layout note.
+
+  - check_type: "*"
+    severity: advisory
+    rule_id: BOR-SEV-DEFAULT
+    rationale: Unclassified observations go to a reviewer as advisory rather than being dropped.
+
+escalation:
+  standard_tier: standard_reviewer
+  default_escalation_tier: senior_regulatory
+  rules:
+    # Split by discipline: a clinical judgement and a legal exposure are different conversations,
+    # and sending both to one tier wastes the specialist Borealis actually needs.
+    - when_reason: off_label
+      tier: medical_director
+    - when_reason: comparative_claim
+      tier: legal
+
+policy_flags:
+  require_head_to_head_for_superiority: true
+  # The second key divergence: safety information must sit with the first efficacy claim, not
+  # merely somewhere in the piece.
+  require_isi_near_first_efficacy_claim: true
+  isi_max_distance_chars: 600
+  preapproved_claims_skip_substantiation: true

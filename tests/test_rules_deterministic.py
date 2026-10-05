@@ -371,3 +371,25 @@ def test_deterministic_evaluation_makes_no_model_call(monkeypatch):
 
     monkeypatch.setattr(llm_module, "get_chat_model", explode)
     assert deterministic.evaluate_all([rule(), tm_rule(), ref_rule()], inp("A cure."))
+
+
+def test_trademark_check_is_case_sensitive_so_the_generic_name_does_not_trip_it():
+    """Regression guard for a false positive found by running the rule on real copy.
+
+    Pharmaceutical copy writes the brand capitalised and the generic name lower case, as in
+    "Zelvoran(R) (zelvoran)". A case-insensitive search finds the generic name and reports a
+    trademark violation on a piece that is correctly marked.
+    """
+    text = "Zelvoran® (zelvoran) is indicated for adults."
+    assert deterministic.evaluate(tm_rule(), inp(text)) == []
+
+
+def test_a_tenant_can_opt_into_case_insensitive_trademark_matching():
+    r = rule(
+        id="ACME-TM-002",
+        severity="advisory",
+        title="Trademark on first mention, any casing",
+        description="The brand name must carry a trademark symbol however it is capitalised.",
+        params={"type": "trademark_first_mention", "brand": "Zelvoran", "case_sensitive": False},
+    )
+    assert deterministic.evaluate(r, inp("zelvoran is indicated for adults."))

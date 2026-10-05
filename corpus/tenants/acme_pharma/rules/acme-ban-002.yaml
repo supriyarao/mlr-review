@@ -1,0 +1,36 @@
+id: ACME-BAN-002
+tenant_id: acme_pharma
+title: Unqualified superlatives
+description: >-
+  Promotional material must not use unqualified superlative or ranking language about an Acme
+  product, such as best-in-class or number one, because such language asserts a comparison without
+  identifying what the product is being compared against.
+kind: deterministic
+severity: advisory
+check_type: fair_balance
+scope:
+  audience: any
+params:
+  type: banned_terms
+  regex: true
+  terms:
+    - 'best[\s-]?in[\s-]?class'
+    - '#\s?1\b'
+    - 'number one'
+    - 'most effective'
+    - 'unmatched'
+  suggested_fix: Remove the superlative, or replace it with the specific labelled result.
+examples:
+  - text: Zelvoran is the best-in-class option for plaque psoriasis.
+    expected: fail
+    note: Unqualified ranking claim.
+  - text: The most effective treatment available today.
+    expected: fail
+    note: Superlative with no comparator.
+  - text: Zelvoran achieved PASI-75 in 68.4% of adults at Week 16 versus 9.2% with placebo.
+    expected: pass
+    note: Specific labelled result, no superlative.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 3

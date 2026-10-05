@@ -1,0 +1,47 @@
+id: BOR-ISI-001
+tenant_id: borealis_bio
+title: Safety information must sit with the first efficacy claim
+description: >-
+  Important Safety Information must appear in the same section as the first efficacy claim, so that a
+  reader meets the risk alongside the benefit rather than after it.
+kind: deterministic
+severity: blocker
+check_type: fair_balance
+scope:
+  audience: any
+params:
+  type: required_section
+  section: important_safety_information
+  near_section: efficacy
+  # The policy difference from Acme, expressed as a number. Acme requires presence only; Borealis
+  # requires proximity. The same piece therefore routes differently under the two tenants.
+  max_distance_chars: 600
+  suggested_fix: >-
+    Move the Important Safety Information into the same section as the first efficacy claim.
+examples:
+  - text: "Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo over 36 months [1].\n\nIMPORTANT SAFETY INFORMATION\nNexapril is contraindicated in severe renal impairment."
+    expected: pass
+    note: Safety information immediately follows the efficacy claim.
+    doc_meta:
+      sections:
+        efficacy:
+          start: 0
+          end: 97
+        important_safety_information:
+          start: 99
+          end: 200
+  - text: "Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo over 36 months [1]. [...many pages of content...] IMPORTANT SAFETY INFORMATION"
+    expected: fail
+    note: Safety information is thousands of characters from the claim it qualifies.
+    doc_meta:
+      sections:
+        efficacy:
+          start: 0
+          end: 97
+        important_safety_information:
+          start: 4200
+          end: 4400
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 6

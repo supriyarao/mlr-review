@@ -1,0 +1,35 @@
+id: BOR-DISC-001
+tenant_id: borealis_bio
+title: Patient disclaimer
+description: >-
+  Patient-directed material must carry the approved patient disclaimer verbatim, so a reader is
+  directed to a clinician rather than left to apply a clinical result to themselves.
+kind: deterministic
+severity: blocker
+check_type: business_rule
+scope:
+  # Patient-facing only. This scope is the whole point of the rule: the identical piece sent to
+  # clinicians carries no such requirement, so audience alone changes the outcome.
+  audience: patient
+params:
+  type: required_text
+  text: Talk to your doctor about whether this treatment is right for you.
+  match: normalized
+  suggested_fix: >-
+    Add "Talk to your doctor about whether this treatment is right for you." to the piece.
+examples:
+  - text: >-
+      Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo over 36 months in
+      adults with type 2 diabetes and established atherosclerotic cardiovascular disease. Talk to
+      your doctor about whether this treatment is right for you.
+    expected: pass
+    note: Disclaimer present verbatim.
+  - text: >-
+      Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo over 36 months.
+      Ask about Nexapril today.
+    expected: fail
+    note: No disclaimer, and a call to action in its place.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 7

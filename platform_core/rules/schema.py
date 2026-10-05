@@ -44,6 +44,11 @@ class RuleExample(BaseModel):
 
     ``expected`` is what the rule should conclude about ``text``: "pass" means no violation,
     "fail" means the rule should fire.
+
+    ``doc_meta`` carries this example's own layout. A rule about *placement* -- safety information
+    present, or positioned near the first claim -- cannot be demonstrated by text alone, and a
+    single layout shared across the whole rule could not express both a passing and a failing case.
+    So layout belongs to the example, not to the rule.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -51,6 +56,10 @@ class RuleExample(BaseModel):
     text: str
     expected: Literal["pass", "fail"]
     note: str = ""
+    # Section offsets for this example, in the same shape ingest produces.
+    doc_meta: dict[str, Any] = Field(default_factory=dict)
+    # Segments for a rule that iterates claims. Defaults to the whole example text as one segment.
+    segments: list[str] = Field(default_factory=list)
 
 
 class RuleScope(BaseModel):

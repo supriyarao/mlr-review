@@ -1,0 +1,54 @@
+id: ACME-BAN-001
+tenant_id: acme_pharma
+title: Prohibited efficacy and safety language
+description: >-
+  Promotional material must not state or imply that an Acme product cures the condition it treats,
+  that a result is guaranteed, or that the product is completely safe or free of risk.
+kind: deterministic
+severity: blocker
+check_type: business_rule
+scope:
+  audience: any
+params:
+  type: banned_terms
+  terms:
+    - cure
+    - cures
+    - curative
+    - guaranteed
+    - miracle
+    - completely safe
+    - no side effects
+  regex: false
+  # A banned term is permitted inside a quoted study or article title, where it is a citation
+  # rather than a claim. Without this, citing published literature would trip the rule.
+  allowed_contexts:
+    - '"[^"]{0,200}"'
+    - '“[^”]{0,200}”'
+  suggested_fix: >-
+    Describe the observed effect using the labelled endpoint and timepoint instead.
+examples:
+  - text: Zelvoran can cure plaque psoriasis in most adults.
+    expected: fail
+    note: Direct curative claim.
+  - text: Results are guaranteed within 16 weeks.
+    expected: fail
+    note: Guarantee of outcome.
+  - text: Zelvoran is completely safe for long-term use.
+    expected: fail
+    note: Absolute safety claim.
+  - text: >-
+      In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared
+      with 9.2% receiving placebo.
+    expected: pass
+    note: Labelled result with comparator and timepoint.
+  - text: 'Reviewers discussed the paper "Toward a cure for plaque psoriasis" at the congress.'
+    expected: pass
+    note: Banned term inside a quoted title is a citation, not a claim.
+  - text: Patients should book a manicure before starting treatment.
+    expected: pass
+    note: Word-boundary check - "manicure" must not trip the "cure" term.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code, clause 9

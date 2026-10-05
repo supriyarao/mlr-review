@@ -195,18 +195,26 @@ def check_required_text(rule: Rule, data: RuleInput) -> list[RuleViolation]:
 def check_trademark_first_mention(rule: Rule, data: RuleInput) -> list[RuleViolation]:
     """Brand name must carry (R) or (TM) on its first mention.
 
-    params: ``brand`` (required), ``window`` (characters after the mention to search, default 3).
+    params: ``brand`` (required), ``window`` (characters after the mention to search, default 3),
+    ``case_sensitive`` (default True).
 
     Only the *first* mention is checked. House style almost universally requires the mark once and
     then drops it, so flagging later mentions would produce a finding on every correctly written
     piece -- the kind of false positive that trains reviewers to ignore a whole check.
+
+    Case-sensitive by default, which matters more than it looks: pharmaceutical copy writes the brand
+    capitalised and the generic name in lower case, as in "Zelvoran(R) (zelvoran)". A
+    case-insensitive search finds the *generic* name first and reports a trademark violation on copy
+    that is correctly marked -- which is exactly what happened when this rule was first run against
+    the real promotional pieces.
     """
     brand = str(rule.params.get("brand", ""))
     if not brand.strip():
         raise RuleEvaluationError(f"{rule.label()}: trademark_first_mention needs params.brand")
 
     window = int(rule.params.get("window", 3))
-    match = re.search(rf"\b{re.escape(brand)}\b", data.text, re.IGNORECASE)
+    flags = 0 if rule.params.get("case_sensitive", True) else re.IGNORECASE
+    match = re.search(rf"\b{re.escape(brand)}\b", data.text, flags)
     if match is None:
         # The brand is never mentioned, so there is no first mention to mark.
         return []

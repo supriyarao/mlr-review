@@ -1,0 +1,39 @@
+id: BOR-LLM-001
+tenant_id: borealis_bio
+title: Comparative language requires a named comparator and head-to-head evidence
+description: >-
+  Comparative or superlative language about a Borealis product - better, superior, more effective,
+  leading, best - requires a named comparator and a head-to-head clinical trial against that
+  comparator. No head-to-head trial exists for any Borealis product.
+kind: llm
+severity: blocker
+check_type: substantiation
+scope:
+  audience: any
+params:
+  # Routes to legal rather than to regulatory. A comparative claim is a competitor-litigation
+  # exposure as much as a regulatory one, and Borealis wants the specialist who handles that.
+  escalate_to: legal
+  guidance: >-
+    Flag any text asserting or implying that the product performs better than another therapy, class
+    of therapy, or unnamed alternative. "Versus placebo" is a comparison against placebo and is not a
+    violation when the trial was placebo-controlled. A claim is still a violation when the comparator
+    is vague - "leading therapies", "other treatments", "the alternatives" - because no head-to-head
+    evidence exists for any comparator.
+examples:
+  - text: Nexapril works better than the leading therapies for cardiovascular risk.
+    expected: fail
+    note: Comparative claim with a vague comparator and no head-to-head trial.
+  - text: Superior cardiovascular protection, proven.
+    expected: fail
+    note: Superlative with no comparator at all.
+  - text: >-
+      In NEX-114, Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo over a
+      median of 36 months in adults with type 2 diabetes and established atherosclerotic
+      cardiovascular disease (hazard ratio 0.78, 95% CI 0.69 to 0.88) [1].
+    expected: pass
+    note: Comparison is against placebo, which is what the trial studied.
+owner: Legal Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 2

@@ -1,0 +1,35 @@
+id: BOR-REF-001
+tenant_id: borealis_bio
+title: Every efficacy claim needs a reference marker
+description: >-
+  Every efficacy claim must carry a numbered reference marker identifying the study that supports it,
+  so a reader can verify the claim against its source.
+kind: deterministic
+severity: blocker
+check_type: reference_support
+scope:
+  audience: any
+params:
+  type: max_claims_without_reference
+  # Numbered markers only: Borealis's style guide specifies a numbered reference list, so a vague
+  # "see references" does not satisfy the rule.
+  marker_pattern: '(\[\d+\]|[¹²³⁰-⁹]+|\bReference\s+\d+\b)'
+  max_allowed: 0
+  suggested_fix: Add a numbered reference marker citing the supporting study.
+examples:
+  - text: Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo [1].
+    expected: pass
+    note: Numbered marker present.
+  - text: "Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo¹."
+    expected: pass
+    note: Superscript marker accepted.
+  - text: Nexapril reduced major adverse cardiovascular events by 22.0% versus placebo.
+    expected: fail
+    note: No reference marker.
+  - text: Nexapril is a once-daily tablet. See references at the end of this document.
+    expected: fail
+    note: An unnumbered pointer is not a reference marker under this tenant's style guide.
+owner: Medical Communications
+effective_from: "2026-01-01"
+status: active
+source_ref: Borealis Promotional Style Guide, clause 9

@@ -1,0 +1,49 @@
+id: ACME-DOC-001
+tenant_id: acme_pharma
+title: Compliance with the Acme Brand and Promotional Code
+description: >-
+  Promotional material must comply with the Acme Brand and Promotional Code. A finding under this
+  rule must quote the exact clause of the Code that the material breaches.
+kind: reference_doc
+severity: blocker
+check_type: business_rule
+scope:
+  audience: any
+params:
+  doc_path: acme-promotional-code.md
+  # Clauses in scope for this reviewer. Each must appear verbatim in the document, which validation
+  # enforces, so a clause cannot be cited that the Code does not actually contain.
+  clauses:
+    - >-
+      A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A
+      subgroup figure must never be presented as the result in the overall population.
+    - >-
+      A claim that an Acme product is better than, more effective than, or preferable to another
+      therapy requires a head-to-head clinical trial against that named therapy.
+    - >-
+      Claims about how long an effect lasts must not extend beyond the longest timepoint for which
+      data exist.
+    - >-
+      Every claim of efficacy or safety must carry a reference to the specific study supporting it.
+      The cited study must report the endpoint, population and timepoint stated in the claim.
+examples:
+  - text: >-
+      Nearly 6 in 10 adults achieved PASI-90 with Zelvoran at Week 16. Please see full Prescribing
+      Information.
+    expected: fail
+    note: >-
+      58.1% is the prior-biologic subgroup result; the overall population was 44.2%. Breaches the
+      subgroup clause.
+  - text: >-
+      Two years of sustained clear skin with Zelvoran. Please see full Prescribing Information.
+    expected: fail
+    note: No data beyond Week 52 exist. Breaches the durability clause.
+  - text: >-
+      In ZEL-302, 44.2% of adults treated with Zelvoran achieved PASI-90 at Week 16, compared with
+      4.8% receiving placebo (Reference 2). Please see full Prescribing Information.
+    expected: pass
+    note: Overall-population result, correctly attributed and referenced.
+owner: Regulatory Affairs
+effective_from: "2026-01-01"
+status: active
+source_ref: Acme Brand and Promotional Code

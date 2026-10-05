@@ -315,3 +315,44 @@ def test_the_final_assertion_catches_a_passage_that_slips_past_the_filter(seeded
 
     with pytest.raises(RetrievalError, match="tenant isolation violation"):
         retriever.search("reduced major adverse cardiovascular events", k=10)
+
+
+def test_search_can_be_narrowed_to_one_document_type(seeded):
+    """The pre-approved claims filter needs this.
+
+    Asking "does this claim match an already-cleared claim?" against a pool that also holds the
+    label and the studies would match the underlying evidence instead, and wrongly report a brand
+    new claim as pre-approved.
+    """
+    index_documents(
+        "acme_pharma",
+        [
+            Document(
+                source_id="acme-pac-001",
+                text=ACME_LABEL,
+                tenant_id="acme_pharma",
+                product_id="zelvoran",
+                label_version="v1.0",
+                doc_type="preapproved_claim",
+                title="Pre-approved claim ACME-PAC-001",
+            )
+        ],
+    )
+    retriever = TenantRetriever("acme_pharma")
+
+    # The same text exists as both a label passage and a pre-approved claim.
+    unfiltered = {p.doc_type for p in retriever.search("plaque psoriasis in adults", k=10)}
+    assert {"label", "preapproved_claim"} <= unfiltered
+
+    only_claims = retriever.search("plaque psoriasis in adults", doc_type="preapproved_claim", k=10)
+    assert only_claims
+    assert all(p.doc_type == "preapproved_claim" for p in only_claims)
+
+
+def test_verbatim_grounding_can_be_narrowed_to_one_document_type(seeded):
+    assert TenantRetriever("acme_pharma").contains_verbatim(
+        "plaque psoriasis in adults", doc_type="label"
+    )
+    assert not TenantRetriever("acme_pharma").contains_verbatim(
+        "plaque psoriasis in adults", doc_type="preapproved_claim"
+    )

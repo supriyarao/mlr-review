@@ -1,0 +1,47 @@
+# Claims Acme's MLR committee has already cleared for Zelvoran, label version 1.0.
+#
+# A matched claim skips substantiation, because the committee has already done that work. It is
+# still checked for fair balance and off-label implication: approved wording placed in a new context
+# can still mislead, and that context is exactly what was not reviewed when the claim was cleared.
+
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+
+claims:
+  - id: ACME-PAC-001
+    text: >-
+      In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared
+      with 9.2% receiving placebo.
+    approved_on: "2026-01-14"
+    source: ZEL-301
+    notes: Overall population, Week 16. Must be presented with the comparator and the timepoint.
+
+  - id: ACME-PAC-002
+    text: >-
+      Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who
+      are candidates for systemic therapy or phototherapy.
+    approved_on: "2026-01-14"
+    source: Label v1.0, section 1
+    notes: Indication statement. Must not be paired with imagery or copy implying a wider population.
+
+  - id: ACME-PAC-003
+    text: >-
+      In a 16-week randomised trial, 44.2% of adults treated with Zelvoran achieved PASI-90 compared
+      with 4.8% receiving placebo.
+    approved_on: "2026-02-02"
+    source: ZEL-302
+    notes: Overall population only. The prior-biologic subgroup figure is not approved for use.
+
+  - id: ACME-PAC-004
+    text: >-
+      Among adults who achieved PASI-75 at Week 16, 64.8% maintained PASI-75 through Week 52.
+    approved_on: "2026-02-02"
+    source: ZEL-303
+    notes: Week 52 is the longest timepoint with data. No durability claim beyond 52 weeks is approved.
+
+  - id: ACME-PAC-005
+    text: Zelvoran is administered as a subcutaneous injection every 4 weeks after two starter doses.
+    approved_on: "2026-01-14"
+    source: Label v1.0, section 2
+    notes: Dosing statement.
