@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from mlr.graph import PIPELINE, compile_with, fan_out
+from mlr.graph import PIPELINE, checkpointer, compile_with, fan_out
 from mlr.nodes.ingest import extract_text
 from mlr.state import initial_state, report_findings
 from platform_core import audit, runtime
@@ -138,7 +138,7 @@ def run_piece(
 ):
     """Run one promotional piece through the graph. Returns (compiled graph, result, fake)."""
     fake = FakeLLM(scripted=script or {}, default_response="{}")
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id=runtime.new_run_id(),
@@ -161,7 +161,7 @@ def run_piece(
 @pytest.fixture
 def subgroup_run(seeded):
     fake = FakeLLM(scripted=fr.subgroup_case_script(), default_response="{}")
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id="t-subgroup",
@@ -350,7 +350,7 @@ def test_the_same_piece_routes_differently_under_the_two_tenants(seeded):
 
     for tenant_id in ("acme_pharma", "borealis_bio"):
         fake = FakeLLM(scripted=script, default_response="{}")
-        with runtime.checkpointer() as saver:
+        with checkpointer() as saver:
             graph = compile_with(saver, fake=fake)
             state = initial_state(
                 run_id=f"t-{tenant_id}",
@@ -383,7 +383,7 @@ def test_a_clean_piece_still_goes_to_a_human(seeded):
     """There is no branch in which the system approves anything."""
     quote = "In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved"
     fake = FakeLLM(scripted=fr.clean_script(quote, quote), default_response="{}")
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id="t-clean",
@@ -415,7 +415,7 @@ def test_a_patient_scoped_rule_fires_only_on_a_patient_piece(seeded):
         ("hcp", "zelvoran-hcp-journal-ad"),
     ):
         fake = FakeLLM(scripted=fr.clean_script(quote, quote), default_response="{}")
-        with runtime.checkpointer() as saver:
+        with checkpointer() as saver:
             graph = compile_with(saver, fake=fake)
             state = initial_state(
                 run_id=f"t-{audience}",
@@ -447,7 +447,7 @@ def test_a_schema_failure_escalates_rather_than_looking_clean(seeded):
     script["substantiation"] = ["not json", "still not json"]
     fake = FakeLLM(scripted=script, default_response="{}")
 
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id="t-schema",
@@ -476,7 +476,7 @@ def test_the_retry_recovers_a_single_bad_response(seeded):
     script["substantiation"] = ["not json", script["substantiation"][0]]
     fake = FakeLLM(scripted=script, default_response="{}")
 
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id="t-retry",
@@ -511,7 +511,7 @@ def test_an_ungrounded_finding_is_kept_and_escalated_not_dropped(seeded):
     ]
     fake = FakeLLM(scripted=script, default_response="{}")
 
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver, fake=fake)
         state = initial_state(
             run_id="t-ungrounded",
@@ -574,8 +574,56 @@ def test_one_send_per_reference_document(seeded):
 
 
 def test_the_graph_compiles_with_every_documented_node(seeded):
-    with runtime.checkpointer() as saver:
+    with checkpointer() as saver:
         graph = compile_with(saver)
         mermaid = runtime.render_mermaid(graph)
     for node in PIPELINE:
         assert node in mermaid, f"{node} missing from the compiled graph"
+
+
+def test_state_models_survive_a_checkpoint_round_trip(seeded):
+    """Regression guard for a failure that is entirely silent until it is far from its cause.
+
+    LangGraph's msgpack allowlist takes ``(module, ClassName)`` pairs. Given anything else -- a dotted
+    string, a tuple of path components -- it matches nothing and every Pydantic model in state comes
+    back from a checkpoint as a plain dict. Nothing raises at that point. The run then fails on resume
+    with ``AttributeError: 'dict' object has no attribute 'is_blocker'`` inside a node, which says
+    nothing about serialization.
+
+    So this asserts on the types after a resume, not just that the resume succeeded.
+    """
+    fake = FakeLLM(scripted=fr.subgroup_case_script(), default_response="{}")
+    with checkpointer() as saver:
+        graph = compile_with(saver, fake=fake)
+        state = initial_state(
+            run_id="t-roundtrip",
+            tenant_id="acme_pharma",
+            product_id="zelvoran",
+            label_version="1.0",
+            audience="hcp",
+            channel="sales_aid",
+            market="us",
+            document=promo("zelvoran-hcp-subgroup-claim"),
+        )
+        runtime.start_run(graph, dict(state), run_id="t-roundtrip")
+
+        # Read the state back through the checkpointer, which is where the degradation happened.
+        reloaded = runtime.get_status(graph, "t-roundtrip")["values"]
+
+    from mlr.schemas import AppliedRule, Claim, Escalation, Finding, GateResult, RunCost
+
+    assert all(isinstance(c, Claim) for c in reloaded["claims"])
+    assert all(isinstance(f, Finding) for f in reloaded["final_findings"])
+    assert all(isinstance(g, GateResult) for g in reloaded["gate_results"])
+    assert all(isinstance(r, AppliedRule) for r in reloaded["rules_applied"])
+    assert isinstance(reloaded["escalation"], Escalation)
+    assert isinstance(reloaded["cost"], RunCost)
+
+
+def test_every_state_model_is_declared_as_a_checkpoint_type():
+    """A model in state but missing from CHECKPOINT_TYPES degrades to a dict on resume, silently."""
+    from mlr.schemas import AppliedRule, Citation, Claim, Escalation, Finding, GateResult, RunCost
+    from mlr.state import CHECKPOINT_TYPES
+
+    for model in (AppliedRule, Citation, Claim, Escalation, Finding, GateResult, RunCost):
+        assert model in CHECKPOINT_TYPES, f"{model.__name__} is in state but not declared"

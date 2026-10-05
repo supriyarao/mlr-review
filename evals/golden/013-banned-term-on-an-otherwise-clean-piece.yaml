@@ -1,0 +1,59 @@
+id: 013-banned-term-on-an-otherwise-clean-piece
+title: A tenant rule catches what no core check would
+why_hard: >-
+  Every core check passes this piece. The claim is a labelled result with its comparator and timepoint
+  and a reference, the population is correct, safety information is present and proportionate, the
+  trademark is marked and the Prescribing Information is signposted. The only defect is one word -
+  "cure" - which is on Acme's prohibited-term list and which no substantiation, reference, off-label,
+  fair-balance or safety check has any reason to flag. This is the case that demonstrates why the rules
+  registry exists: a compliance owner can add this prohibition without an engineering change, and the
+  finding cites the rule in their own wording. It is also deterministic, so it must fire with no model
+  call and at full confidence.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: journal_ad
+market: us
+promo: |
+  # A measured step forward in moderate-to-severe plaque psoriasis
+
+  ## Efficacy
+
+  Zelvoran® (zelvoran) is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  who are candidates for systemic therapy or phototherapy.
+
+  In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved
+  PASI-75 compared with 9.2% receiving placebo [1].
+
+  For many of these adults, that is as close to a cure as current therapy allows.
+
+  ## Important Safety Information
+
+  Zelvoran is contraindicated in patients with active, serious infection, including active tuberculosis,
+  and in patients with known serious hypersensitivity to zelvoran or any excipient. Zelvoran may
+  increase the risk of serious bacterial, fungal and viral infections. Screen for latent tuberculosis
+  before initiating treatment. Elevations in ALT or AST greater than three times the upper limit of
+  normal occurred in 2.1% of Zelvoran-treated patients compared with 0.6% receiving placebo. Serious
+  hypersensitivity reactions, including angioedema, have been reported. The effect of Zelvoran on the
+  risk of malignancy is not known. The most common adverse reactions were nasopharyngitis (14.1%),
+  injection-site reaction (9.4%) and headache (7.2%).
+
+  ## References
+
+  1. ZEL-301. Randomised, double-blind, placebo-controlled, 16 weeks, 812 adults.
+
+  Please see full Prescribing Information.
+expected_findings:
+  - check_type: business_rule
+    claim_contains: cure
+    severity: blocker
+    note: ACME-BAN-001. Deterministic, no model call, confidence 100.
+expected_rule_ids:
+  - ACME-BAN-001
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  - Please see full Prescribing Information
+tags: [business_rule, deterministic_rule, banned_terms]

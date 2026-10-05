@@ -1,0 +1,56 @@
+id: 009-preapproved-wording-in-a-misleading-context
+title: Pre-approved claim made misleading by what surrounds it
+why_hard: >-
+  The efficacy sentence is a pre-approved claim, reproduced exactly as the MLR committee cleared it, so
+  substantiation is skipped by design - the committee already did that work. The problem is the line
+  beneath it, which widens the population the approved claim appears to describe. This is the case that
+  justifies the whole policy: a pre-approved claim skips substantiation but is still checked for fair
+  balance and off-label implication, because the committee approved the wording and not the context,
+  and the context is precisely what was not in front of them. A system that treats "pre-approved" as
+  "skip everything" passes this piece.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: patient
+channel: patient_brochure
+market: us
+promo: |
+  # Clearer skin is possible
+
+  ## What Zelvoran can do
+
+  Zelvoran® (zelvoran) is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  who are candidates for systemic therapy or phototherapy.
+
+  In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared with
+  9.2% receiving placebo [1].
+
+  Whatever your age, whatever your stage, Zelvoran may be the answer your family has been waiting for.
+
+  Individual results vary. Talk to your doctor about whether Zelvoran is right for you.
+
+  ## Important Safety Information
+
+  Zelvoran can lower your ability to fight infections. Tell your doctor if you have an infection. Your
+  doctor will test you for tuberculosis before you start. Some people have had changes in liver blood
+  tests. Serious allergic reactions can happen.
+
+  ## References
+
+  1. ZEL-301. Randomised, double-blind, placebo-controlled, 16 weeks, 812 adults.
+
+  Please see full Prescribing Information.
+expected_findings:
+  - check_type: off_label
+    claim_contains: Whatever your age
+    severity: blocker
+    note: >-
+      Widens the approved adults-only population. The claim above it is pre-approved and correct; the
+      surrounding copy is what misleads.
+expected_route: senior_regulatory
+must_not_flag:
+  # The pre-approved claim itself must not be flagged for substantiation.
+  - In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75
+  - Individual results vary. Talk to your doctor about whether Zelvoran is right for you
+  - Please see full Prescribing Information
+tags: [off_label, preapproved, context, patient_facing]

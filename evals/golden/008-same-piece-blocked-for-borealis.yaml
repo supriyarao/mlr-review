@@ -1,0 +1,30 @@
+id: 008-same-piece-blocked-for-borealis
+title: The identical piece blocked for Borealis on placement
+why_hard: >-
+  The same file as case 007, the same evidence, the same model, the same claims - and a different
+  outcome. Borealis treats prominence as substantive rather than editorial: BOR-ISI-001 requires safety
+  information within 600 characters of the first efficacy claim, and here the gap is about 1,700. So a
+  piece one tenant sends to a standard reviewer, the other blocks. This pair is the clearest
+  demonstration that multi-tenancy here is real policy divergence and not a label on a shared pipeline,
+  and it is the case that breaks first if tenant policy ever stops being read per run.
+tenant_id: borealis_bio
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: leave_piece
+market: us
+promo_path: corpus/promo/zelvoran-hcp-isi-placement.md
+expected_findings:
+  - check_type: fair_balance
+    claim_contains: beyond the 600 allowed
+    severity: blocker
+    note: >-
+      BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full
+      confidence.
+expected_rule_ids:
+  - BOR-ISI-001
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - Zelvoran is contraindicated in patients with active, serious infection
+tags: [multi_tenant, fair_balance, deterministic_rule, paired_with_007]

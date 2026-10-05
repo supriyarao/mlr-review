@@ -33,8 +33,10 @@ from typing import Annotated, Any, TypedDict
 
 from mlr.schemas import (
     AppliedRule,
+    Citation,
     Claim,
     Escalation,
+    EscalationReason,
     Finding,
     GateResult,
     RunCost,
@@ -198,3 +200,21 @@ def report_findings(state: ReviewState) -> list[Finding]:
     if final:
         return list(final)
     return list(state.get("findings") or [])
+
+
+# Types that may appear inside a checkpoint, passed to
+# ``platform_core.runtime.checkpointer(allowed_types=...)``. Declared here because this is the layer
+# that knows what the state holds; the platform cannot import these and should not have to.
+#
+# Getting this wrong is quiet: an omitted type comes back from a checkpoint as a plain dict, and the
+# resumed run fails with an AttributeError inside whichever node touches it next.
+CHECKPOINT_TYPES: tuple[type, ...] = (
+    AppliedRule,
+    Citation,
+    Claim,
+    Escalation,
+    EscalationReason,
+    Finding,
+    GateResult,
+    RunCost,
+)

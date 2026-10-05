@@ -28,6 +28,8 @@ clearly; a per-claim map-reduce is the documented next step for long documents.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
@@ -170,6 +172,21 @@ def build(*, fake: Any = None) -> StateGraph:
     builder.add_edge("finalize", END)
 
     return builder
+
+
+@contextmanager
+def checkpointer() -> Iterator[Any]:
+    """A checkpointer that knows how to reconstruct this use case's state types.
+
+    Wraps ``platform_core.runtime.checkpointer`` so a caller cannot forget to declare them. Without the
+    declaration, every Pydantic model in state returns from a checkpoint as a plain dict and a resumed
+    run fails inside a node rather than at the point of the mistake.
+    """
+    from mlr.state import CHECKPOINT_TYPES
+    from platform_core.runtime import checkpointer as base_checkpointer
+
+    with base_checkpointer(allowed_types=CHECKPOINT_TYPES) as saver:
+        yield saver
 
 
 def compile_with(saver: Any, *, fake: Any = None) -> Any:

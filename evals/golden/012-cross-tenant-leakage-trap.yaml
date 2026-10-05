@@ -1,0 +1,28 @@
+id: 012-cross-tenant-leakage-trap
+title: A claim whose only supporting evidence belongs to another tenant
+why_hard: >-
+  "Reduced major adverse cardiovascular events by 22% over 36 months" is true - of Nexapril, in
+  Borealis's NEX-114 study. It is said here about Zelvoran, under Acme, whose corpus contains no
+  cardiovascular data at all and whose label states no cardiovascular outcomes trial was conducted. So
+  the evidence that would appear to support the claim exists, is well-formed, and is in a different
+  tenant's collection. The correct answer is "cannot verify, escalate"; reaching across the tenant
+  boundary to find it would be a confidential-data leak and a false justification in the same step.
+  This is the case that fails first if tenant scoping in retrieval ever regresses.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo_path: corpus/promo/zelvoran-hcp-unverifiable-claims.md
+expected_findings:
+  - check_type: substantiation
+    claim_contains: reduced major adverse cardiovascular events by 22%
+    severity: blocker
+    note: >-
+      The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no
+      cardiovascular evidence, so this must be unverifiable rather than supported.
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+tags: [tenant_isolation, ungrounded, substantiation]

@@ -1,0 +1,23 @@
+id: 007-same-piece-passes-for-acme
+title: Safety information at the back - acceptable to Acme
+why_hard: >-
+  Paired with case 008, which submits this exact file under the other tenant. The piece is competent:
+  correctly referenced, trademark marked, Prescribing Information signposted, and its safety
+  information complete. The only question is placement - six sections and 1,700 characters separate it
+  from the first efficacy claim. Acme requires safety information to be present and treats prominence
+  as a correctable editorial matter, so this passes to a standard reviewer. The case exists to prove
+  the system does not simply escalate anything with an unusual layout.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: leave_piece
+market: us
+promo_path: corpus/promo/zelvoran-hcp-isi-placement.md
+expected_findings: []
+expected_route: standard_reviewer
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - Zelvoran is contraindicated in patients with active, serious infection
+  - Store in a refrigerator at 2°C to 8°C in the original carton to protect from light
+tags: [multi_tenant, fair_balance, false_alarm_check, paired_with_008]

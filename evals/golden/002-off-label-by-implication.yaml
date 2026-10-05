@@ -1,0 +1,39 @@
+id: 002-off-label-by-implication
+title: Off-label by implication through imagery and copy
+why_hard: >-
+  Nothing in this piece names an unapproved indication, and the indication sentence it does contain is
+  the approved one, verbatim. The off-label promotion happens entirely by implication: a headline
+  addressed to "the whole family", a line promising relief "at every age", and a photo caption naming
+  a nine-year-old - against a label whose population is adults and which states that safety and
+  effectiveness have not been established in paediatric patients. A system that checks claim sentences
+  in isolation finds nothing wrong. Catching it requires reading the piece the way a reader meets it,
+  captions included.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: patient
+channel: patient_brochure
+market: us
+promo_path: corpus/promo/zelvoran-patient-brochure.md
+expected_findings:
+  - check_type: off_label
+    claim_contains: whole family
+    severity: blocker
+    note: The label covers adults only and has no paediatric data.
+  - check_type: off_label
+    claim_contains: nine-year-old
+    severity: blocker
+    note: A named child in the caption implies paediatric use.
+  - check_type: substantiation
+    claim_contains: Most people see clear skin
+    severity: blocker
+    note: Implies a typical result with no response rate, population or timepoint.
+expected_rule_ids:
+  # "cure" is on Acme's prohibited-term list, and the piece has no Prescribing Information signpost.
+  - ACME-BAN-001
+  - ACME-REQ-001
+expected_route: senior_regulatory
+must_not_flag:
+  - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  - Your doctor will test you for tuberculosis before you start
+tags: [off_label, implication, patient_facing, rule_finding]

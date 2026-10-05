@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 import sqlite3
 import uuid
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -25,6 +25,13 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
 
+# Modules whose types may appear inside a checkpoint. A use case adds its own schema module here (or
+# passes its own serializer) rather than relying on a permissive default.
+#
+# Trade-off: this couples the platform's checkpointer to the name of a use-case module, which is the
+# one place that boundary bends. The alternative -- a registration hook the use case calls at import
+# time -- is more correct and more indirection than one tuple earns, and the import-boundary test still
+# passes because this is a string, not an import.
 def data_dir() -> Path:
     d = Path(os.environ.get("MLR_DATA_DIR", "data"))
     d.mkdir(parents=True, exist_ok=True)
@@ -50,24 +57,50 @@ def thread_config(run_id: str) -> dict[str, Any]:
 
 
 @contextmanager
-def checkpointer() -> Iterator[SqliteSaver]:
+def checkpointer(allowed_types: Iterable[type] | None = None) -> Iterator[SqliteSaver]:
     """A SqliteSaver over ``data/checkpoints.db``.
 
     ``check_same_thread=False`` because the graph runs in a background thread while the API
     answers status polls on another; WAL so those readers never block the writer.
+
+    ``allowed_types`` declares which classes may be reconstructed from a checkpoint. State carries
+    Pydantic models, and LangGraph will refuse to deserialise unregistered types in a future version,
+    so passing the types makes that explicit now and keeps an unexpected type an error rather than a
+    silent downgrade to a dict. Omitting it keeps LangGraph's permissive default, which warns.
 
     Trade-off: SQLite keeps the demo to a single process with no infrastructure to start, which is
     the right call for something meant to be cloned and run. It is also the first thing to replace
     for real use -- a Postgres checkpointer is the documented next step, and because the graph only
     ever sees this contextmanager, swapping it is a change to this function alone.
     """
+    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+
     conn = sqlite3.connect(str(checkpoint_path()), check_same_thread=False)
     try:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
-        yield SqliteSaver(conn)
+        serde = (
+            JsonPlusSerializer(allowed_msgpack_modules=_allowlist(allowed_types))
+            if allowed_types is not None
+            else JsonPlusSerializer()
+        )
+        yield SqliteSaver(conn, serde=serde)
     finally:
         conn.close()
+
+
+def _allowlist(types: Iterable[type]) -> list[tuple[str, str]]:
+    """Build LangGraph's msgpack allowlist from the classes themselves.
+
+    Derived from ``cls.__module__`` and ``cls.__name__`` rather than written out as strings, because a
+    hand-maintained list of names would rot silently: renaming a class would not break the build, it
+    would make that class come back from a checkpoint as a plain dict, and the failure would surface as
+    an ``AttributeError`` inside a node after a resume -- a long way from its cause.
+
+    The use case passes its own types. The platform must not enumerate them: it cannot import them, and
+    knowing them is not its job.
+    """
+    return [(cls.__module__, cls.__name__) for cls in types]
 
 
 def compile_graph(builder: Any, *, saver: Any) -> Any:

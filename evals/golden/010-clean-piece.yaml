@@ -1,0 +1,27 @@
+id: 010-clean-piece
+title: A compliant piece that must produce no blockers
+why_hard: >-
+  Hard in the opposite direction from the rest of the set. Every claim is a labelled result stated with
+  its comparator and timepoint, every claim carries a reference, the trademark is marked on first
+  mention, safety information sits immediately after the efficacy section and is proportionate, and the
+  Prescribing Information is signposted. The difficulty is that a system tuned to find problems will
+  find one here - and a false blocker on correct material costs a reviewer's trust in every other
+  finding the system produces. This case is why false escalation rate is reported next to blocker
+  recall rather than beneath it.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: journal_ad
+market: us
+promo_path: corpus/promo/zelvoran-hcp-journal-ad.md
+expected_findings: []
+expected_route: standard_reviewer
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - 44.2% of adults treated with Zelvoran achieved PASI-90 compared with 4.8% receiving placebo
+  - Among adults who achieved PASI-75 at Week 16, 64.8% maintained PASI-75 through Week 52
+  - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  - Please see full Prescribing Information
+  - nasopharyngitis
+tags: [false_alarm_check, clean]

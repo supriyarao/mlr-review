@@ -13,8 +13,8 @@ TARGET = REPO_ROOT / "docs" / "graph.mmd"
 
 
 def main() -> int:
-    from mlr.graph import compile_with
-    from platform_core.runtime import checkpointer, render_mermaid
+    from mlr.graph import checkpointer, compile_with
+    from platform_core.runtime import render_mermaid
 
     with checkpointer() as saver:
         mermaid = render_mermaid(compile_with(saver))
