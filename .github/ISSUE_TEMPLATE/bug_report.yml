@@ -1,0 +1,60 @@
+name: Bug report
+description: Something does not behave the way the docs or the tests say it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste API keys, real product material or patient data. This project runs on
+        synthetic data only. To report a security problem, use the Security tab instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. make setup && make seed
+        2. make demo
+        3. Submit the sample "..." under tenant "..."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Review graph or a check
+        - Tenant policy or business rules
+        - Gates, routing or human review
+        - Audit trail
+        - Evals
+        - API
+        - UI
+        - Docs or setup
+    validations:
+      required: true
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Model backend
+      description: The value of MLR_LLM_BACKEND when it happened.
+      options: [fake, ollama, anthropic, not applicable]
+    validations:
+      required: true
+  - type: input
+    id: run-id
+    attributes:
+      label: Run id
+      description: If it concerns one review, its run id. The audit trail for that run helps.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output
+      description: Error text or the failing test output. Check it for secrets before pasting.
+      render: text

@@ -1,0 +1,42 @@
+# Run before every commit:  uvx pre-commit install
+# Run over the whole repo:  uvx pre-commit run --all-files
+#
+# This repository is public, so the first hook is the one that matters most: nothing key-shaped
+# gets committed, including inside recorded eval cassettes.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+
+  # Ruff runs from the project's own locked version rather than a second pinned copy, so the hook
+  # and `make lint` can never disagree about what is correctly formatted.
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format --check
+        entry: uv run ruff format --check
+        language: system
+        types: [python]
+      - id: private-files
+        name: private build specs and local env files stay out of git
+        entry: these files must never be committed
+        language: fail
+        files: '(^|/)(PROMPT(_RULES)?\.md|\.env(\.local)?)$'

@@ -1,0 +1,75 @@
+name: CI
+
+# Offline by design: no secrets, no API key, no model server. The test suite forces the fake model
+# backend and the eval replays recorded responses, so a fork's pull request runs exactly what a
+# push to main runs.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MLR_LLM_BACKEND: fake
+
+jobs:
+  test:
+    name: Lint, test, offline eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest
+
+      # The embedding model the vector store uses is downloaded on first use. Cached so the eval
+      # step does not fetch it on every run.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/chroma
+          key: chroma-onnx-${{ runner.os }}
+
+      - name: Seed the synthetic corpus
+        run: make seed
+
+      # Replays recorded model responses and compares against evals/baselines/latest.json.
+      # Exits non-zero if blocker recall drops, so a prompt or policy change cannot reduce it
+      # without the build saying so.
+      - name: Offline eval against the committed baseline
+        run: make eval-offline
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scan the whole history, not just the tip
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

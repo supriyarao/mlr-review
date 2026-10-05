@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest a capability, a check, an eval case or a second use case.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation, not the solution. Who needs this and when?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Where does it belong?
+      description: >-
+        The platform layer is reusable and knows nothing about claims or severities. Anything
+        specific to MLR review belongs to the use case.
+      options:
+        - platform_core (reusable across use cases)
+        - mlr (the MLR use case)
+        - Tenant configuration or rules (no code)
+        - API or UI
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: human
+    attributes:
+      label: Does it change what a human decides?
+      description: >-
+        The system never approves content. If this changes routing, escalation or the reviewer's
+        step, say how a person stays the decision-maker.
