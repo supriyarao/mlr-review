@@ -49,7 +49,7 @@ package = false
 line-length = 100
 target-version = "py312"
 # The private build spec contains illustrative, deliberately unformatted code blocks.
-extend-exclude = ["PROMPT.md"]
+extend-exclude = ["PROMPT.md", "PROMPT_RULES.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -158,9 +158,41 @@ class TenantConfig(BaseModel):
 
 
 def tenant_dir() -> Path:
-    """Directory holding tenant YAML files. Overridable via ``MLR_TENANT_DIR`` for tests."""
+    """Root directory holding one subdirectory per tenant. Overridable via ``MLR_TENANT_DIR``.
+
+    Layout, one directory per tenant::
+
+        corpus/tenants/acme_pharma/
+            tenant.yaml          # the TenantConfig validated by this module
+            rules/*.yaml         # business rules, owned by the tenant's compliance team
+            reference_docs/*.md  # codes of practice, style guides cited by reference_doc rules
+
+    A directory rather than a single file because a tenant owns more than a config: rules and the
+    documents those rules cite are tenant content too, and keeping them together is what makes
+    "onboard a tenant" a matter of adding a folder.
+    """
     override = os.environ.get("MLR_TENANT_DIR")
     return Path(override) if override else DEFAULT_TENANT_DIR
+
+
+def tenant_path(tenant_id: str) -> Path:
+    """Directory for one tenant."""
+    return tenant_dir() / tenant_id
+
+
+def tenant_config_path(tenant_id: str) -> Path:
+    """The tenant's config file."""
+    return tenant_path(tenant_id) / "tenant.yaml"
+
+
+def tenant_rules_dir(tenant_id: str) -> Path:
+    """Where this tenant's rule YAML files live. Seeded into SQLite by scripts/seed.py."""
+    return tenant_path(tenant_id) / "rules"
+
+
+def tenant_reference_docs_dir(tenant_id: str) -> Path:
+    """Where documents cited by this tenant's reference_doc rules live."""
+    return tenant_path(tenant_id) / "reference_docs"
 
 
 def load_tenant_from_path(path: Path) -> TenantConfig:
@@ -190,18 +222,29 @@ def load_tenant(tenant_id: str) -> TenantConfig:
     Cached because it is read on nearly every node call and the file does not change inside a
     run. Call :func:`clear_tenant_cache` after editing configs (the test suite and the UI do).
     """
-    config = load_tenant_from_path(tenant_dir() / f"{tenant_id}.yaml")
+    config = load_tenant_from_path(tenant_config_path(tenant_id))
     if config.tenant_id != tenant_id:
         raise TenantConfigError(
-            f"tenant_id mismatch: file {tenant_id}.yaml declares {config.tenant_id!r}"
+            f"tenant_id mismatch: {tenant_id}/tenant.yaml declares {config.tenant_id!r}"
         )
     return config
 
 
+def tenant_ids() -> list[str]:
+    """Ids of every configured tenant, sorted.
+
+    A directory counts as a tenant only if it actually holds a ``tenant.yaml``, so a stray folder
+    (``.DS_Store``, an editor backup, a half-finished onboarding) is skipped rather than raising.
+    """
+    root = tenant_dir()
+    if not root.is_dir():
+        return []
+    return sorted(d.name for d in root.iterdir() if (d / "tenant.yaml").is_file())
+
+
 def load_all_tenants() -> list[TenantConfig]:
     """Every configured tenant, sorted by id for stable display and test ordering."""
-    paths = sorted(tenant_dir().glob("*.yaml"))
-    return sorted((load_tenant_from_path(p) for p in paths), key=lambda t: t.tenant_id)
+    return [load_tenant(tenant_id) for tenant_id in tenant_ids()]
 
 
 def clear_tenant_cache() -> None:

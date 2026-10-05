@@ -1,5 +1,6 @@
-# The private build spec. Never commit this.
+# Private build specs. Never commit these.
 PROMPT.md
+PROMPT_RULES.md
 
 # Secrets
 .env
@@ -26,3 +27,6 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+*.swp
+*.swo
+*~

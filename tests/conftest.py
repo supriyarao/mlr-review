@@ -55,8 +55,11 @@ def write_tenant(tenant_dir):
     from platform_core import tenancy
 
     def _write(config: dict) -> tenancy.TenantConfig:
-        path = tenant_dir / f"{config['tenant_id']}.yaml"
-        path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+        directory = tenant_dir / config["tenant_id"]
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "tenant.yaml").write_text(
+            yaml.safe_dump(config, sort_keys=False), encoding="utf-8"
+        )
         tenancy.clear_tenant_cache()
         return tenancy.load_tenant(config["tenant_id"])
 

@@ -38,10 +38,12 @@ def test_tenant_id_must_be_safe_as_an_identifier(write_tenant):
         write_tenant(minimal_tenant(tenant_id="../escape"))
 
 
-def test_filename_must_match_declared_tenant_id(tenant_dir):
+def test_directory_name_must_match_declared_tenant_id(tenant_dir):
     import yaml
 
-    (tenant_dir / "borealis_bio.yaml").write_text(
+    directory = tenant_dir / "borealis_bio"
+    directory.mkdir()
+    (directory / "tenant.yaml").write_text(
         yaml.safe_dump(minimal_tenant("acme_pharma")), encoding="utf-8"
     )
     tenancy.clear_tenant_cache()
@@ -55,7 +57,9 @@ def test_missing_config_is_a_config_error(tenant_dir):
 
 
 def test_malformed_yaml_is_a_config_error(tenant_dir):
-    (tenant_dir / "broken.yaml").write_text("name: [unclosed", encoding="utf-8")
+    directory = tenant_dir / "broken"
+    directory.mkdir()
+    (directory / "tenant.yaml").write_text("name: [unclosed", encoding="utf-8")
     tenancy.clear_tenant_cache()
     with pytest.raises(tenancy.TenantConfigError, match="not valid YAML"):
         tenancy.load_tenant("broken")
@@ -68,9 +72,8 @@ def test_config_hash_is_stable_across_formatting(write_tenant, tenant_dir):
     # Same content, keys written in a different order.
     import yaml
 
-    data = minimal_tenant()
-    reordered = dict(reversed(list(data.items())))
-    (tenant_dir / "acme_pharma.yaml").write_text(
+    reordered = dict(reversed(list(minimal_tenant().items())))
+    (tenant_dir / "acme_pharma" / "tenant.yaml").write_text(
         yaml.safe_dump(reordered, sort_keys=False), encoding="utf-8"
     )
     tenancy.clear_tenant_cache()
@@ -123,3 +126,21 @@ def test_load_all_tenants_is_sorted(write_tenant):
     write_tenant(minimal_tenant("borealis_bio"))
     write_tenant(minimal_tenant("acme_pharma"))
     assert [t.tenant_id for t in tenancy.load_all_tenants()] == ["acme_pharma", "borealis_bio"]
+
+
+def test_a_directory_without_a_tenant_yaml_is_not_a_tenant(write_tenant, tenant_dir):
+    """A stray folder must be skipped, not raise during discovery."""
+    write_tenant(minimal_tenant("acme_pharma"))
+    (tenant_dir / ".ipynb_checkpoints").mkdir()
+    (tenant_dir / "half_onboarded").mkdir()
+    assert tenancy.tenant_ids() == ["acme_pharma"]
+
+
+def test_tenant_content_paths_are_derived_from_the_tenant_id(tenant_dir):
+    """Rules and the documents they cite are tenant content, kept beside the config."""
+    assert tenancy.tenant_config_path("acme_pharma") == tenant_dir / "acme_pharma" / "tenant.yaml"
+    assert tenancy.tenant_rules_dir("acme_pharma") == tenant_dir / "acme_pharma" / "rules"
+    assert (
+        tenancy.tenant_reference_docs_dir("acme_pharma")
+        == tenant_dir / "acme_pharma" / "reference_docs"
+    )
