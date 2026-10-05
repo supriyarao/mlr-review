@@ -1,0 +1,117 @@
+{
+  "run_id": "a1b2c3d4e5f6",
+  "tenant_id": "acme_pharma",
+  "product_id": "zelvoran",
+  "label_version": "1.0",
+  "audience": "hcp",
+  "channel": "sales_aid",
+  "market": "us",
+  "status": "running",
+  "route": "",
+  "escalation": null,
+  "findings": [
+    {
+      "id": "f1",
+      "check_type": "substantiation",
+      "claim_id": "c1",
+      "quote": "Nearly 6 in 10 adults treated with Zelvoran achieved PASI-90",
+      "char_span": [
+        214,
+        274
+      ],
+      "issue": "Presents the prior-biologic subgroup result (58.1%) as a general result. PASI-90 in the overall randomised population was 44.2%.",
+      "suggested_fix": "State the overall result, or name the subgroup: 'In adults with prior biologic exposure, 58.1% achieved PASI-90 at Week 16'.",
+      "citations": [
+        {
+          "source_id": "acme_pharma:reference:zel-302:2",
+          "passage": "The 58.1% figure applies only to the subgroup of patients with prior biologic exposure. The result in the overall randomised population was 44.2%.",
+          "char_span": [
+            812,
+            968
+          ],
+          "kind": "evidence",
+          "title": "ZEL-302 - Prespecified subgroup analysis by prior biologic exposure",
+          "rule_id": "",
+          "rule_version": 0
+        }
+      ],
+      "severity_proposed": "blocker",
+      "severity_final": "blocker",
+      "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+      "confidence": 92,
+      "low_confidence": false,
+      "grounded": true,
+      "grounded_by": "evidence",
+      "rule_id": "",
+      "rule_version": 0,
+      "model": "claude-sonnet-5",
+      "prompt_version": "substantiation-v1",
+      "merged_from": []
+    }
+  ],
+  "gate_results": [],
+  "rules_applied": [
+    {
+      "id": "ACME-BAN-001",
+      "version": 1,
+      "kind": "deterministic",
+      "severity": "blocker",
+      "title": "Prohibited efficacy and safety language"
+    },
+    {
+      "id": "ACME-BAN-002",
+      "version": 1,
+      "kind": "deterministic",
+      "severity": "advisory",
+      "title": "Unqualified superlatives"
+    },
+    {
+      "id": "ACME-DOC-001",
+      "version": 1,
+      "kind": "reference_doc",
+      "severity": "blocker",
+      "title": "Compliance with the Acme Brand and Promotional Code"
+    },
+    {
+      "id": "ACME-ISI-001",
+      "version": 1,
+      "kind": "deterministic",
+      "severity": "blocker",
+      "title": "Important Safety Information must be present"
+    },
+    {
+      "id": "ACME-LLM-002",
+      "version": 1,
+      "kind": "llm",
+      "severity": "blocker",
+      "title": "Depicted population must match the indication"
+    },
+    {
+      "id": "ACME-REQ-001",
+      "version": 1,
+      "kind": "deterministic",
+      "severity": "blocker",
+      "title": "Prescribing Information signpost"
+    },
+    {
+      "id": "ACME-TM-001",
+      "version": 1,
+      "kind": "deterministic",
+      "severity": "advisory",
+      "title": "Trademark symbol on first mention"
+    }
+  ],
+  "claims_extracted": 2,
+  "preapproved_matches": {},
+  "policy_version": "a6062d2216a1137f",
+  "config_version": "2026.1",
+  "backend": "anthropic",
+  "cost": {
+    "tokens_in": 18420,
+    "tokens_out": 3180,
+    "cost_usd": 0.06864,
+    "latency_ms": 11840,
+    "model_calls": 9
+  },
+  "error": ""
+}

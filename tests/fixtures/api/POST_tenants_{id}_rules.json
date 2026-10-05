@@ -1,0 +1,85 @@
+{
+  "rule": {
+    "id": "ACME-BAN-003",
+    "version": 1,
+    "tenant_id": "acme_pharma",
+    "title": "Prohibited hype language",
+    "description": "Promotional material must not describe an Acme product as a breakthrough or as revolutionary, because neither term has a defined clinical meaning.",
+    "kind": "deterministic",
+    "severity": "blocker",
+    "check_type": "business_rule",
+    "scope": {
+      "audience": "any",
+      "channels": [],
+      "product_ids": [],
+      "markets": []
+    },
+    "params": {
+      "type": "banned_terms",
+      "terms": [
+        "breakthrough",
+        "revolutionary"
+      ],
+      "regex": false
+    },
+    "examples": [
+      {
+        "text": "Zelvoran can cure plaque psoriasis in most adults.",
+        "expected": "fail",
+        "note": "Direct curative claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Results are guaranteed within 16 weeks.",
+        "expected": "fail",
+        "note": "Guarantee of outcome.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Zelvoran is completely safe for long-term use.",
+        "expected": "fail",
+        "note": "Absolute safety claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo.",
+        "expected": "pass",
+        "note": "Labelled result with comparator and timepoint.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Reviewers discussed the paper \"Toward a cure for plaque psoriasis\" at the congress.",
+        "expected": "pass",
+        "note": "Banned term inside a quoted title is a citation, not a claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Patients should book a manicure before starting treatment.",
+        "expected": "pass",
+        "note": "Word-boundary check - \"manicure\" must not trip the \"cure\" term.",
+        "doc_meta": {},
+        "segments": []
+      }
+    ],
+    "owner": "Regulatory Affairs",
+    "effective_from": "2026-01-01",
+    "effective_to": null,
+    "status": "draft",
+    "source_ref": "Acme Brand and Promotional Code, clause 9"
+  },
+  "validation": {
+    "rule_id": "ACME-BAN-003",
+    "rule_version": 1,
+    "errors": [],
+    "warnings": [],
+    "can_save": true,
+    "can_activate": true,
+    "accuracy": 1.0,
+    "summary": "2/2 examples behave as labelled"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "thresholds": [
+    50,
+    60,
+    70,
+    80,
+    90
+  ],
+  "note": "Routing recomputed from stored findings at each threshold. No model calls: the curve compares policy settings against one fixed set of findings, so a difference is the threshold's effect and not model nondeterminism.",
+  "points": [
+    {
+      "threshold": 50,
+      "blocker_recall": 0.9231,
+      "false_escalation_rate": 0.0
+    },
+    {
+      "threshold": 60,
+      "blocker_recall": 0.9231,
+      "false_escalation_rate": 0.0
+    },
+    {
+      "threshold": 70,
+      "blocker_recall": 0.9231,
+      "false_escalation_rate": 0.0
+    },
+    {
+      "threshold": 80,
+      "blocker_recall": 0.9231,
+      "false_escalation_rate": 0.5
+    },
+    {
+      "threshold": 90,
+      "blocker_recall": 1.0,
+      "false_escalation_rate": 1.0
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "rule": {
+    "id": "ACME-BAN-001",
+    "version": 1,
+    "tenant_id": "acme_pharma",
+    "title": "Prohibited efficacy and safety language",
+    "description": "Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk.",
+    "kind": "deterministic",
+    "severity": "blocker",
+    "check_type": "business_rule",
+    "scope": {
+      "audience": "any",
+      "channels": [],
+      "product_ids": [],
+      "markets": []
+    },
+    "params": {
+      "type": "banned_terms",
+      "terms": [
+        "cure",
+        "cures",
+        "curative",
+        "guaranteed",
+        "miracle",
+        "completely safe",
+        "no side effects"
+      ],
+      "regex": false,
+      "allowed_contexts": [
+        "\"[^\"]{0,200}\"",
+        "\u201c[^\u201d]{0,200}\u201d"
+      ],
+      "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead."
+    },
+    "examples": [
+      {
+        "text": "Zelvoran can cure plaque psoriasis in most adults.",
+        "expected": "fail",
+        "note": "Direct curative claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Results are guaranteed within 16 weeks.",
+        "expected": "fail",
+        "note": "Guarantee of outcome.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Zelvoran is completely safe for long-term use.",
+        "expected": "fail",
+        "note": "Absolute safety claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo.",
+        "expected": "pass",
+        "note": "Labelled result with comparator and timepoint.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Reviewers discussed the paper \"Toward a cure for plaque psoriasis\" at the congress.",
+        "expected": "pass",
+        "note": "Banned term inside a quoted title is a citation, not a claim.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Patients should book a manicure before starting treatment.",
+        "expected": "pass",
+        "note": "Word-boundary check - \"manicure\" must not trip the \"cure\" term.",
+        "doc_meta": {},
+        "segments": []
+      }
+    ],
+    "owner": "Regulatory Affairs",
+    "effective_from": "2026-01-01",
+    "effective_to": null,
+    "status": "active",
+    "source_ref": "Acme Brand and Promotional Code, clause 9"
+  },
+  "history": [
+    {
+      "version": 1,
+      "status": "active",
+      "created_at": "2026-10-05T12:00:00+00:00",
+      "created_by": "seed",
+      "change_note": "seeded from acme-ban-001.yaml"
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 # Ollama model; the test suite forces the FakeLLM backend so it needs neither.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup seed api ui demo test lint fmt eval eval-offline graph clean
+.PHONY: help setup seed api ui demo test lint fmt eval eval-offline graph fixtures clean
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -46,6 +46,9 @@ eval: ## Run the golden set against the configured live model backend
 
 eval-offline: ## Replay recorded cassettes and compare against the committed baseline
 	uv run python -m scripts.run_evals --mode offline --compare baseline
+
+fixtures: ## Regenerate the API example responses from the models (never hand-edit them)
+	uv run python -m scripts.gen_api_fixtures
 
 graph: ## Re-render the compiled graph to docs/graph.mmd
 	uv run python -m scripts.render_graph

@@ -1,0 +1,15 @@
+{
+  "runs": [
+    {
+      "run_id": "a1b2c3d4e5f6",
+      "tenant_id": "acme_pharma",
+      "product_id": "zelvoran",
+      "status": "awaiting_human",
+      "route": "senior_regulatory",
+      "blockers": 3,
+      "advisories": 0,
+      "cost_usd": 0.06864
+    }
+  ],
+  "total": 1
+}

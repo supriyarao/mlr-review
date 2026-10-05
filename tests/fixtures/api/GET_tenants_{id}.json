@@ -1,0 +1,79 @@
+{
+  "tenant_id": "acme_pharma",
+  "name": "Acme Pharma",
+  "version": "2026.1",
+  "confidence_threshold": 70,
+  "products": [
+    {
+      "product_id": "zelvoran",
+      "name": "Zelvoran",
+      "label_version": "1.0",
+      "indication": "moderate-to-severe plaque psoriasis in adults"
+    }
+  ],
+  "config_hash": "c754d98309699857",
+  "severity_rules": [
+    {
+      "check_type": "off_label",
+      "when_tag": null,
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-OFFLABEL",
+      "rationale": "Promotion outside the approved population or indication is not correctable by wording."
+    },
+    {
+      "check_type": "substantiation",
+      "when_tag": null,
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-SUBSTANTIATION",
+      "rationale": "An unsupported or overstated efficacy claim changes a prescribing decision."
+    },
+    {
+      "check_type": "reference_support",
+      "when_tag": null,
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-REFERENCE",
+      "rationale": "A citation that does not measure the claimed endpoint or population is no citation."
+    },
+    {
+      "check_type": "safety_prominence",
+      "when_tag": null,
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-SAFETY",
+      "rationale": "Required safety information must be present for a reader to weigh benefit and risk."
+    },
+    {
+      "check_type": "fair_balance",
+      "when_tag": null,
+      "severity": "advisory",
+      "rule_id": "ACME-SEV-BALANCE",
+      "rationale": "Imbalance of emphasis is usually fixable in layout without changing the claim."
+    },
+    {
+      "check_type": "*",
+      "when_tag": null,
+      "severity": "advisory",
+      "rule_id": "ACME-SEV-DEFAULT",
+      "rationale": "Unclassified observations go to a reviewer as advisory rather than being dropped."
+    }
+  ],
+  "escalation": {
+    "standard_tier": "standard_reviewer",
+    "default_escalation_tier": "senior_regulatory",
+    "rules": [
+      {
+        "when_reason": "off_label",
+        "tier": "senior_regulatory"
+      },
+      {
+        "when_reason": "comparative_claim",
+        "tier": "senior_regulatory"
+      }
+    ]
+  },
+  "policy_flags": {
+    "require_head_to_head_for_superiority": true,
+    "require_isi_near_first_efficacy_claim": false,
+    "preapproved_claims_skip_substantiation": true
+  },
+  "active_rule_count": 8
+}

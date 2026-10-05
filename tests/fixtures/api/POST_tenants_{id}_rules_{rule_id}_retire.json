@@ -1,0 +1,6 @@
+{
+  "rule_id": "ACME-BAN-003",
+  "version": 1,
+  "status": "retired",
+  "policy_version_after": "a6062d2216a1137f"
+}

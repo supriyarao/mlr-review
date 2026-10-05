@@ -185,6 +185,21 @@ def history(graph: Any, run_id: str) -> list[dict[str, Any]]:
     return out
 
 
+def get_audit(run_id: str) -> list[dict[str, Any]]:
+    """Ordered audit events for a run, as plain dicts.
+
+    Part of the runtime's public surface alongside :func:`start_run`, :func:`resume_run` and
+    :func:`get_status`, so a caller building a status view has one module to import rather than
+    needing to know that events live in a different store from checkpoints.
+
+    Thin by design: the audit log is append-only and owns its own schema, so this converts rather
+    than interprets.
+    """
+    from platform_core.audit import events_for_run
+
+    return [event.model_dump(mode="json") for event in events_for_run(run_id)]
+
+
 def render_mermaid(graph: Any) -> str:
     """Mermaid source for the compiled graph.
 

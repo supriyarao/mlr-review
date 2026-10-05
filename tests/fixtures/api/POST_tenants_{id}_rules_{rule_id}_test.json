@@ -1,0 +1,27 @@
+{
+  "rule_id": "ACME-BAN-003",
+  "rule_version": 1,
+  "source": "sample:zelvoran-hcp-launch-announcement",
+  "violations": [
+    {
+      "rule_id": "ACME-BAN-003",
+      "rule_version": 1,
+      "tenant_id": "acme_pharma",
+      "severity": "blocker",
+      "check_type": "business_rule",
+      "quote": "breakthrough",
+      "char_span": [
+        214,
+        226
+      ],
+      "message": "Uses the prohibited term 'breakthrough'.",
+      "suggested_fix": "",
+      "citation_text": "Promotional material must not describe an Acme product as a breakthrough or as revolutionary, because neither term has a defined clinical meaning.",
+      "citation_kind": "rule",
+      "citation_source_id": "ACME-BAN-003 v1",
+      "segment_id": "",
+      "confidence": 100
+    }
+  ],
+  "saved": false
+}

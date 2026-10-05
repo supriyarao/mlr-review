@@ -1,0 +1,13 @@
+{
+  "runs": [
+    {
+      "eval_run_id": "e7f8a9b0c1d2",
+      "mode": "offline",
+      "started_at": "2026-10-05T12:40:00+00:00",
+      "git_sha": "cf227f4",
+      "cases": 13,
+      "blocker_recall": 0.9231,
+      "false_escalation_rate": 0.0
+    }
+  ]
+}

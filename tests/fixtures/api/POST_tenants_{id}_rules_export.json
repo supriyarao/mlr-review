@@ -1,0 +1,7 @@
+{
+  "tenant_id": "acme_pharma",
+  "written": [
+    "corpus/tenants/acme_pharma/rules/acme-ban-001.yaml",
+    "corpus/tenants/acme_pharma/rules/acme-ban-003.yaml"
+  ]
+}

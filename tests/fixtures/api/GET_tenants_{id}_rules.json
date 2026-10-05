@@ -1,0 +1,189 @@
+{
+  "tenant_id": "acme_pharma",
+  "rules": [
+    {
+      "id": "ACME-BAN-001",
+      "version": 1,
+      "tenant_id": "acme_pharma",
+      "title": "Prohibited efficacy and safety language",
+      "description": "Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk.",
+      "kind": "deterministic",
+      "severity": "blocker",
+      "check_type": "business_rule",
+      "scope": {
+        "audience": "any",
+        "channels": [],
+        "product_ids": [],
+        "markets": []
+      },
+      "params": {
+        "type": "banned_terms",
+        "terms": [
+          "cure",
+          "cures",
+          "curative",
+          "guaranteed",
+          "miracle",
+          "completely safe",
+          "no side effects"
+        ],
+        "regex": false,
+        "allowed_contexts": [
+          "\"[^\"]{0,200}\"",
+          "\u201c[^\u201d]{0,200}\u201d"
+        ],
+        "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead."
+      },
+      "examples": [
+        {
+          "text": "Zelvoran can cure plaque psoriasis in most adults.",
+          "expected": "fail",
+          "note": "Direct curative claim.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Results are guaranteed within 16 weeks.",
+          "expected": "fail",
+          "note": "Guarantee of outcome.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Zelvoran is completely safe for long-term use.",
+          "expected": "fail",
+          "note": "Absolute safety claim.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "In a 16-week randomised trial, 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo.",
+          "expected": "pass",
+          "note": "Labelled result with comparator and timepoint.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Reviewers discussed the paper \"Toward a cure for plaque psoriasis\" at the congress.",
+          "expected": "pass",
+          "note": "Banned term inside a quoted title is a citation, not a claim.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Patients should book a manicure before starting treatment.",
+          "expected": "pass",
+          "note": "Word-boundary check - \"manicure\" must not trip the \"cure\" term.",
+          "doc_meta": {},
+          "segments": []
+        }
+      ],
+      "owner": "Regulatory Affairs",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "status": "active",
+      "source_ref": "Acme Brand and Promotional Code, clause 9"
+    },
+    {
+      "id": "ACME-LLM-001",
+      "version": 1,
+      "tenant_id": "acme_pharma",
+      "title": "Typical results in patient-directed material",
+      "description": "Patient-directed material must not imply that the results described are typical of all patients unless the approved label supports that characterisation, and must direct the reader to a healthcare professional.",
+      "kind": "llm",
+      "severity": "blocker",
+      "check_type": "substantiation",
+      "scope": {
+        "audience": "patient",
+        "channels": [],
+        "product_ids": [],
+        "markets": []
+      },
+      "params": {
+        "guidance": "Look for language suggesting a reader should expect the described outcome themselves, such as \"you will\", \"most people see\", \"typical results\", or a testimonial presented without qualification. A response rate stated with its population, comparator and timepoint is not a violation. Absence of a direction to speak to a healthcare professional is a violation only when the piece also implies a personal expectation of benefit."
+      },
+      "examples": [
+        {
+          "text": "Most people see clear skin within weeks. You can expect the same.",
+          "expected": "fail",
+          "note": "Asserts a personal expectation of benefit with no qualification.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Zelvoran works for everyone with plaque psoriasis.",
+          "expected": "fail",
+          "note": "Universal claim unsupported by any response rate.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "In a 16-week study, 68.4% of adults treated with Zelvoran achieved at least a 75% improvement in their psoriasis score, compared with 9.2% who received placebo. Individual results vary. Talk to your doctor about whether Zelvoran is right for you.",
+          "expected": "pass",
+          "note": "Labelled result with comparator and timepoint, qualified, and directs to a clinician.",
+          "doc_meta": {},
+          "segments": []
+        }
+      ],
+      "owner": "Regulatory Affairs",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "status": "active",
+      "source_ref": "Acme Brand and Promotional Code, clause 10"
+    },
+    {
+      "id": "ACME-DOC-001",
+      "version": 1,
+      "tenant_id": "acme_pharma",
+      "title": "Compliance with the Acme Brand and Promotional Code",
+      "description": "Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
+      "kind": "reference_doc",
+      "severity": "blocker",
+      "check_type": "business_rule",
+      "scope": {
+        "audience": "any",
+        "channels": [],
+        "product_ids": [],
+        "markets": []
+      },
+      "params": {
+        "doc_path": "acme-promotional-code.md",
+        "clauses": [
+          "A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A subgroup figure must never be presented as the result in the overall population.",
+          "A claim that an Acme product is better than, more effective than, or preferable to another therapy requires a head-to-head clinical trial against that named therapy.",
+          "Claims about how long an effect lasts must not extend beyond the longest timepoint for which data exist.",
+          "Every claim of efficacy or safety must carry a reference to the specific study supporting it. The cited study must report the endpoint, population and timepoint stated in the claim."
+        ]
+      },
+      "examples": [
+        {
+          "text": "Nearly 6 in 10 adults achieved PASI-90 with Zelvoran at Week 16. Please see full Prescribing Information.",
+          "expected": "fail",
+          "note": "58.1% is the prior-biologic subgroup result; the overall population was 44.2%. Breaches the subgroup clause.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "Two years of sustained clear skin with Zelvoran. Please see full Prescribing Information.",
+          "expected": "fail",
+          "note": "No data beyond Week 52 exist. Breaches the durability clause.",
+          "doc_meta": {},
+          "segments": []
+        },
+        {
+          "text": "In ZEL-302, 44.2% of adults treated with Zelvoran achieved PASI-90 at Week 16, compared with 4.8% receiving placebo (Reference 2). Please see full Prescribing Information.",
+          "expected": "pass",
+          "note": "Overall-population result, correctly attributed and referenced.",
+          "doc_meta": {},
+          "segments": []
+        }
+      ],
+      "owner": "Regulatory Affairs",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "status": "active",
+      "source_ref": "Acme Brand and Promotional Code"
+    }
+  ],
+  "total": 8
+}

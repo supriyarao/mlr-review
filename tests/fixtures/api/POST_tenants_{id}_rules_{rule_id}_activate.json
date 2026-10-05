@@ -1,0 +1,21 @@
+{
+  "rule_id": "ACME-BAN-003",
+  "version": 1,
+  "status": "active",
+  "policy_version_before": "a6062d2216a1137f",
+  "policy_version_after": "3f91c0d7b8e21a45",
+  "regression_check": {
+    "ran": true,
+    "regressed": false,
+    "movements": [
+      {
+        "metric": "blocker_recall.recall",
+        "baseline": 0.9231,
+        "current": 0.9231,
+        "delta": 0.0
+      }
+    ],
+    "overridden": false,
+    "override_reason": ""
+  }
+}

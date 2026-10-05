@@ -46,11 +46,23 @@ class GoldenCase(BaseModel):
     tenant_id: str
     product_id: str
     label_version: str = ""
+
+    # Submission metadata. Part of the case because it changes the result: a rule scoped to
+    # patient-facing material does not apply to an HCP piece, so a case that omitted these would not
+    # be reproducible -- the same text would score differently depending on an unstated default.
+    audience: str = "any"
+    channel: str = ""
+    market: str = ""
+
     # Inline promo text, or a path relative to the repo root.
     promo: str = ""
     promo_path: str = ""
     doc_meta: dict[str, Any] = Field(default_factory=dict)
+
     expected_findings: list[ExpectedFinding] = Field(default_factory=list)
+    # Tenant business rules expected to fire, by id. Checked separately from expected_findings
+    # because "the right rule fired" and "the finding reads correctly" are different failures.
+    expected_rule_ids: list[str] = Field(default_factory=list)
     expected_route: str = ""
     # Things that must NOT be flagged. Guards against a system that escalates everything.
     must_not_flag: list[str] = Field(default_factory=list)

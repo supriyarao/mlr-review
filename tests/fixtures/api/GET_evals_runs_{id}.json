@@ -1,0 +1,79 @@
+{
+  "eval_run_id": "e7f8a9b0c1d2",
+  "mode": "offline",
+  "started_at": "2026-10-05T12:40:00+00:00",
+  "finished_at": "2026-10-05T12:41:12+00:00",
+  "git_sha": "cf227f4",
+  "backend": "fake",
+  "model_strong": "claude-sonnet-5",
+  "model_fast": "claude-haiku-4-5",
+  "repeats": 1,
+  "tenant_config_hashes": {
+    "acme_pharma": "c754d98309699857",
+    "borealis_bio": "1c8b9fada77781ce"
+  },
+  "metrics": {
+    "blocker_recall": {
+      "expected": 13,
+      "matched": 12,
+      "recall": 0.9231
+    },
+    "advisory_recall": {
+      "expected": 4,
+      "matched": 3,
+      "recall": 0.75
+    },
+    "false_escalation_rate": {
+      "standard_expected": 2,
+      "escalated": 0,
+      "rate": 0.0
+    },
+    "routing": {
+      "scored": 13,
+      "correct": 12,
+      "accuracy": 0.9231
+    },
+    "grounding_rate": {
+      "findings": 21,
+      "grounded": 21,
+      "rate": 1.0
+    },
+    "pass_rate": {
+      "cases": 13,
+      "passed": 12,
+      "pass_rate": 0.9231
+    },
+    "cost_and_latency": {
+      "runs": 13,
+      "latency_p50_ms": 11840,
+      "latency_p95_ms": 18200,
+      "cost_usd_total": 0.8923,
+      "cost_usd_per_run": 0.0686
+    },
+    "per_rule": {
+      "deterministic": {
+        "rules": 10,
+        "scored": 10,
+        "all_perfect": true
+      },
+      "not_self_testable": [
+        {
+          "rule_id": "ACME-LLM-001",
+          "kind": "llm"
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "case_id": "001-subgroup-overstatement",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 11840,
+      "cost_usd": 0.0686
+    }
+  ]
+}

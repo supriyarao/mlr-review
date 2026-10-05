@@ -1,0 +1,84 @@
+# Golden case 001. See docs/contracts.md for the schema and evals/README.md for the full set.
+#
+# This is the reference example: it exercises every part of the contract at once -- a core-check
+# blocker with retrieved evidence, a rule finding citing a document clause, a reference/endpoint
+# mismatch, an escalation with reasons, and a must_not_flag list.
+
+id: 001-subgroup-overstatement
+title: Subgroup result presented as a general result
+why_hard: >-
+  The number in the copy is real and appears verbatim in the evidence, so a system that only checks
+  "is this figure in the source?" passes it. 58.1% is the PASI-90 rate in the prespecified
+  prior-biologic-exposure subgroup; the overall randomised population achieved 44.2%. Catching it
+  requires noticing that the claim's population is broader than the population the figure came from
+  - which is an inference about scope, not a lookup. The piece is otherwise competent: correctly
+  referenced, trademark marked, safety information present, Prescribing Information signposted. So a
+  system that leans on surface signals finds nothing wrong with it.
+
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+
+audience: hcp
+channel: sales_aid
+market: us
+
+promo_path: corpus/promo/zelvoran-hcp-subgroup-claim.md
+
+# Section offsets, as ingest would compute them. Supplied explicitly so the case does not depend on
+# ingest's heading detection, which would make a parsing change look like a model regression.
+doc_meta:
+  sections:
+    efficacy:
+      start: 0
+      end: 520
+    important_safety_information:
+      start: 520
+      end: 900
+  safety_block_chars: 380
+  efficacy_block_chars: 520
+
+expected_findings:
+  # The headline failure: a subgroup figure generalised to everyone.
+  - check_type: substantiation
+    claim_contains: Nearly 6 in 10
+    severity: blocker
+    note: >-
+      58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.
+
+  # The same piece also attributes a subgroup figure directly.
+  - check_type: substantiation
+    claim_contains: 58.1%
+    severity: blocker
+    note: Quotes the subgroup rate without naming the subgroup.
+
+  # Cites Reference 3 for an endpoint and timepoint that reference does not report.
+  - check_type: reference_support
+    claim_contains: maintained at 12 weeks
+    severity: blocker
+    note: >-
+      ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12
+      assessment, so the citation does not support the claim on either axis.
+
+expected_rule_ids:
+  # Acme's promotional code has an explicit subgroup clause, so the reference-document reviewer
+  # should reach the same conclusion by a different route. Two independent findings on one claim is
+  # the case that exercises the editor's merge path.
+  - ACME-DOC-001
+
+expected_route: senior_regulatory
+
+must_not_flag:
+  # Each of these is correct in the piece, and flagging any of them would be a false alarm. A system
+  # that escalates everything scores well on recall and is useless.
+  - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  - Please see full Prescribing Information
+  - nasopharyngitis (14.1%)
+  - Zelvoran is contraindicated in active, serious infection
+
+tags:
+  - substantiation
+  - subgroup
+  - reference_support
+  - rule_finding
+  - reference_example

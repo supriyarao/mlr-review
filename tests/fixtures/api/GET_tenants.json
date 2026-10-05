@@ -1,0 +1,40 @@
+{
+  "tenants": [
+    {
+      "tenant_id": "acme_pharma",
+      "name": "Acme Pharma",
+      "version": "2026.1",
+      "confidence_threshold": 70,
+      "products": [
+        {
+          "product_id": "zelvoran",
+          "name": "Zelvoran",
+          "label_version": "1.0",
+          "indication": "moderate-to-severe plaque psoriasis in adults"
+        }
+      ],
+      "config_hash": "c754d98309699857"
+    },
+    {
+      "tenant_id": "borealis_bio",
+      "name": "Borealis Bio",
+      "version": "2026.3",
+      "confidence_threshold": 80,
+      "products": [
+        {
+          "product_id": "nexapril",
+          "name": "Nexapril",
+          "label_version": "2.1",
+          "indication": "adults with type 2 diabetes mellitus and established atherosclerotic cardiovascular disease"
+        },
+        {
+          "product_id": "zelvoran",
+          "name": "Zelvoran",
+          "label_version": "1.0",
+          "indication": "moderate-to-severe plaque psoriasis in adults"
+        }
+      ],
+      "config_hash": "1c8b9fada77781ce"
+    }
+  ]
+}
