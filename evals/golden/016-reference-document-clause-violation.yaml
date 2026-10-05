@@ -1,0 +1,51 @@
+id: 016-reference-document-clause-violation
+title: A code-of-practice breach that must cite the exact clause
+why_hard: >-
+  The defect is a durability claim reaching beyond the longest timepoint any study reports, which breaks
+  a specific numbered clause of Acme's promotional code. What makes the case hard is not finding the
+  problem but *attributing* it: the finding has to quote the clause verbatim from the tenant's own
+  document, and the system verifies that the quoted clause genuinely appears there before accepting it.
+  A fabricated or paraphrased clause would show a reviewer an authority they cannot look up, which is
+  worse than no citation at all - so a near-miss quotation must be downgraded rather than trusted.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo: |
+  # Three years of sustained response
+
+  ## Efficacy
+
+  Zelvoran® (zelvoran) is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  who are candidates for systemic therapy or phototherapy.
+
+  Three years of sustained clear skin with Zelvoran [3].
+
+  ## Important Safety Information
+
+  Zelvoran is contraindicated in active, serious infection, including active tuberculosis. Serious
+  infections, hepatic enzyme elevations and serious hypersensitivity reactions have been reported. The
+  most common adverse reactions were nasopharyngitis (14.1%), injection-site reaction (9.4%) and
+  headache (7.2%).
+
+  ## References
+
+  3. ZEL-303. Open-label extension, 52 weeks, 610 adults.
+
+  Please see full Prescribing Information.
+expected_findings:
+  - check_type: business_rule
+    claim_contains: Three years of sustained clear skin
+    severity: blocker
+    note: >-
+      Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that
+      clause verbatim from the document.
+expected_rule_ids:
+  - ACME-DOC-001
+expected_route: senior_regulatory
+must_not_flag:
+  - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  - Please see full Prescribing Information
+tags: [reference_doc, doc_clause, citation_verification]

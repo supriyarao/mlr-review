@@ -156,3 +156,27 @@ def test_wal_mode_is_actually_enabled():
     """A reader polling for status must never block the graph writing events."""
     audit.emit(run_id="r1", tenant_id="t", node="ingest")
     assert audit.journal_mode().lower() == "wal"
+
+
+def test_concurrent_writers_do_not_collide_on_a_sequence_number():
+    """Regression guard for a real collision found by the review graph's fan-out.
+
+    Sequence numbers were allocated by reading MAX(seq) in Python and then inserting, which is a
+    read-then-write race. Eight parallel branches writing events for one run produced two events
+    numbered 5 and none numbered 6 -- so the audit trail had no single defensible ordering, and the
+    completeness check that is meant to detect a dropped event was silently broken.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    def write(i: int) -> None:
+        audit.emit(run_id="concurrent", tenant_id="t", node=f"branch_{i}")
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(write, range(24)))
+
+    events = audit.events_for_run("concurrent")
+    seqs = [e.seq for e in events]
+    assert len(events) == 24, "no event may be lost"
+    assert seqs == list(range(1, 25)), f"sequence numbers collided or skipped: {seqs}"
+    assert audit.integrity_check("concurrent")["sequence_complete"] is True
+    assert audit.integrity_check("concurrent")["duplicate_seqs"] == []

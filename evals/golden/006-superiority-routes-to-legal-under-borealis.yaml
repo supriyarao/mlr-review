@@ -1,0 +1,50 @@
+id: 006-superiority-routes-to-legal-under-borealis
+title: The same superiority claim routes to legal under Borealis
+why_hard: >-
+  Identical failure to case 005, different destination. Borealis routes comparative claims to legal
+  rather than to regulatory, because a superiority claim is a competitor-litigation exposure as much as
+  a regulatory one - and its BOR-LLM-001 rule carries an explicit escalate_to override. Getting this
+  right means the routing layer has to read a per-rule override ahead of the tenant default, and it
+  proves the escalation path is data rather than code. Finding the problem is not enough; sending it to
+  the wrong specialist wastes the one person who could act on it.
+tenant_id: borealis_bio
+product_id: nexapril
+label_version: "2.1"
+audience: hcp
+channel: sales_aid
+market: us
+promo: |
+  # Cardiovascular protection that leads
+
+  ## Efficacy
+
+  Nexapril® (nexapril) is indicated in adults with type 2 diabetes mellitus and established
+  atherosclerotic cardiovascular disease to reduce the risk of major adverse cardiovascular events.
+
+  Nexapril works better than the leading therapies for cardiovascular risk reduction [1].
+
+  In adults with type 2 diabetes and established atherosclerotic cardiovascular disease, Nexapril
+  reduced major adverse cardiovascular events by 22.0% versus placebo over a median of 36 months
+  (hazard ratio 0.78, 95% CI 0.69 to 0.88) [1].
+
+  ## Important Safety Information
+
+  Nexapril is contraindicated in severe renal impairment and in known serious hypersensitivity.
+  Hypoglycaemia may occur with insulin or an insulin secretagogue. Volume depletion, ketoacidosis and
+  genital mycotic infections have been reported.
+
+  ## References
+
+  1. NEX-114. Randomised, double-blind, placebo-controlled, median 36 months, 9,412 adults.
+expected_findings:
+  - check_type: substantiation
+    claim_contains: works better than the leading therapies
+    severity: blocker
+    note: No head-to-head cardiovascular outcomes trial exists.
+expected_rule_ids:
+  - BOR-LLM-001
+expected_route: legal
+must_not_flag:
+  - reduced major adverse cardiovascular events by 22.0% versus placebo over a median of 36 months
+  - Nexapril is contraindicated in severe renal impairment
+tags: [substantiation, comparative, routing, escalate_to, multi_tenant]

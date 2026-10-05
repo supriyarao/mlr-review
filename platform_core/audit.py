@@ -24,13 +24,14 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Engine, event, text
+from sqlalchemy import Engine, event, func, insert, text
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 
@@ -90,6 +91,10 @@ class AuditEvent(SQLModel, table=True):
 
 _engine: Engine | None = None
 _engine_path: Path | None = None
+# Engine construction creates tables, and the review graph's parallel branches all reach for the
+# engine at once on the first write. Without this lock they race inside create_all and SQLite raises
+# "table audit_events already exists" -- a crash during a review, caused purely by start-up timing.
+_engine_lock = threading.Lock()
 
 
 def _enable_wal(dbapi_connection, _connection_record) -> None:
@@ -113,16 +118,22 @@ def get_engine() -> Engine:
     """
     global _engine, _engine_path
     path = data_dir() / "app.db"
-    if _engine is None or _engine_path != path:
+    if _engine is not None and _engine_path == path:
+        return _engine
+
+    with _engine_lock:
+        # Re-checked inside the lock: another thread may have built it while this one waited.
+        if _engine is not None and _engine_path == path:
+            return _engine
         engine = create_engine(
             f"sqlite:///{path}",
             # The graph runs in a background thread while the API answers polls on another.
-            connect_args={"check_same_thread": False},
+            connect_args={"check_same_thread": False, "timeout": 30},
         )
         event.listen(engine, "connect", _enable_wal)
-        SQLModel.metadata.create_all(engine)
+        SQLModel.metadata.create_all(engine, checkfirst=True)
         _engine, _engine_path = engine, path
-    return _engine
+        return _engine
 
 
 def reset_engine() -> None:
@@ -161,18 +172,25 @@ def hash_input(value: Any) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-def _next_seq(session: Session, run_id: str) -> int:
-    """Next position in this run's event sequence.
+def _next_seq_subquery(run_id: str) -> Any:
+    """A scalar subquery yielding this run's next sequence number.
 
-    Taken inside the caller's transaction. Trade-off: under genuinely concurrent writes for the
-    same run this could collide, and the correct fix is a per-run counter row with a row lock. It
-    is left simple because events are written at node boundaries, and the consequence of a
-    collision is two events sharing a sort position, not lost data.
+    Evaluated **inside the INSERT**, which is what makes it safe. Reading ``MAX(seq)`` in Python and
+    then inserting is a read-then-write race: the review graph fans out to eight branches that each
+    write an audit event concurrently, and they collided -- producing two events numbered 5 and none
+    numbered 6.
+
+    That was first written off as harmless on the grounds that nothing is lost, only the sort
+    position. For an audit log that reasoning does not hold: a duplicated sequence number means there
+    is no longer a single defensible answer to "what happened in what order", and it silently breaks
+    the completeness check that is supposed to detect a dropped event. Computing it in the statement
+    lets SQLite's write serialisation do the work, with no lock to manage.
     """
-    current = session.exec(
-        select(AuditEvent.seq).where(AuditEvent.run_id == run_id).order_by(AuditEvent.seq.desc())
-    ).first()
-    return (current or 0) + 1
+    return (
+        select(func.coalesce(func.max(AuditEvent.seq), 0) + 1)
+        .where(AuditEvent.run_id == run_id)
+        .scalar_subquery()
+    )
 
 
 def emit(
@@ -198,32 +216,35 @@ def emit(
 
     Returns the persisted event so a caller can assert on it in a test.
     """
+    values = {
+        "run_id": run_id,
+        "tenant_id": tenant_id,
+        # Allocated by the database, not by this process. See _next_seq_subquery.
+        "seq": _next_seq_subquery(run_id),
+        "ts": datetime.now(UTC),
+        "node": node,
+        "event_type": event_type,
+        "input_hash": hash_input(input_value) if input_value is not None else "",
+        "output_json": json.dumps(output, default=str) if output is not None else "",
+        "citations_json": json.dumps(citations, default=str) if citations is not None else "",
+        "model": model,
+        "prompt_version": prompt_version,
+        "policy_version": policy_version,
+        "label_version": label_version,
+        "tokens_in": tokens_in,
+        "tokens_out": tokens_out,
+        "cost_usd": cost_usd,
+        "latency_ms": latency_ms,
+        "error": error,
+    }
+
     with session_scope() as session:
-        ev = AuditEvent(
-            run_id=run_id,
-            tenant_id=tenant_id,
-            seq=_next_seq(session, run_id),
-            ts=datetime.now(UTC),
-            node=node,
-            event_type=event_type,
-            input_hash=hash_input(input_value) if input_value is not None else "",
-            output_json=json.dumps(output, default=str) if output is not None else "",
-            citations_json=json.dumps(citations, default=str) if citations is not None else "",
-            model=model,
-            prompt_version=prompt_version,
-            policy_version=policy_version,
-            label_version=label_version,
-            tokens_in=tokens_in,
-            tokens_out=tokens_out,
-            cost_usd=cost_usd,
-            latency_ms=latency_ms,
-            error=error,
-        )
-        session.add(ev)
+        result = session.exec(insert(AuditEvent).values(**values))
+        new_id = result.inserted_primary_key[0]
         session.flush()
-        session.refresh(ev)
+        stored = session.get(AuditEvent, new_id)
         # Detached copy, so callers can read it after the session closes.
-        return AuditEvent.model_validate(ev.model_dump())
+        return AuditEvent.model_validate(stored.model_dump())
 
 
 def events_for_run(run_id: str) -> list[AuditEvent]:

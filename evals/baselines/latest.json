@@ -1,0 +1,2072 @@
+{
+  "eval_run_id": "50062fe53867",
+  "started_at": "2026-10-05T22:37:00.031277+00:00",
+  "finished_at": "2026-10-05T22:37:32.490915+00:00",
+  "mode": "offline",
+  "git_sha": "3429549",
+  "backend": "fake",
+  "model_strong": "fake-strong",
+  "model_fast": "fake-fast",
+  "prompt_versions": {
+    "substantiation": "substantiation-v1",
+    "reference_support": "reference_support-v1",
+    "off_label": "off_label-v1",
+    "fair_balance": "fair_balance-v1",
+    "safety_prominence": "safety_prominence-v1",
+    "extract_claims": "extract_claims-v1",
+    "preapproved_filter": "preapproved-v1"
+  },
+  "tenant_config_hashes": {
+    "acme_pharma": "a6062d2216a1137f",
+    "borealis_bio": "5891e762c01ff110"
+  },
+  "repeats": 1,
+  "cases": [
+    {
+      "case_id": "001-subgroup-overstatement",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Nearly 6 in 10",
+            "severity": "blocker",
+            "note": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        },
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "58.1%",
+            "severity": "blocker",
+            "note": "Quotes the subgroup rate without naming the subgroup."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-2"
+        },
+        {
+          "expected": {
+            "check_type": "reference_support",
+            "claim_contains": "maintained at 12 weeks",
+            "severity": "blocker",
+            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "ref-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "rd-ACME-DOC-001-1",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material b"
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 9952,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Nearly 6 in 10 adults reached PASI-90",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:zelvoran:v1.0:1",
+              "passage": "## 1. Indications and Usage\n\nZELVORAN is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who\nare candidates for systemic therapy or phototherapy.\n\nLimitations of use.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        },
+        {
+          "id": "sub-2",
+          "check_type": "substantiation",
+          "claim_id": "c2",
+          "quote": "Zelvoran delivered PASI-90 in 58.1% of adults at Week 16 [2].",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Quotes the subgroup rate without naming the subgroup.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:zel-302:2",
+              "passage": "## Prespecified subgroup analysis by prior biologic exposure\n\n| Subgroup | n | PASI-90 at Week 16 |\n|---|---|---|\n| Prior biologic exposure | 203 | 58.1% |\n| No prior biologic exposure | 541 | 39.0% |\n\nThe 58.1% figure a",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 91,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        },
+        {
+          "id": "ref-1",
+          "check_type": "reference_support",
+          "claim_id": "c3",
+          "quote": "Sustained response: PASI-90 was maintained at 12 weeks in the extension study [3].",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:zel-303:1",
+              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | Result |\n|---|---|---|\n| PASI-75 | Week 16 | 71.2% |\n| PASI-75 maintained among Week 16 responders | Week 52 | 64.8% |\n\nEndpoints not assessed.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "ZEL-303 \u2014 Endpoints and timepoints",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-REFERENCE",
+          "confidence": 90,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "reference_support-v1",
+          "merged_from": []
+        },
+        {
+          "id": "rd-ACME-DOC-001-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme-promotional-code.md",
+              "passage": "A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A subgroup figure must never be presented as the result in the overall population.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "doc_clause",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
+              "rule_id": "ACME-DOC-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-DOC-001",
+          "confidence": 88,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "doc_clause",
+          "rule_id": "ACME-DOC-001",
+          "rule_version": 1,
+          "model": "fake-strong",
+          "prompt_version": "rule-check-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 4 finding(s) verified (3 by evidence, 0 by rule, 1 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 4 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "002-off-label-by-implication",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "off_label",
+            "claim_contains": "whole family",
+            "severity": "blocker",
+            "note": "The label covers adults only and has no paediatric data."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "off-1"
+        },
+        {
+          "expected": {
+            "check_type": "off_label",
+            "claim_contains": "nine-year-old",
+            "severity": "blocker",
+            "note": "A named child in the caption implies paediatric use."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "off-2"
+        },
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Most people see clear skin",
+            "severity": "blocker",
+            "note": "Implies a typical result with no response rate, population or timepoint."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "cure",
+          "issue": "Uses the prohibited term 'cure'."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        },
+        {
+          "id": "dr-3",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "Zelvoran",
+          "issue": "First mention of Zelvoran does not carry a trademark symbol."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 7784,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "cure",
+          "char_span": [
+            489,
+            493
+          ],
+          "issue": "Uses the prohibited term 'cure'.",
+          "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead.",
+          "citations": [
+            {
+              "source_id": "ACME-BAN-001 v1",
+              "passage": "Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-BAN-001 v1",
+              "rule_id": "ACME-BAN-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-BAN-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-BAN-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        },
+        {
+          "id": "off-1",
+          "check_type": "off_label",
+          "claim_id": "c1",
+          "quote": "Clearer skin, for the whole family",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "The label covers adults only and has no paediatric data.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:zel-302:1",
+              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | ZELVORAN | Placebo |\n|---|---|---|---|\n| PASI-90 (primary) | Week 16 | 44.2% | 4.8% |\n| PASI-75 (secondary) | Week 16 | 70.1% | 10.6% |",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-OFFLABEL",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "off_label-v1",
+          "merged_from": []
+        },
+        {
+          "id": "off-2",
+          "check_type": "off_label",
+          "claim_id": "c2",
+          "quote": "Photo caption: the Hartley family on holiday \u2014 including nine-year-old Mia, back at the beach\n> after years of covering up.*",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "A named child in the caption implies paediatric use.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:zel-301:2",
+              "passage": "## Notes\n\nThe population is adults only. The study ran 16 weeks and reports no durability data beyond that\npoint.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "ZEL-301 \u2014 Notes",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-OFFLABEL",
+          "confidence": 91,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "off_label-v1",
+          "merged_from": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c3",
+          "quote": "Most people see clear skin within weeks.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Implies a typical result with no response rate, population or timepoint.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:zelvoran:v1.0:7",
+              "passage": "### 6.1 ZEL-301 \u2014 PASI-75 at Week 16\n\nRandomised, double-blind, placebo-controlled trial in 812 adults with moderate-to-severe plaque\npsoriasis.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Zelvoran label v1.0 \u2014 6.1 ZEL-301 \u2014 PASI-75 at Week 16",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 90,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        },
+        {
+          "id": "dr-3",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "Zelvoran",
+          "char_span": [
+            46,
+            54
+          ],
+          "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "suggested_fix": "Write Zelvoran\u00ae on first mention.",
+          "citations": [
+            {
+              "source_id": "ACME-TM-001 v1",
+              "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-TM-001 v1",
+              "rule_id": "ACME-TM-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "advisory",
+          "severity_final": "advisory",
+          "severity_rule_id": "rule:ACME-TM-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-TM-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 6 finding(s) verified (3 by evidence, 3 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 6 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "003-reference-measures-something-else",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "reference_support",
+            "claim_contains": "maintained at 12 weeks",
+            "severity": "blocker",
+            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "ref-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 10547,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "ref-1",
+          "check_type": "reference_support",
+          "claim_id": "c1",
+          "quote": "PASI-90 was achieved and maintained at 12 weeks in the extension study [3].",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:zel-303:1",
+              "passage": "## Endpoints and timepoints\n\n| Endpoint | Timepoint | Result |\n|---|---|---|\n| PASI-75 | Week 16 | 71.2% |\n| PASI-75 maintained among Week 16 responders | Week 52 | 64.8% |\n\nEndpoints not assessed.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "ZEL-303 \u2014 Endpoints and timepoints",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-REFERENCE",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "reference_support-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (1 by evidence, 0 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "004-safety-information-buried",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "safety_prominence",
+            "claim_contains": "Contraindicated in active serious infection",
+            "severity": "blocker",
+            "note": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "saf-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 7861,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "saf-1",
+          "check_type": "safety_prominence",
+          "claim_id": "c1",
+          "quote": "Contraindicated in active serious infection.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:zelvoran:v1.0:3",
+              "passage": "## 3. Contraindications\n\n- Active, serious infection, including active tuberculosis.\n- Known serious hypersensitivity to zelvoran or any excipient.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Zelvoran label v1.0 \u2014 3. Contraindications",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SAFETY",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-fast",
+          "prompt_version": "safety_prominence-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (1 by evidence, 0 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "005-superiority-without-head-to-head",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "works better than the leading biologics",
+            "severity": "blocker",
+            "note": "No head-to-head trial exists; the label states none was conducted."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 5358,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Zelvoran works better than the leading biologics for plaque psoriasis.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No head-to-head trial exists; the label states none was conducted.",
+          "suggested_fix": "",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 1 finding(s) could not be verified: sub-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 1 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "006-superiority-routes-to-legal-under-borealis",
+      "tenant_id": "borealis_bio",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "works better than the leading therapies",
+            "severity": "blocker",
+            "note": "No head-to-head cardiovascular outcomes trial exists."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "lr-1",
+          "check_type": "substantiation",
+          "severity": null,
+          "quote": "Nexapril\u00ae (nexapril) is indicated in adults with type 2 diabetes mellitus and established\natherosclerotic cardiovascular",
+          "issue": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head "
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "legal",
+      "actual_route": "legal",
+      "route_correct": true,
+      "latency_ms": 10252,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "lr-1",
+          "check_type": "substantiation",
+          "claim_id": "",
+          "quote": "Nexapril\u00ae (nexapril) is indicated in adults with type 2 diabetes mellitus and established\natherosclerotic cardiovascular disease to reduce the risk of major adverse cardiovascular events.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head clinical trial against that comparator. No head-to-head trial exists for any Borealis product.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "BOR-LLM-001 v1",
+              "passage": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head clinical trial against that comparator. No head-to-head trial exists for any Borealis product.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "Comparative language requires a named comparator and head-to-head evidence",
+              "rule_id": "BOR-LLM-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:BOR-LLM-001",
+          "confidence": 88,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "BOR-LLM-001",
+          "rule_version": 1,
+          "model": "fake-fast",
+          "prompt_version": "rule-check-v1",
+          "merged_from": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Nexapril works better than the leading therapies for cardiovascular risk reduction [1].",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No head-to-head cardiovascular outcomes trial exists.",
+          "suggested_fix": "",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "BOR-SEV-SUBSTANTIATION",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 2 finding(s) could not be verified: sub-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 2 finding(s) fell below the tenant threshold of 80",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "007-same-piece-passes-for-acme",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "standard_reviewer",
+      "actual_route": "standard_reviewer",
+      "route_correct": true,
+      "latency_ms": 7485,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "no findings to verify",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "no findings to assess",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "008-same-piece-blocked-for-borealis",
+      "tenant_id": "borealis_bio",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "fair_balance",
+            "claim_contains": "beyond the 600 allowed",
+            "severity": "blocker",
+            "note": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "dr-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-2",
+          "check_type": "reference_support",
+          "severity": null,
+          "quote": "PASI-75 at Week 16",
+          "issue": "Claim carries no reference marker."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 7179,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "fair_balance",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Section 'important_safety_information' is 1747 characters from 'efficacy', beyond the 600 allowed, so it does not read as part of the same message. Also noted: BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "BOR-ISI-001 v1",
+              "passage": "Important Safety Information must appear in the same section as the first efficacy claim, so that a reader meets the risk alongside the benefit rather than after it.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "BOR-ISI-001 v1",
+              "rule_id": "BOR-ISI-001",
+              "rule_version": 1
+            },
+            {
+              "source_id": "borealis_bio:label:zelvoran:v1.0:9",
+              "passage": "### 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52\n\nOpen-label extension enrolling 610 adults who completed ZEL-301 or ZEL-302.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Zelvoran label v1.0 \u2014 6.3 ZEL-303 \u2014 Maintenance of PASI-75 through Week 52",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:BOR-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "BOR-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [
+            "fai-1"
+          ]
+        },
+        {
+          "id": "dr-2",
+          "check_type": "reference_support",
+          "claim_id": "c1",
+          "quote": "PASI-75 at Week 16",
+          "char_span": [
+            2,
+            20
+          ],
+          "issue": "Claim carries no reference marker.",
+          "suggested_fix": "Add a reference citation supporting this claim.",
+          "citations": [
+            {
+              "source_id": "BOR-REF-001 v1",
+              "passage": "Every efficacy claim must carry a numbered reference marker identifying the study that supports it, so a reader can verify the claim against its source.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "BOR-REF-001 v1",
+              "rule_id": "BOR-REF-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:BOR-REF-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "BOR-REF-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 3 finding(s) verified (1 by evidence, 2 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 2 finding(s) met the tenant threshold of 80",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "009-preapproved-wording-in-a-misleading-context",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "off_label",
+            "claim_contains": "Whatever your age",
+            "severity": "blocker",
+            "note": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "off-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "Zelvoran",
+          "issue": "First mention of Zelvoran does not carry a trademark symbol."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 4947,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "off-1",
+          "check_type": "off_label",
+          "claim_id": "c1",
+          "quote": "Whatever your age, whatever your stage, Zelvoran may be the answer your family has been waiting for.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:zelvoran:v1.0:1",
+              "passage": "## 1. Indications and Usage\n\nZELVORAN is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who\nare candidates for systemic therapy or phototherapy.\n\nLimitations of use.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Zelvoran label v1.0 \u2014 1. Indications and Usage",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-OFFLABEL",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "off_label-v1",
+          "merged_from": []
+        },
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "Zelvoran",
+          "char_span": [
+            36,
+            44
+          ],
+          "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "suggested_fix": "Write Zelvoran\u00ae on first mention.",
+          "citations": [
+            {
+              "source_id": "ACME-TM-001 v1",
+              "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-TM-001 v1",
+              "rule_id": "ACME-TM-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "advisory",
+          "severity_final": "advisory",
+          "severity_rule_id": "rule:ACME-TM-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-TM-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 2 finding(s) verified (1 by evidence, 1 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 2 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "010-clean-piece",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "standard_reviewer",
+      "actual_route": "standard_reviewer",
+      "route_correct": true,
+      "latency_ms": 10837,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "no findings to verify",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "no findings to assess",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "011-ungrounded-statistic",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "92% of adults maintained completely clear skin at two years",
+            "severity": "blocker",
+            "note": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 7597,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "92% of adults maintained completely clear skin at two years.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
+          "suggested_fix": "",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 1 finding(s) could not be verified: sub-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 1 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "012-cross-tenant-leakage-trap",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "reduced major adverse cardiovascular events by 22%",
+            "severity": "blocker",
+            "note": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 6425,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Zelvoran reduced major adverse cardiovascular events by 22% over 36 months.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
+          "suggested_fix": "",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "fake-strong",
+          "prompt_version": "substantiation-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 1 finding(s) could not be verified: sub-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 1 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "sub-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "013-banned-term-on-an-otherwise-clean-piece",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "business_rule",
+            "claim_contains": "cure",
+            "severity": "blocker",
+            "note": "ACME-BAN-001. Deterministic, no model call, confidence 100."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "dr-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 7849,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "cure",
+          "char_span": [
+            435,
+            439
+          ],
+          "issue": "Uses the prohibited term 'cure'.",
+          "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead.",
+          "citations": [
+            {
+              "source_id": "ACME-BAN-001 v1",
+              "passage": "Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-BAN-001 v1",
+              "rule_id": "ACME-BAN-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-BAN-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-BAN-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (0 by evidence, 1 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "014-disclaimer-required-only-for-borealis",
+      "tenant_id": "borealis_bio",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "business_rule",
+            "claim_contains": "Required text is missing",
+            "severity": "blocker",
+            "note": "BOR-DISC-001. An absence, so the finding has no quote - and must still be grounded by the rule."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "dr-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "Nexapril",
+          "issue": "First mention of Nexapril does not carry a trademark symbol."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 10688,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "suggested_fix": "Add: Talk to your doctor about whether this treatment is right for you.",
+          "citations": [
+            {
+              "source_id": "BOR-DISC-001 v1",
+              "passage": "Patient-directed material must carry the approved patient disclaimer verbatim, so a reader is directed to a clinician rather than left to apply a clinical result to themselves.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "BOR-DISC-001 v1",
+              "rule_id": "BOR-DISC-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:BOR-DISC-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "BOR-DISC-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "Nexapril",
+          "char_span": [
+            16,
+            24
+          ],
+          "issue": "First mention of Nexapril does not carry a trademark symbol.",
+          "suggested_fix": "Write Nexapril\u00ae on first mention.",
+          "citations": [
+            {
+              "source_id": "BOR-TM-001 v1",
+              "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "BOR-TM-001 v1",
+              "rule_id": "BOR-TM-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "advisory",
+          "severity_final": "advisory",
+          "severity_rule_id": "rule:BOR-TM-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "BOR-TM-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 2 finding(s) verified (0 by evidence, 2 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 2 finding(s) met the tenant threshold of 80",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "015-same-copy-acceptable-to-acme",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "Zelvoran",
+          "issue": "First mention of Zelvoran does not carry a trademark symbol."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "standard_reviewer",
+      "actual_route": "standard_reviewer",
+      "route_correct": true,
+      "latency_ms": 10894,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "Zelvoran",
+          "char_span": [
+            16,
+            24
+          ],
+          "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "suggested_fix": "Write Zelvoran\u00ae on first mention.",
+          "citations": [
+            {
+              "source_id": "ACME-TM-001 v1",
+              "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-TM-001 v1",
+              "rule_id": "ACME-TM-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "advisory",
+          "severity_final": "advisory",
+          "severity_rule_id": "rule:ACME-TM-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-TM-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (0 by evidence, 1 by rule, 0 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "016-reference-document-clause-violation",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "business_rule",
+            "claim_contains": "Three years of sustained clear skin",
+            "severity": "blocker",
+            "note": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "rd-ACME-DOC-001-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 10891,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "rd-ACME-DOC-001-1",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "Three years of sustained clear skin with Zelvoran [3].",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "acme-promotional-code.md",
+              "passage": "A result observed in a subgroup must be described as a subgroup result, naming the subgroup. A subgroup figure must never be presented as the result in the overall population.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "doc_clause",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
+              "rule_id": "ACME-DOC-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-DOC-001",
+          "confidence": 88,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "doc_clause",
+          "rule_id": "ACME-DOC-001",
+          "rule_version": 1,
+          "model": "fake-strong",
+          "prompt_version": "rule-check-v1",
+          "merged_from": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (0 by evidence, 0 by rule, 1 by document clause)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "pass_rate": {
+      "cases": 16,
+      "passed": 16,
+      "pass_rate": 1.0
+    },
+    "recall_all": {
+      "expected": 17,
+      "matched": 17,
+      "recall": 1.0
+    },
+    "finding_precision": {
+      "produced": 26,
+      "accounted_for": 17,
+      "unexpected": 9,
+      "precision": 0.6538
+    },
+    "routing": {
+      "scored": 16,
+      "correct": 16,
+      "accuracy": 1.0
+    },
+    "severity_mismatches": {
+      "count": 0,
+      "rows": []
+    },
+    "false_alarms": {
+      "count": 0,
+      "rows": []
+    },
+    "cost_and_latency": {
+      "runs": 16,
+      "latency_p50_ms": 7861.0,
+      "latency_p95_ms": 10891.0,
+      "latency_mean_ms": 8534.1,
+      "tokens_in_total": 0,
+      "tokens_out_total": 0,
+      "cost_usd_total": 0.0,
+      "cost_usd_per_run": 0.0
+    },
+    "blocker_recall": {
+      "expected": 17,
+      "matched": 17,
+      "recall": 1.0,
+      "missed": []
+    },
+    "false_escalation_rate": {
+      "standard_expected": 3,
+      "escalated": 0,
+      "rate": 0.0,
+      "cases": []
+    },
+    "advisory_recall": {
+      "expected": 0,
+      "matched": 0,
+      "recall": 1.0
+    },
+    "grounding_rate": {
+      "findings": 26,
+      "grounded": 22,
+      "rate": 0.8462,
+      "by_mode": {
+        "doc_clause": 2,
+        "evidence": 9,
+        "none": 4,
+        "rule": 11
+      }
+    },
+    "severity_calibration": {
+      "count": 0,
+      "rows": []
+    },
+    "rule_findings": {
+      "rule_findings": 13,
+      "distinct_rules": 9,
+      "by_rule": {
+        "ACME-BAN-001": 2,
+        "ACME-DOC-001": 2,
+        "ACME-REQ-001": 1,
+        "ACME-TM-001": 3,
+        "BOR-DISC-001": 1,
+        "BOR-ISI-001": 1,
+        "BOR-LLM-001": 1,
+        "BOR-REF-001": 1,
+        "BOR-TM-001": 1
+      }
+    },
+    "threshold_sweep": {
+      "thresholds": [
+        50,
+        60,
+        70,
+        80,
+        90
+      ],
+      "note": "Routing recomputed from stored findings at each threshold. No model calls, so a difference between points is the threshold's effect and not model nondeterminism.",
+      "points": [
+        {
+          "threshold": 50,
+          "blocker_recall": 1.0,
+          "false_escalation_rate": 0.0,
+          "low_confidence_findings": 4
+        },
+        {
+          "threshold": 60,
+          "blocker_recall": 1.0,
+          "false_escalation_rate": 0.0,
+          "low_confidence_findings": 4
+        },
+        {
+          "threshold": 70,
+          "blocker_recall": 1.0,
+          "false_escalation_rate": 0.0,
+          "low_confidence_findings": 4
+        },
+        {
+          "threshold": 80,
+          "blocker_recall": 1.0,
+          "false_escalation_rate": 0.0,
+          "low_confidence_findings": 4
+        },
+        {
+          "threshold": 90,
+          "blocker_recall": 1.0,
+          "false_escalation_rate": 0.0,
+          "low_confidence_findings": 7
+        }
+      ],
+      "tenant_thresholds": {
+        "acme_pharma": 70,
+        "borealis_bio": 80
+      }
+    }
+  },
+  "per_tenant": {
+    "acme_pharma": {
+      "pass_rate": {
+        "cases": 13,
+        "passed": 13,
+        "pass_rate": 1.0
+      },
+      "recall_all": {
+        "expected": 14,
+        "matched": 14,
+        "recall": 1.0
+      },
+      "finding_precision": {
+        "produced": 20,
+        "accounted_for": 14,
+        "unexpected": 6,
+        "precision": 0.7
+      },
+      "routing": {
+        "scored": 13,
+        "correct": 13,
+        "accuracy": 1.0
+      },
+      "severity_mismatches": {
+        "count": 0,
+        "rows": []
+      },
+      "false_alarms": {
+        "count": 0,
+        "rows": []
+      },
+      "cost_and_latency": {
+        "runs": 13,
+        "latency_p50_ms": 7849.0,
+        "latency_p95_ms": 10891.0,
+        "latency_mean_ms": 8340.5,
+        "tokens_in_total": 0,
+        "tokens_out_total": 0,
+        "cost_usd_total": 0.0,
+        "cost_usd_per_run": 0.0
+      }
+    },
+    "borealis_bio": {
+      "pass_rate": {
+        "cases": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "recall_all": {
+        "expected": 3,
+        "matched": 3,
+        "recall": 1.0
+      },
+      "finding_precision": {
+        "produced": 6,
+        "accounted_for": 3,
+        "unexpected": 3,
+        "precision": 0.5
+      },
+      "routing": {
+        "scored": 3,
+        "correct": 3,
+        "accuracy": 1.0
+      },
+      "severity_mismatches": {
+        "count": 0,
+        "rows": []
+      },
+      "false_alarms": {
+        "count": 0,
+        "rows": []
+      },
+      "cost_and_latency": {
+        "runs": 3,
+        "latency_p50_ms": 10252.0,
+        "latency_p95_ms": 10688.0,
+        "latency_mean_ms": 9373.0,
+        "tokens_in_total": 0,
+        "tokens_out_total": 0,
+        "cost_usd_total": 0.0,
+        "cost_usd_per_run": 0.0
+      }
+    }
+  },
+  "notes": "PROVISIONAL - offline mode. Model responses are synthesised from each case's own expected findings, so blocker recall for LLM-sourced findings is near-tautological and is NOT a measurement of model quality. What IS measured here: routing accuracy, grounding against the real corpus, false escalation on the clean cases, dedupe, severity from tenant policy, and deterministic rule findings (which make no model call and are fully real). Record cassettes against a live model and re-baseline before quoting any recall figure."
+}

@@ -1,0 +1,27 @@
+id: 004-safety-information-buried
+title: Safety information present but reduced to one line after the footnotes
+why_hard: >-
+  The safety information is technically present, so a check that asks "is there a safety section?"
+  passes the piece. What is wrong is proportion and position: one sentence of risk after a long
+  footnote block, against four referenced efficacy claims above it. Present-but-buried is the
+  realistic failure in promotional material, not outright omission, and judging it needs the layout -
+  how much space each block gets and what order a reader meets them in - rather than the words alone.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: leave_piece
+market: us
+promo_path: corpus/promo/zelvoran-hcp-isi-buried.md
+expected_findings:
+  - check_type: safety_prominence
+    claim_contains: Contraindicated in active serious infection
+    severity: blocker
+    note: >-
+      Safety information is one line placed after the footnotes, far shorter than the efficacy content
+      it is meant to balance.
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - PASI-75 denotes at least a 75% reduction from baseline
+tags: [safety_prominence, fair_balance, layout]

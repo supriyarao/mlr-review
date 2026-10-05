@@ -1,0 +1,50 @@
+id: 014-disclaimer-required-only-for-borealis
+title: The same patient copy, missing a disclaimer only Borealis requires
+why_hard: >-
+  Paired with case 015, which submits this same text under Acme. Borealis requires an exact patient
+  disclaimer on patient-facing material; Acme has no such rule. So identical copy is a blocker for one
+  tenant and acceptable to the other, and the difference is a single YAML rule with an audience scope
+  rather than any difference in the content. It also exercises the absence case: there is no offending
+  text to quote, so the finding has an empty quote and must still pass grounding - a gate that demanded
+  a quote from every finding would mark every missing-disclaimer finding unverifiable.
+tenant_id: borealis_bio
+product_id: nexapril
+label_version: "2.1"
+audience: patient
+channel: patient_leaflet
+market: us
+promo: |
+  # Understanding Nexapril
+
+  ## What Nexapril is for
+
+  Nexapril® (nexapril) is for adults with type 2 diabetes who also have established cardiovascular
+  disease, to lower the chance of a heart attack, stroke or death from heart disease.
+
+  In a study of 9,412 adults, Nexapril lowered the chance of these events by 22.0% compared with
+  placebo over about three years [1].
+
+  ## Important Safety Information
+
+  Nexapril is not for people with severe kidney problems. Your doctor will check your kidney function
+  before you start. Low blood sugar can happen if you also take insulin or certain other diabetes
+  medicines. Tell your doctor straight away if you feel unwell, have stomach pain or are sick, as a
+  serious condition called ketoacidosis can occur. Urinary and genital infections were more common with
+  Nexapril than with placebo.
+
+  ## References
+
+  1. NEX-114. Randomised, double-blind, placebo-controlled, median 36 months, 9,412 adults.
+expected_findings:
+  - check_type: business_rule
+    claim_contains: Required text is missing
+    severity: blocker
+    note: >-
+      BOR-DISC-001. An absence, so the finding has no quote - and must still be grounded by the rule.
+expected_rule_ids:
+  - BOR-DISC-001
+expected_route: senior_regulatory
+must_not_flag:
+  - Nexapril lowered the chance of these events by 22.0% compared with placebo over about three years
+  - Nexapril is not for people with severe kidney problems
+tags: [business_rule, absence, multi_tenant, scope, paired_with_015]

@@ -1,0 +1,28 @@
+id: 011-ungrounded-statistic
+title: A statistic that exists nowhere in the corpus
+why_hard: >-
+  "92% of adults maintained completely clear skin at two years" is specific, plausible and entirely
+  absent from the evidence - the longest Zelvoran study runs to Week 52, which ZEL-303 states in so
+  many words. The failure mode this case guards against is a model inventing a citation to support a
+  claim it cannot verify, which is both the most tempting and the most dangerous thing it can do here.
+  The correct behaviour is to report the claim as unverifiable and escalate, and for the grounding gate
+  to catch any citation that does not actually exist in a tenant source.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo_path: corpus/promo/zelvoran-hcp-unverifiable-claims.md
+expected_findings:
+  - check_type: substantiation
+    claim_contains: 92% of adults maintained completely clear skin at two years
+    severity: blocker
+    note: >-
+      No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented
+      citation.
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - Please see full Prescribing Information
+tags: [substantiation, ungrounded, hallucination_guard]

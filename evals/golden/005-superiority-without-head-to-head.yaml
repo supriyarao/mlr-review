@@ -1,0 +1,48 @@
+id: 005-superiority-without-head-to-head
+title: Superiority claim with no head-to-head trial, under Acme
+why_hard: >-
+  "Works better than the leading biologics" names no comparator, so there is nothing to look up - and
+  the absence of evidence is the finding. No head-to-head trial exists anywhere in the corpus for
+  either product, which the label states explicitly, so the correct behaviour is to report the claim
+  as unsubstantiated rather than to search harder. A system that only reports problems it can cite
+  evidence *for* will miss this entirely, because the citable fact here is a negative one.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo: |
+  # A clearer choice in plaque psoriasis
+
+  ## Efficacy
+
+  Zelvoran® (zelvoran) is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
+  who are candidates for systemic therapy or phototherapy.
+
+  Zelvoran works better than the leading biologics for plaque psoriasis.
+
+  In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved
+  PASI-75 compared with 9.2% receiving placebo [1].
+
+  ## Important Safety Information
+
+  Zelvoran is contraindicated in active, serious infection, including active tuberculosis. Serious
+  infections, hepatic enzyme elevations and serious hypersensitivity reactions have been reported. The
+  most common adverse reactions were nasopharyngitis (14.1%), injection-site reaction (9.4%) and
+  headache (7.2%).
+
+  ## References
+
+  1. ZEL-301. Randomised, double-blind, placebo-controlled, 16 weeks, 812 adults.
+
+  Please see full Prescribing Information.
+expected_findings:
+  - check_type: substantiation
+    claim_contains: works better than the leading biologics
+    severity: blocker
+    note: No head-to-head trial exists; the label states none was conducted.
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+tags: [substantiation, comparative, absence_of_evidence]
