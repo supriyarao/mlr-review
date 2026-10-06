@@ -18,17 +18,25 @@ Three jobs, each learned the hard way:
 3. **Map the layout.** Placement rules and the fair-balance check need to know where the safety
    information sits relative to the first efficacy claim, and how much space each gets. That is
    structure, not language, so it is computed here rather than asked of a model.
+4. **Pin the policy in force.** The composite ``policy_version`` and the set of tenant business rules
+   that apply to this piece are both resolved here, once, from the submission metadata this node has
+   just settled. Pinning them together is the point: they are two views of the same fact, and a rule
+   edited mid-review cannot make the audit trail contradict itself.
 """
 
 from __future__ import annotations
 
 import re
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from mlr.nodes.base import node_run, resolve_policy_version, tenant_backend_provenance
+from mlr.schemas import AppliedRule
+from platform_core.rules.registry import RuleRegistry
+from platform_core.rules.schema import Rule
 
 # Markdown constructs stripped from the reviewable text.
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
@@ -153,11 +161,70 @@ def extract_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def ingest(state: dict[str, Any]) -> dict[str, Any]:
-    """Normalise the document and map its layout.
+def applicable_rules(
+    tenant_id: str,
+    *,
+    audience: str = "any",
+    channel: str = "",
+    product_id: str = "",
+    market: str = "",
+    on: date | None = None,
+) -> list[Rule]:
+    """The tenant business rules in force for this submission, in id order.
 
-    Also resolves the policy version for the run, which every later audit event carries: pinning it
-    once at the start means a rule edited mid-review cannot make the trail self-contradictory.
+    Four filters, all of which must pass: the rule belongs to this tenant, it is active, it is inside
+    its effective window, and its scope covers this piece. A patient-facing rule is left out of a
+    piece written for clinicians -- applying it would manufacture false blockers.
+    """
+    return RuleRegistry(tenant_id).applicable_rules(
+        audience=audience or "any",
+        channel=channel,
+        product_id=product_id,
+        market=market,
+        on=on,
+    )
+
+
+def _select_rules(tenant_id: str, resolved: dict[str, str]) -> tuple[list[AppliedRule], str]:
+    """Which rules apply, as an auditable record. Returns the record and an error string.
+
+    Why this is part of ingest rather than a node of its own: selection is a pure function of the
+    submission metadata ingest has just resolved, it calls no model, and it has to happen exactly
+    once before the fan-out -- three rule branches writing ``rules_applied`` concurrently would
+    collide on a key that has no reducer. Keeping it here also puts it beside ``policy_version``,
+    which hashes the same active rule set, so one node pins what policy was in force and pins it once.
+
+    The record carries ids and versions, not params: an auditor asking "why was this piece not
+    flagged for the missing disclaimer" needs to know what the selection *was*, not what it would be
+    today.
+    """
+    try:
+        rules = applicable_rules(
+            tenant_id,
+            audience=resolved["audience"],
+            channel=resolved["channel"],
+            product_id=resolved["product_id"],
+            market=resolved["market"],
+        )
+    except Exception as exc:
+        # A registry that cannot be read means no business rules are applied. That is a real
+        # reduction in review coverage, so it is recorded and surfaced to the reviewer rather than
+        # looking like a tenant with no rules.
+        return [], f"ingest: could not load tenant rules ({exc})"
+
+    applied = [
+        AppliedRule(id=r.id, version=r.version, kind=r.kind, severity=r.severity, title=r.title)
+        for r in rules
+    ]
+    return applied, ""
+
+
+def ingest(state: dict[str, Any]) -> dict[str, Any]:
+    """Normalise the document, map its layout, and pin the policy in force.
+
+    The policy version every later audit event carries is resolved here, together with the tenant
+    rules that apply to this piece: pinning both once at the start means a rule edited mid-review
+    cannot make the trail self-contradictory.
     """
     with node_run(state, "ingest", input_value={"chars": len(state.get("document", ""))}) as run:
         raw = state.get("document") or ""
@@ -175,6 +242,7 @@ def ingest(state: dict[str, Any]) -> dict[str, Any]:
 
         tenant_id = str(state.get("tenant_id", ""))
         provenance = tenant_backend_provenance(tenant_id)
+        rules_applied, rule_error = _select_rules(tenant_id, resolved)
 
         # Caller-supplied doc_meta wins, so an eval case can pin the layout and a parsing change is
         # not mistaken for a model regression.
@@ -186,12 +254,25 @@ def ingest(state: dict[str, Any]) -> dict[str, Any]:
             "sections": list(doc_meta["sections"]),
             "safety_block_chars": doc_meta["safety_block_chars"],
             "efficacy_block_chars": doc_meta["efficacy_block_chars"],
+            # Recorded in the same event as the text, so one line of the trail answers both "what
+            # was reviewed" and "under which rules".
+            "rules_applied": [f"{r.id} v{r.version}" for r in rules_applied],
+            "rules_by_kind": {
+                kind: sum(1 for r in rules_applied if r.kind == kind)
+                for kind in ("deterministic", "llm", "reference_doc")
+            },
         }
+        if rule_error:
+            run.error = rule_error
 
-        return {
+        updates: dict[str, Any] = {
             "document": document,
             "doc_meta": doc_meta,
             "status": "running",
+            "rules_applied": rules_applied,
             "policy_version": provenance["policy_version"] or resolve_policy_version(tenant_id),
             **{k: v for k, v in resolved.items() if v},
         }
+        if rule_error:
+            updates["errors"] = [rule_error]
+        return updates

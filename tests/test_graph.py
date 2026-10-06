@@ -247,7 +247,7 @@ def test_every_node_wrote_an_audit_event(subgroup_run):
     _, result, _ = subgroup_run
     events = audit.events_for_run("t-subgroup")
     nodes = [e.node for e in events]
-    for expected in ("ingest", "extract_claims", "select_rules", "grounding_gate", "route"):
+    for expected in ("ingest", "extract_claims", "preapproved_filter", "grounding_gate", "route"):
         assert expected in nodes, f"{expected} left no audit trail"
     assert [e.seq for e in events] == list(range(1, len(events) + 1))
     # Provenance that makes the decision defensible later.

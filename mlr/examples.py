@@ -369,7 +369,6 @@ def example_audit_events() -> list[dict[str, Any]]:
             0.00244,
             740,
         ),
-        ("select_rules", "node", "", "", 0, 0, 0.0, 8),
         (
             "substantiation",
             "node",

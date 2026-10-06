@@ -328,7 +328,7 @@ def test_the_audit_trail_is_ordered_and_complete(finished_run):
     assert events
     assert [e["seq"] for e in events] == list(range(1, len(events) + 1))
     nodes = {e["node"] for e in events}
-    for expected in ("ingest", "extract_claims", "select_rules", "grounding_gate", "route"):
+    for expected in ("ingest", "extract_claims", "preapproved_filter", "grounding_gate", "route"):
         assert expected in nodes
     integrity = service.get_audit_integrity(finished_run)
     assert integrity["sequence_complete"] is True

@@ -370,7 +370,6 @@ def test_the_graph_shape_matches_the_documented_pipeline():
         "ingest",
         "extract_claims",
         "preapproved_filter",
-        "select_rules",
         "substantiation",
         "deterministic_rules",
         "llm_rules",

@@ -70,6 +70,10 @@ class ReviewState(TypedDict, total=False):
     # Section offsets and layout hints: {"sections": {name: {"start": int, "end": int}}, ...}.
     # Placement rules and the safety-prominence check read this.
     doc_meta: dict[str, Any]
+    # Which tenant business rules were in force for this piece, with their versions. Selected here
+    # because it must happen once before the fan-out: three rule branches writing this key
+    # concurrently would collide on a key that has no reducer.
+    rules_applied: list[AppliedRule]
 
     # --- Produced by extract_claims (LLM) -------------------------------------------------------
     claims: list[Claim]
@@ -79,9 +83,6 @@ class ReviewState(TypedDict, total=False):
     # for fair balance and off-label implication: approved wording in a new context can still
     # mislead, and the context is exactly what was not reviewed when the claim was cleared.
     preapproved_matches: dict[str, str]
-
-    # --- Produced by select_rules (deterministic) -----------------------------------------------
-    rules_applied: list[AppliedRule]
 
     # --- Accumulated by the parallel branches ---------------------------------------------------
     # Append-only. Five check nodes plus the three rule nodes all write here concurrently.

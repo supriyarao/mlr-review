@@ -122,7 +122,7 @@ def _rules_of_kind(state: dict[str, Any], kind: str) -> list[Rule]:
 
     ``state["rules_applied"]`` holds ids and versions, not params -- it is a record, not a payload.
     Reading the exact versions back from the registry means this node applies precisely what
-    ``select_rules`` chose, even if a rule was edited in between.
+    ``ingest`` selected, even if a rule was edited in between.
     """
     applied = state.get("rules_applied") or []
     wanted = {(a.id, a.version) for a in applied if a.kind == kind}

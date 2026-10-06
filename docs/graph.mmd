@@ -8,7 +8,6 @@ graph TD;
 	ingest(ingest)
 	extract_claims(extract_claims)
 	preapproved_filter(preapproved_filter)
-	select_rules(select_rules)
 	substantiation(substantiation)
 	reference_support(reference_support)
 	off_label(off_label)
@@ -36,20 +35,19 @@ graph TD;
 	ingest --> extract_claims;
 	llm_rules --> grounding_gate;
 	off_label --> grounding_gate;
-	preapproved_filter --> select_rules;
+	preapproved_filter -.-> deterministic_rules;
+	preapproved_filter -.-> fair_balance;
+	preapproved_filter -.-> grounding_gate;
+	preapproved_filter -.-> llm_rules;
+	preapproved_filter -.-> off_label;
+	preapproved_filter -.-> reference_doc_review;
+	preapproved_filter -.-> reference_support;
+	preapproved_filter -.-> safety_prominence;
+	preapproved_filter -.-> substantiation;
 	reference_doc_review --> grounding_gate;
 	reference_support --> grounding_gate;
 	route --> human_review;
 	safety_prominence --> grounding_gate;
-	select_rules -.-> deterministic_rules;
-	select_rules -.-> fair_balance;
-	select_rules -.-> grounding_gate;
-	select_rules -.-> llm_rules;
-	select_rules -.-> off_label;
-	select_rules -.-> reference_doc_review;
-	select_rules -.-> reference_support;
-	select_rules -.-> safety_prominence;
-	select_rules -.-> substantiation;
 	severity --> editor;
 	substantiation --> grounding_gate;
 	finalize --> __end__;

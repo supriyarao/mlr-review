@@ -2,12 +2,19 @@
 
 Shape:
 
-    ingest -> extract_claims -> preapproved_filter -> select_rules
+    ingest -> extract_claims -> preapproved_filter
         -> [ 5 specialist checks | deterministic_rules | llm_rules | reference_doc_review ... ]
         -> grounding_gate -> severity -> editor -> confidence_gate -> route
         -> human_review (interrupt) -> finalize
 
-Two things about the structure are worth explaining.
+Three things about the structure are worth explaining.
+
+**Which tenant rules apply is decided in ``ingest``, not in a node of its own.** Selection is a pure
+function of the submission metadata ingest resolves, it calls no model, and it has to happen once
+before the fan-out: three rule branches writing ``rules_applied`` concurrently would collide on a key
+with no reducer. It also belongs beside ``policy_version``, which hashes the same active rule set.
+Trade-off: one node now does two things, in exchange for a pipeline a reader can follow without being
+told what a rulebook picker is.
 
 **The fan-out is one conditional edge returning a list of ``Send``.** Eight branches run concurrently
 and each appends to ``findings`` through its reducer. ``reference_doc_review`` gets one ``Send`` per
@@ -36,7 +43,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
 from mlr import trace
-from mlr.nodes import checks, finalize, human_review, ingest, preapproved, rules, select_rules
+from mlr.nodes import checks, finalize, human_review, ingest, preapproved, rules
 from mlr.nodes import extract_claims as extract
 from mlr.nodes import grounding_gate as grounding
 from mlr.nodes import route as routing
@@ -67,7 +74,6 @@ STEPPABLE_NODES: tuple[str, ...] = (
     "ingest",
     "extract_claims",
     "preapproved_filter",
-    "select_rules",
     "grounding_gate",
     "severity",
     "editor",
@@ -80,7 +86,6 @@ PIPELINE: tuple[str, ...] = (
     "ingest",
     "extract_claims",
     "preapproved_filter",
-    "select_rules",
     *CORE_CHECKS,
     *RULE_BRANCHES,
     "grounding_gate",
@@ -158,7 +163,6 @@ def build(*, fake: Any = None) -> StateGraph:
     add("ingest", ingest.ingest)
     add("extract_claims", _llm(extract.extract_claims))
     add("preapproved_filter", _llm(preapproved.preapproved_filter))
-    add("select_rules", select_rules.select_rules)
 
     add("substantiation", _llm(checks.substantiation))
     add("reference_support", _llm(checks.reference_support))
@@ -181,12 +185,11 @@ def build(*, fake: Any = None) -> StateGraph:
     builder.add_edge(START, "ingest")
     builder.add_edge("ingest", "extract_claims")
     builder.add_edge("extract_claims", "preapproved_filter")
-    builder.add_edge("preapproved_filter", "select_rules")
 
     # The fan-out. Every branch converges on the grounding gate, which LangGraph runs once all of
     # them have finished -- so grounding sees the complete finding set, never a partial one.
     builder.add_conditional_edges(
-        "select_rules",
+        "preapproved_filter",
         fan_out,
         [*CORE_CHECKS, *RULE_BRANCHES, "grounding_gate"],
     )

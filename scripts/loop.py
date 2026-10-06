@@ -163,7 +163,7 @@ def main() -> int:
                 break
             step += 1
             # Advancing runs the named node plus any nodes after it that are not pause points --
-            # the eight parallel branches all run in the step after select_rules.
+            # the eight parallel branches all run in the step after preapproved_filter.
             print(
                 f"\n  {BOLD}step {step}{RESET} -> running {CYAN}{', '.join(pending)}{RESET}"
                 f"{DIM} (and any non-pausing nodes that follow){RESET}"
