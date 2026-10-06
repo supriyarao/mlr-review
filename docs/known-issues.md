@@ -4,51 +4,51 @@ Things found by reading the code that are real but not yet fixed. Recorded rathe
 carried, because an undocumented known issue is indistinguishable from a bug nobody noticed.
 
 Each entry says what is wrong, what it costs, and what the fix is. Ordered by how much it would
-mislead someone evaluating the system.
+mislead someone relying on the system.
 
 ---
 
-## 1. Two document-extraction code paths that nothing keeps in step
+## 1. The pre-approved claim library is ungoverned, and `policy_version` does not cover it
 
-**Where:** `api/ingest.py:extract_text(filename, data)` and
-`mlr/nodes/ingest.py:extract_text(path)`.
+**Where:** `corpus/preapproved_claims/<tenant_id>.yaml`, `scripts/seed.py:_preapproved_documents`,
+`platform_core/policy.py:policy_version`.
 
-**What.** Both turn `.md` / `.txt` / `.pdf` into reviewable text, and both implement it separately:
-the API reads uploaded bytes, the node reads a path (used by `scripts/loop.py` and the eval
-harness). They agree today. Nothing enforces that they keep agreeing — a PDF handling change in one
-would leave the other behind, and the eval harness and the API would then be reviewing subtly
-different text from the same file.
+**What.** Three related gaps around the same asset.
 
-**Why it matters.** The eval baseline is only meaningful if the harness sees what the API sees. Two
-extractors is one divergence away from a baseline that no longer describes production behaviour.
+*It is not part of the policy version.* `policy_version()` is `hash(tenant_id : config_hash :
+rules_hash)`. The pre-approved claim library is not in it. But a matched pre-approved claim **skips
+substantiation** — so adding a claim to that YAML and re-seeding materially changes review outcomes
+while `policy_version` stays byte-identical. Two runs under different cleared-claim libraries assert
+identical provenance in the audit log. That is precisely the failure `platform_core/policy.py`
+exists to prevent, applied to an input its author did not account for.
 
-**Fix.** One extraction module both import. It cannot live in `api/` — `mlr/` must not depend on a
-delivery surface — and bytes-to-text is genuinely use-case-agnostic, so it belongs in the platform:
-`platform_core/documents.py`, exposing extraction from both bytes and paths, with `api/` and
-`mlr/nodes/ingest.py` as its only callers. Add a test asserting both entry points produce identical
-text for the same corpus file.
+*It has no registry.* Business rules got versioning, status transitions, validation and an audit
+trail. Pre-approved claims get a YAML file read once by the seeder. `seed.py` indexes each claim as
+a retrieval `Document` and **drops `approved_on`, `source` and `notes` at index time**, so after
+seeding the claim exists only as a chunk in the tenant's collection. `preapproved_matches` records
+`claim_id -> ACME-PAC-001`, and nothing can resolve that id back to its approval date or source
+without re-reading the YAML by hand. "Who cleared this claim, when, against which label version" is
+an auditor's first question about a skipped substantiation check, and the system cannot answer it.
+
+*It has no API or UI.* No endpoint lists, creates, edits, versions or uploads pre-approved claims,
+and no page shows them. The only way to change the library is to edit a file in the repo and re-run
+`make seed`. A cleared-claim library is exactly the kind of asset a compliance owner edits
+constantly — the same argument that justified the rules registry.
+
+*And its location is inconsistent.* Rules and reference docs live inside `corpus/tenants/<id>/`;
+pre-approved claims sit in a separate top-level directory keyed by tenant filename. Leftover from
+before the tenant layout became a directory per tenant.
+
+**Fix.** Treat the library the way rules are treated: move it to
+`corpus/tenants/<id>/preapproved_claims.yaml`, give it a `PreapprovedClaimRegistry` with an
+`active_set_hash()`, fold that hash into `policy_version()`, carry `approved_on` / `source` /
+`label_version` through indexing so a match can be explained, and expose read plus upload endpoints.
+Versioned editing can wait; the policy hash and the provenance fields cannot, because without them
+the audit trail overstates what it knows.
 
 ---
 
-## 2. The API stores the document before normalisation, so evidence panels can vanish
-
-**Where:** `api/routes/reviews.py` (the `submissions.save(...)` call) vs `mlr/service.py:_prepare`.
-
-**What.** The submitted text is stored for later display *before* `normalize_document()` strips
-markdown emphasis, and `api/ingest.py` never calls that function. Findings quote verbatim from the
-normalised text. So a finding whose quote crossed a `**bold**` marker cannot be located in the
-stored copy.
-
-**Why it matters.** It fails safe — `ui/view.py:excerpt_html` returns `None` rather than
-mis-highlighting — but the reviewer silently loses the quote-in-context panel for exactly the
-findings most likely to involve emphasised copy. Character offsets are also shifted, so the stored
-text and any `char_span` disagree.
-
-**Fix.** Store the normalised text, or normalise on read. One line, in `api/`.
-
----
-
-## 3. A PDF has no markdown headings, so `required_section` rules fire on every PDF
+## 2. A PDF has no markdown headings, so `required_section` rules fire on every PDF
 
 **Where:** `mlr/nodes/ingest.py:build_doc_meta` and
 `platform_core/rules/deterministic.py:check_required_section`.
@@ -81,3 +81,43 @@ from a real one.
    answer and is out of scope here; the point is that the gap should be visible, not silent.
 
 Until (1) lands, uploading a PDF is not a safe demo path. Markdown is.
+
+---
+
+## 3. Two document-extraction code paths that nothing keeps in step
+
+**Where:** `api/ingest.py:extract_text(filename, data)` and
+`mlr/nodes/ingest.py:extract_text(path)`.
+
+**What.** Both turn `.md` / `.txt` / `.pdf` into reviewable text, and both implement it separately:
+the API reads uploaded bytes, the node reads a path (used by `scripts/loop.py` and the eval
+harness). They agree today. Nothing enforces that they keep agreeing — a PDF handling change in one
+would leave the other behind, and the eval harness and the API would then be reviewing subtly
+different text from the same file.
+
+**Why it matters.** The eval baseline is only meaningful if the harness sees what the API sees. Two
+extractors is one divergence away from a baseline that no longer describes production behaviour.
+
+**Fix.** One extraction module both import. It cannot live in `api/` — `mlr/` must not depend on a
+delivery surface — and bytes-to-text is genuinely use-case-agnostic, so it belongs in the platform:
+`platform_core/documents.py`, exposing extraction from both bytes and paths, with `api/` and
+`mlr/nodes/ingest.py` as its only callers. Add a test asserting both entry points produce identical
+text for the same corpus file.
+
+---
+
+## 4. The API stores the document before normalisation, so evidence panels can vanish
+
+**Where:** `api/routes/reviews.py` (the `submissions.save(...)` call) vs `mlr/service.py:_prepare`.
+
+**What.** The submitted text is stored for later display *before* `normalize_document()` strips
+markdown emphasis, and `api/ingest.py` never calls that function. Findings quote verbatim from the
+normalised text. So a finding whose quote crossed a `**bold**` marker cannot be located in the
+stored copy.
+
+**Why it matters.** It fails safe — `ui/view.py:excerpt_html` returns `None` rather than
+mis-highlighting — but the reviewer silently loses the quote-in-context panel for exactly the
+findings most likely to involve emphasised copy. Character offsets are also shifted, so the stored
+text and any `char_span` disagree.
+
+**Fix.** Store the normalised text, or normalise on read. One line, in `api/`.
