@@ -13,6 +13,7 @@ already computed.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from mlr.nodes.base import node_run
@@ -33,6 +34,31 @@ EVIDENCE_K = 8
 # it would show up as "could not verify" on claims whose study simply fell outside the window.
 EVIDENCE_K_BY_CHECK: dict[str, int] = {"substantiation": 12}
 
+# The doc_type the studies are indexed under, and the share of the window they get first refusal on.
+#
+# substantiation's second question names a specific study, so the study has to be in the window or
+# the question cannot be answered. Giving studies first refusal makes that likely instead of
+# accidental. The rest is left for the label, which is what the population and indication limits in
+# failure family A are judged against -- take the whole window for studies and the check loses its
+# ability to say "this result is real but the population is wider than the label allows".
+STUDY_DOC_TYPE = "reference"
+STUDY_SLOTS = 8
+
+# Document types an evidence check must never be shown.
+#
+# A cleared claim is not evidence. Asking "does the evidence support this claim?" against a pool
+# containing the cleared-claim library invites the circular answer -- supported, because wording
+# like it was approved once before -- and the approval said nothing about whether the underlying
+# study backs it. Matching against cleared claims is the preapproved_filter node's job, done
+# separately and earlier, with doc_type narrowed the other way.
+CIRCULAR_DOC_TYPES: tuple[str, ...] = ("preapproved_claim",)
+
+# Study identifiers as they appear in a piece's reference list: ZEL-302, NEX-114.
+_STUDY_ID = re.compile(r"\b[A-Z]{2,5}-\d{2,4}\b")
+
+# A numbered reference-list entry: "3. ZEL-303. Open-label extension, 52 weeks, 610 adults."
+_REFERENCE_ENTRY = re.compile(r"^\s*\d+\.\s+(.*)$", re.MULTILINE)
+
 
 def _claims_for(check: str, state: dict[str, Any]) -> list[Claim]:
     """Which claims a given check examines.
@@ -52,6 +78,34 @@ def _claims_for(check: str, state: dict[str, Any]) -> list[Claim]:
     return claims
 
 
+def _study_ids(document: str) -> list[str]:
+    """Study identifiers named anywhere in the piece, in order of first appearance.
+
+    Read off the piece rather than the claims because that is where they are written: a claim
+    carries a marker ("[3]"), and only the piece's reference list says that 3 means ZEL-303. The
+    markers alone are useless as query terms -- "3" matches nothing -- so expanding the query with
+    the study ids is what gives retrieval a lexical handle on the documents the copy is actually
+    relying on.
+
+    Taken from the whole document, always, not from the claims in scope: a reference list sits at
+    the end of the piece, far from the claim citing it, and a study named only in a footnote is
+    still a study the checker should have in front of it.
+    """
+    # Prefer the numbered reference list when the piece has one. Scanning the whole document also
+    # picks up endpoint scales -- PASI-90 has the same shape as ZEL-302 and no general rule tells
+    # them apart -- which is harmless as a query term but makes the list a poor thing to reason
+    # about. The reference list is where a study is named as a study.
+    entries = "\n".join(_REFERENCE_ENTRY.findall(document))
+    for text in (entries, document):
+        seen: list[str] = []
+        for match in _STUDY_ID.finditer(text):
+            if match.group(0) not in seen:
+                seen.append(match.group(0))
+        if seen:
+            return seen
+    return []
+
+
 def _evidence_query(check: str, claims: list[Claim], state: dict[str, Any]) -> str:
     """What to retrieve for this check.
 
@@ -66,14 +120,12 @@ def _evidence_query(check: str, claims: list[Claim], state: dict[str, Any]) -> s
             + " ".join(c.normalized_claim for c in claims[:4])
         )
     if check == "substantiation":
-        # The claim text, plus the markers it cites. The markers are study ids in the piece's
-        # reference list often enough that including them lifts the cited study into the window --
-        # which is the weakest link in the citation half of this check. See docs/known-issues.md:
-        # nothing *resolves* a marker to a source, so this biases retrieval rather than guaranteeing
-        # anything.
-        markers = " ".join(m for c in claims[:6] for m in c.reference_markers)
+        # The claims under examination, plus every study the piece names. See the note on
+        # docs/known-issues.md #5: this biases retrieval towards the cited studies, it does not
+        # resolve a marker to a source, so a study can still miss the window.
+        studies = " ".join(_study_ids(str(state.get("document") or "")))
         text = " ".join(c.normalized_claim or c.original_text for c in claims[:6])
-        return f"{text} {markers}".strip() or "indications"
+        return f"{text} {studies}".strip() or "indications"
     return " ".join(c.normalized_claim or c.original_text for c in claims[:6]) or "indications"
 
 
@@ -126,6 +178,43 @@ def _layout_block(state: dict[str, Any]) -> str:
     return f"<layout>\n{body}\n</layout>"
 
 
+def _retrieve(
+    check: str, retriever: TenantRetriever, query: str, state: dict[str, Any], k: int
+) -> list[Passage]:
+    """The evidence a check is shown.
+
+    Every check but substantiation takes one ranked window over everything in scope. substantiation
+    fills its window in two passes -- studies first, then everything else except the cleared-claim
+    library -- because its two questions want different sources and one ranking cannot serve both:
+    a single pass ranks by similarity to the claim, and the label's indication statement reads more
+    like a promotional claim than a study's endpoint table does, so the studies lose.
+    """
+    scope: dict[str, Any] = {
+        "product_id": str(state.get("product_id") or ""),
+        "label_version": str(state.get("label_version") or ""),
+    }
+    if check != "substantiation":
+        return retriever.search(query, **scope, k=k)
+
+    studies = retriever.search(query, **scope, doc_type=STUDY_DOC_TYPE, k=min(STUDY_SLOTS, k))
+    others = retriever.search(
+        query,
+        **scope,
+        exclude_doc_types=(*CIRCULAR_DOC_TYPES, STUDY_DOC_TYPE),
+        k=k - len(studies),
+    )
+
+    # Whichever side came up short, the other takes the slack: a tenant with two studies and a long
+    # label should still get a full window rather than a window with four empty slots in it.
+    short = k - len(studies) - len(others)
+    if short > 0:
+        seen = {p.source_id for p in studies}
+        extra = retriever.search(query, **scope, doc_type=STUDY_DOC_TYPE, k=k)
+        studies += [p for p in extra if p.source_id not in seen][:short]
+
+    return studies + others
+
+
 def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
     """Run one specialist check and return its findings."""
     check: CheckPrompt = CHECKS[check_name]
@@ -137,11 +226,12 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             return {}
 
         retriever = TenantRetriever(str(state["tenant_id"]))
-        passages = retriever.search(
+        passages = _retrieve(
+            check_name,
+            retriever,
             _evidence_query(check_name, claims, state),
-            product_id=str(state.get("product_id") or ""),
-            label_version=str(state.get("label_version") or ""),
-            k=EVIDENCE_K_BY_CHECK.get(check_name, EVIDENCE_K),
+            state,
+            EVIDENCE_K_BY_CHECK.get(check_name, EVIDENCE_K),
         )
 
         cleared = (

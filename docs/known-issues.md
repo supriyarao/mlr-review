@@ -133,14 +133,17 @@ text and any `char_span` disagree.
 does the study the claim cites report it. The second question names a specific source — "Reference
 3" — and **nothing in the pipeline resolves that marker to a source.**
 
-A claim's `reference_markers` are extracted and shown in the claims block as `cites=[3]`, and the
-marker text is folded into the retrieval query as a weak hint. But retrieval is still a semantic
-search over the whole tenant collection. Whether ZEL-303 lands in the twelve passages the check
-receives is a property of embedding similarity, not of the claim pointing at it. The model then has
-to resolve `[3]` → `ZEL-303` by reading the piece's own References section, which is visible inside
-`<piece>` — an inference the prompt asks for but nothing enforces.
+Two things narrow the gap without closing it. `_study_ids` reads the study identifiers out of the
+piece's numbered reference list and expands every substantiation query with them, so retrieval has a
+lexical handle on the documents the copy relies on. And `_retrieve` fills the window in two passes,
+studies first, so a study is not outranked by a label chunk that merely reads more like a claim.
 
-**Why it matters.** It fails *silently*. If the cited study falls outside the retrieval window, the
+But retrieval is still a search. Whether ZEL-303 lands in the twelve passages is now *likely* rather
+than accidental — it is not guaranteed, because nothing maps marker `3` to source `zel-303`. The
+model still has to make that connection itself by reading the piece's References section, which is
+visible inside `<piece>` — an inference the prompt asks for but nothing enforces.
+
+**Why it matters.** It fails *silently*. If the cited study still falls outside the retrieval window, the
 check does not report "I could not find Reference 3"; it reports nothing, or — worse — judges the
 claim against whichever study did surface. Golden case 003 passes today, and its own `why_hard`
 names the dependency: *"A retrieval system that scores relevance will rank ZEL-303 highly for this
