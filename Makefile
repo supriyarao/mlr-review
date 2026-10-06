@@ -16,6 +16,17 @@ setup: ## Create the venv and install all dependencies
 seed: ## Index the synthetic corpus into a per-tenant vector store
 	uv run python -m scripts.seed
 
+# Backend for the demo processes. Overridable: `MLR_LLM_BACKEND=anthropic make demo`.
+#
+# Defaults to `fake` because the alternatives make the demo look broken rather than slow. A local
+# model takes roughly two minutes per call on a CPU-only machine, so a review that makes nine calls
+# sits at "running" for a quarter of an hour with no outward sign of progress, and `anthropic` needs
+# a key that a fresh clone does not have. Under `fake` the LLM findings come from a fixture and
+# everything else runs for real; the API reports the backend on /health and the service returns the
+# sentence the UI should show.
+MLR_LLM_BACKEND ?= fake
+export MLR_LLM_BACKEND
+
 api: ## Run the FastAPI backend on :8000
 	uv run uvicorn api.main:app --reload --port 8000
 
@@ -25,13 +36,14 @@ ui: ## Run the Streamlit frontend on :8501
 demo: ## Run API + UI together (the screen-share entry point)
 	@echo "API  -> http://localhost:8000/docs"
 	@echo "UI   -> http://localhost:8501"
+	@echo "backend: $(MLR_LLM_BACKEND)"
 	@trap 'kill 0' INT TERM; \
 	uv run uvicorn api.main:app --port 8000 & \
 	uv run streamlit run ui/Home.py --server.port 8501 & \
 	wait
 
-loop: ## Drive one review through the full human-in-the-loop cycle (no API key needed)
-	MLR_LLM_BACKEND=fake uv run python -m scripts.loop $(if $(PIECE),--piece $(PIECE),) $(if $(STEP),--step,) $(if $(TENANT),--tenant $(TENANT),)
+loop: ## Drive one review through the full loop (no API key). TRACE=1 prints each node's state
+	$(if $(TRACE),MLR_TRACE=$(TRACE),) uv run python -m scripts.loop $(if $(PIECE),--piece $(PIECE),) $(if $(STEP),--step,) $(if $(TENANT),--tenant $(TENANT),)
 
 test: ## Run the test suite (offline, no API key, no Ollama)
 	uv run pytest

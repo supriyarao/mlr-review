@@ -627,3 +627,105 @@ def test_every_state_model_is_declared_as_a_checkpoint_type():
 
     for model in (AppliedRule, Citation, Claim, Escalation, Finding, GateResult, RunCost):
         assert model in CHECKPOINT_TYPES, f"{model.__name__} is in state but not declared"
+
+
+# --- State tracing ------------------------------------------------------------------------------
+
+
+def test_tracing_is_off_unless_asked_for(monkeypatch):
+    """Debug output must never appear in a normal run."""
+    from mlr import trace
+
+    monkeypatch.delenv("MLR_TRACE", raising=False)
+    assert trace.enabled() is False
+    for off in ("", "0", "false", "no", "off"):
+        monkeypatch.setenv("MLR_TRACE", off)
+        assert trace.enabled() is False, f"MLR_TRACE={off!r} should be off"
+
+
+def test_tracing_has_a_compact_and_a_full_mode(monkeypatch):
+    from mlr import trace
+
+    monkeypatch.setenv("MLR_TRACE", "1")
+    assert trace.mode() == "compact"
+    monkeypatch.setenv("MLR_TRACE", "full")
+    assert trace.mode() == "full"
+
+
+def test_a_traced_node_prints_its_input_and_its_update(seeded, monkeypatch, capsys):
+    """The update is printed, not the whole state afterwards: a node returns only what it changed."""
+    from mlr import trace
+
+    monkeypatch.setenv("MLR_TRACE", "1")
+    traced = trace.traced("demo_node", lambda state: {"claims": [1, 2, 3]})
+    traced({"run_id": "r1", "status": "running", "document": "x" * 400})
+
+    out = capsys.readouterr().out
+    assert "demo_node" in out
+    assert "IN" in out and "run_id=r1" in out
+    assert "document=400 chars" in out, "a long value should be summarised, not dumped"
+    assert "OUT" in out and "claims=3" in out
+
+
+def test_the_compact_trace_drops_state_that_carries_nothing(monkeypatch, capsys):
+    """Nineteen nodes repeating the same empty fields buries the values that moved."""
+    from mlr import trace
+
+    monkeypatch.setenv("MLR_TRACE", "1")
+    trace.traced("n", lambda state: {})(
+        {"run_id": "r1", "status": "running", "findings": [], "escalation": None, "claims": []}
+    )
+    out = capsys.readouterr().out
+    assert "run_id=r1" in out
+    assert "findings=" not in out, "an empty list should not be printed in compact mode"
+    assert "escalation=" not in out
+    assert "(no state change)" in out
+
+
+def test_a_failing_node_is_traced_before_the_error_propagates(monkeypatch, capsys):
+    """A trace that stops at the failure is the one time you most want to see the input."""
+    from mlr import trace
+
+    monkeypatch.setenv("MLR_TRACE", "1")
+
+    def boom(state):
+        raise RuntimeError("the check exploded")
+
+    with pytest.raises(RuntimeError, match="exploded"):
+        trace.traced("boom", boom)({"run_id": "r1", "status": "running"})
+
+    out = capsys.readouterr().out
+    assert "RAISED" in out and "the check exploded" in out
+    assert "run_id=r1" in out
+
+
+def test_a_traced_graph_still_produces_the_same_result(seeded, monkeypatch):
+    """Tracing must observe, never change behaviour."""
+    from mlr import trace
+
+    script = fr.subgroup_case_script()
+
+    def run_once(run_id: str):
+        fake = FakeLLM(scripted=script, default_response="{}")
+        with checkpointer() as saver:
+            graph = compile_with(saver, fake=fake)
+            state = initial_state(
+                run_id=run_id,
+                tenant_id="acme_pharma",
+                product_id="zelvoran",
+                label_version="1.0",
+                audience="hcp",
+                channel="sales_aid",
+                market="us",
+                document=promo("zelvoran-hcp-subgroup-claim"),
+            )
+            return runtime.start_run(graph, dict(state), run_id=run_id)
+
+    monkeypatch.delenv("MLR_TRACE", raising=False)
+    quiet = run_once("t-untraced")
+    monkeypatch.setenv("MLR_TRACE", "1")
+    loud = run_once("t-traced")
+    assert trace.enabled()
+
+    assert quiet["state"]["route"] == loud["state"]["route"]
+    assert len(report_findings(quiet["state"])) == len(report_findings(loud["state"]))

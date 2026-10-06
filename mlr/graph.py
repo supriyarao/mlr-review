@@ -35,6 +35,7 @@ from typing import Any
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
+from mlr import trace
 from mlr.nodes import checks, finalize, human_review, ingest, preapproved, rules, select_rules
 from mlr.nodes import extract_claims as extract
 from mlr.nodes import grounding_gate as grounding
@@ -145,28 +146,37 @@ def build(*, fake: Any = None) -> StateGraph:
 
     builder = StateGraph(ReviewState)
 
-    builder.add_node("ingest", ingest.ingest)
-    builder.add_node("extract_claims", _llm(extract.extract_claims))
-    builder.add_node("preapproved_filter", _llm(preapproved.preapproved_filter))
-    builder.add_node("select_rules", select_rules.select_rules)
+    def add(name: str, fn: Any) -> None:
+        """Register a node, wrapped in the state tracer.
 
-    builder.add_node("substantiation", _llm(checks.substantiation))
-    builder.add_node("reference_support", _llm(checks.reference_support))
-    builder.add_node("off_label", _llm(checks.off_label))
-    builder.add_node("fair_balance", _llm(checks.fair_balance))
-    builder.add_node("safety_prominence", _llm(checks.safety_prominence))
+        Every node goes through here, which is why tracing lives at this seam rather than as print
+        calls inside fifteen node functions: it is uniform, it is off unless MLR_TRACE is set, and it
+        cannot be half-removed later. See mlr/trace.py.
+        """
+        builder.add_node(name, trace.traced(name, fn))
 
-    builder.add_node("deterministic_rules", rules.deterministic_rules)
-    builder.add_node("llm_rules", _llm(rules.llm_rules))
-    builder.add_node("reference_doc_review", _llm(rules.reference_doc_review))
+    add("ingest", ingest.ingest)
+    add("extract_claims", _llm(extract.extract_claims))
+    add("preapproved_filter", _llm(preapproved.preapproved_filter))
+    add("select_rules", select_rules.select_rules)
 
-    builder.add_node("grounding_gate", grounding.grounding_gate)
-    builder.add_node("severity", severity_node.severity)
-    builder.add_node("editor", editor)
-    builder.add_node("confidence_gate", routing.confidence_gate)
-    builder.add_node("route", routing.route)
-    builder.add_node("human_review", human_review.human_review)
-    builder.add_node("finalize", finalize.finalize)
+    add("substantiation", _llm(checks.substantiation))
+    add("reference_support", _llm(checks.reference_support))
+    add("off_label", _llm(checks.off_label))
+    add("fair_balance", _llm(checks.fair_balance))
+    add("safety_prominence", _llm(checks.safety_prominence))
+
+    add("deterministic_rules", rules.deterministic_rules)
+    add("llm_rules", _llm(rules.llm_rules))
+    add("reference_doc_review", _llm(rules.reference_doc_review))
+
+    add("grounding_gate", grounding.grounding_gate)
+    add("severity", severity_node.severity)
+    add("editor", editor)
+    add("confidence_gate", routing.confidence_gate)
+    add("route", routing.route)
+    add("human_review", human_review.human_review)
+    add("finalize", finalize.finalize)
 
     builder.add_edge(START, "ingest")
     builder.add_edge("ingest", "extract_claims")

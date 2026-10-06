@@ -216,6 +216,19 @@ def start_run(
     config = load_tenant(tenant_id)
     product = config.product(product_id)
 
+    if backend() == "ollama":
+        # Said out loud, because the alternative is a run that sits at "running" for a quarter of an
+        # hour and is indistinguishable from a stuck one. A CPU-only local model is roughly two
+        # minutes per call and a review makes about nine.
+        import warnings
+
+        warnings.warn(
+            "MLR_LLM_BACKEND=ollama: a local model takes roughly two minutes per call on CPU, so this "
+            "review will stay at 'running' for ~15 minutes. Use MLR_LLM_BACKEND=fake for an instant "
+            "run, or anthropic with a key.",
+            stacklevel=2,
+        )
+
     rid = run_id or runtime.new_run_id()
     text, meta = _prepare(document, doc_meta)
 

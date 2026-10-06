@@ -17,7 +17,7 @@ import sys
 import time
 from pathlib import Path
 
-from mlr import service, store
+from mlr import service, store, trace
 from mlr.nodes.ingest import extract_text
 from platform_core.llm import describe_backend
 
@@ -127,6 +127,7 @@ def main() -> int:
             f"this review will take ~15 minutes. Use MLR_LLM_BACKEND=fake for an instant run."
         )
     print(f"  {DIM}{service.describe_backend_note()}{RESET}")
+    trace.banner()
     print(f"\n  piece    {args.piece}")
     print(f"  tenant   {tenant_id}")
     print(
@@ -161,7 +162,12 @@ def main() -> int:
             if not pending:
                 break
             step += 1
-            print(f"\n  {BOLD}step {step}{RESET} -> about to run {CYAN}{', '.join(pending)}{RESET}")
+            # Advancing runs the named node plus any nodes after it that are not pause points --
+            # the eight parallel branches all run in the step after select_rules.
+            print(
+                f"\n  {BOLD}step {step}{RESET} -> running {CYAN}{', '.join(pending)}{RESET}"
+                f"{DIM} (and any non-pausing nodes that follow){RESET}"
+            )
             report = service.advance(run_id)
             findings = len(report.findings)
             print(
