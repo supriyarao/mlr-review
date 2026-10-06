@@ -13,14 +13,16 @@ already computed.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
+import mlr.tools  # noqa: F401  -- importing registers the use case's tools
 from mlr.nodes.base import node_run
 from mlr.prompts.checks import CHECKS, CheckPrompt, CheckResponse
 from mlr.prompts.rules import schema_failure_gate
 from mlr.schemas import Citation, Claim, Finding
-from platform_core import llm
+from platform_core import llm, tools
 from platform_core.retrieval import Passage, TenantRetriever
 
 # Evidence passages per check. Enough for the model to find the relevant study without filling the
@@ -52,6 +54,13 @@ STUDY_SLOTS = 8
 # study backs it. Matching against cleared claims is the preapproved_filter node's job, done
 # separately and earlier, with doc_type narrowed the other way.
 CIRCULAR_DOC_TYPES: tuple[str, ...] = ("preapproved_claim",)
+
+# Tools each check calls before it reasons. See platform_core/tools.py for why the node invokes
+# these rather than offering them for the model to choose: a measurement this check always needs is
+# not a decision, and making the model ask for it buys a round trip and nondeterminism for nothing.
+# The registry is the seam -- a model-driven call would be a change of caller, not of design.
+TOOLS_BY_CHECK: dict[str, tuple[str, ...]] = {"fair_balance": ("fair_balance_validator",)}
+
 
 # Study identifiers as they appear in a piece's reference list: ZEL-302, NEX-114.
 _STUDY_ID = re.compile(r"\b[A-Z]{2,5}-\d{2,4}\b")
@@ -235,6 +244,36 @@ def _retrieve(
     return studies + others
 
 
+def _run_tools(check: str, state: dict[str, Any], claims: list[Claim]) -> list[tools.ToolResult]:
+    """Call the tools this check depends on. Failures come back as results, not exceptions."""
+    payload = {
+        "document": str(state.get("document") or ""),
+        "doc_meta": dict(state.get("doc_meta") or {}),
+        "claims": [c.model_dump(mode="json") for c in claims],
+    }
+    return [tools.call(name, payload) for name in TOOLS_BY_CHECK.get(check, ())]
+
+
+def _format_tools(results: list[tools.ToolResult]) -> str:
+    """The tool block the model is shown.
+
+    A failed call is rendered, not dropped. The model needs to know the measurement was attempted
+    and is unavailable -- silence would read as "nothing to report", which is the same mistake the
+    layout block makes when it hands over zeros instead of saying UNKNOWN.
+    """
+    if not results:
+        return ""
+    parts = []
+    for result in results:
+        body = (
+            json.dumps(result.data, indent=2, sort_keys=True)
+            if result.ok
+            else f"UNAVAILABLE: {result.error}"
+        )
+        parts.append(f'<tool name="{result.tool}" version="{result.version}">\n{body}\n</tool>')
+    return "<tool_results>\n" + "\n".join(parts) + "\n</tool_results>"
+
+
 def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
     """Run one specialist check and return its findings."""
     check: CheckPrompt = CHECKS[check_name]
@@ -257,11 +296,13 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
         cleared = (
             set(state.get("preapproved_matches") or {}) if check_name == "substantiation" else set()
         )
+        tool_results = _run_tools(check_name, state, claims)
         prompt_text = check.build(
             document=str(state.get("document") or ""),
             claims_block=_format_claims(claims, cleared),
             evidence_block=_format_evidence(passages),
             extra=_layout_block(state) if check.document_level else "",
+            tools_block=_format_tools(tool_results),
         )
 
         try:
@@ -324,6 +365,20 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             "evidence_passages": len(passages),
             "findings": len(findings),
             "retry_needed": bool(result.recovered_from),
+            # Which of the company's own code ran, what version, and what it said. An auditor
+            # asking "did our validator run on this piece" must not have to infer it.
+            "tools": [
+                {
+                    "tool": t.tool,
+                    "version": t.version,
+                    "ok": t.ok,
+                    "latency_ms": t.latency_ms,
+                    "summary": t.data.get("summary", "") if t.ok else t.error,
+                    "failed": t.data.get("failed", []) if t.ok else [],
+                    "inconclusive": t.data.get("inconclusive", []) if t.ok else [],
+                }
+                for t in tool_results
+            ],
         }
         run.citations = [
             {"source_id": c.source_id, "passage": c.passage[:160]}

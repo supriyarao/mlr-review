@@ -84,7 +84,13 @@ class CheckPrompt:
     document_level: bool = False
 
     def build(
-        self, *, document: str, claims_block: str, evidence_block: str, extra: str = ""
+        self,
+        *,
+        document: str,
+        claims_block: str,
+        evidence_block: str,
+        extra: str = "",
+        tools_block: str = "",
     ) -> str:
         parts = [
             self.question,
@@ -93,6 +99,8 @@ class CheckPrompt:
         ]
         if extra:
             parts += ["", extra]
+        if tools_block:
+            parts += ["", tools_block]
         parts += [
             "",
             f"<piece>\n{document}\n</piece>",
@@ -203,7 +211,16 @@ Consider how a reader actually meets the piece: whether risk appears near the cl
 only at the end, how much space it gets relative to the benefit content, and whether the language
 minimises it. Layout metrics for this piece are given below if available.
 
-This is a judgement about prominence, not about whether the safety text is accurate.""",
+This is a judgement about prominence, not about whether the safety text is accurate.
+
+A <tool_results> block may carry measurements from the company's own fair-balance validator. Treat
+those numbers as established fact -- they were computed by qualified code, not estimated, and you
+must not contradict one or recompute it yourself. What they cannot do is weigh up. A piece can clear
+every threshold and still bury its risk information, and a piece can miss one and still read fairly;
+that judgement is yours, and it is the reason you are being asked.
+
+Where a measurement is "inconclusive", the company's code could not take it. That is not a pass. Say
+so in any finding that depends on it, and lower your confidence accordingly.""",
     document_level=True,
 )
 
