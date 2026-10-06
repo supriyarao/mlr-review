@@ -155,41 +155,6 @@ def matcher_panel(given: dict[str, Any], produced: dict[str, Any], summary: Any)
     )
 
 
-def rulebook_panel(given: dict[str, Any], produced: dict[str, Any]) -> None:
-    st.markdown("**What it was given**")
-    labels = {
-        "tenant_id": "Company",
-        "product_id": "Product",
-        "audience": "Audience",
-        "channel": "Channel",
-        "market": "Market",
-        "label_version": "Label version",
-    }
-    st.dataframe(
-        [{"About the piece": labels.get(k, k), "Value": v or "not set"} for k, v in given.items()],
-        hide_index=True,
-    )
-    st.markdown("**What it produced**")
-    rules = produced.get("rules_applied") or []
-    if not rules:
-        st.info("None of the company's rules apply to this piece.")
-        return
-    st.caption(f"{len(rules)} rule(s) apply to this piece.")
-    st.dataframe(
-        [
-            {
-                "Rule": f"{r['id']} v{r['version']}",
-                "What it's about": r.get("title", ""),
-                "Checked by": "A model" if r["kind"] != "deterministic" else "Plain code",
-                "Severity": r["severity"].capitalize(),
-            }
-            for r in rules
-        ],
-        hide_index=True,
-        width="stretch",
-    )
-
-
 def generic_panel(step: dict[str, Any], document: str) -> None:
     """For steps without a purpose-built view yet: the step's own summary, and any findings."""
     st.markdown("**What it produced**")
@@ -239,8 +204,6 @@ def step_panel(step: dict[str, Any], document: str) -> None:
             claim_spotter_panel(given, produced)
         elif step["node"] == "preapproved_filter":
             matcher_panel(given, produced, step.get("summary"))
-        elif step["node"] == "select_rules":
-            rulebook_panel(given, produced)
         else:
             generic_panel(step, document)
 

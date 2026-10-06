@@ -61,16 +61,6 @@ GETTING_READY = [
         "Which claims matched which cleared claim.",
         model=True,
     ),
-    Node(
-        "select_rules",
-        "The rulebook picker",
-        "Works out which of the company's own rules apply to this piece.",
-        "A rule applies if it belongs to this company, is switched on, is inside its date range, "
-        "and covers this audience, channel, product and market. A patient-only rule is left out "
-        "of a piece written for doctors.",
-        "The company's rules (local database).",
-        "The exact rules and versions used, so you can later see why a rule did or didn't fire.",
-    ),
 ]
 
 REVIEWERS = [
@@ -130,7 +120,7 @@ REVIEWERS = [
         "Pattern matching: banned words, required wording, required sections, a trademark "
         "symbol on first mention, too many claims without a reference. No model is called, so "
         "the same piece always gets the same answer.",
-        "The rules chosen by the rulebook picker.",
+        "The company rules that cover this piece.",
         "Findings that name the rule and its version.",
     ),
     Node(
@@ -139,7 +129,7 @@ REVIEWERS = [
         "Applies the company rules written in plain English that need judgement.",
         "A small model reads a handful of rules at once. Rule text is treated as data, not "
         "instructions. A finding that names a rule it wasn't given is thrown away.",
-        "The rules chosen by the rulebook picker, and the model.",
+        "The company rules that cover this piece, and the model.",
         "Findings that name the rule and its version.",
         model=True,
     ),

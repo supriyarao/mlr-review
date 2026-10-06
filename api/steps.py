@@ -20,13 +20,12 @@ from api import submissions
 from mlr import service
 from mlr.graph import CORE_CHECKS, PIPELINE
 
-# What each of the first four nodes reads from the state. Listed by hand because a node's inputs
+# What each of the first nodes reads from the state. Listed by hand because a node's inputs
 # are not recorded anywhere: the state is one shared object and a node simply reads what it needs.
 # Nodes not listed show their output only.
 READS: dict[str, tuple[str, ...]] = {
     "extract_claims": ("document",),
     "preapproved_filter": ("claims",),
-    "select_rules": ("tenant_id", "product_id", "audience", "channel", "market", "label_version"),
 }
 
 # State keys that grow by appending, so "what this step added" is the new tail of the list.

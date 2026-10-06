@@ -159,7 +159,7 @@ def test_run_detail_opens_a_step_to_show_what_it_was_given_and_produced(ui, subm
 
 def test_the_steps_endpoint_gives_every_node_its_input_and_output(client, submitted):
     steps = {s["node"]: s for s in client.get(f"/reviews/{submitted}/steps").json()["steps"]}
-    assert list(steps)[:4] == ["ingest", "extract_claims", "preapproved_filter", "select_rules"]
+    assert list(steps)[:3] == ["ingest", "extract_claims", "preapproved_filter"]
 
     assert "**" not in steps["ingest"]["produced"]["document"]
     assert steps["ingest"]["produced"]["doc_meta"]["sections"]
@@ -168,8 +168,6 @@ def test_the_steps_endpoint_gives_every_node_its_input_and_output(client, submit
     claims = steps["extract_claims"]["produced"]["claims"]
     assert claims and steps["extract_claims"]["given"]["document"]
     assert steps["preapproved_filter"]["given"]["claims"] == claims
-    assert steps["select_rules"]["produced"]["rules_applied"]
-    assert steps["select_rules"]["given"]["audience"] == "hcp"
 
     # Findings are credited to the reviewer that raised them, and none are lost or doubled.
     raised = [f["id"] for s in steps.values() for f in s["produced"].get("findings", [])]
