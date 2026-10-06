@@ -138,7 +138,43 @@ def test_the_queue_is_empty_for_a_tier_nothing_was_routed_to(ui):
 def test_run_detail_shows_a_finished_review(ui, submitted):
     at = ui("pages/2_Run_Detail.py", run_id=submitted)
     assert not at.exception, [e.value for e in at.exception]
-    assert [s.value for s in at.subheader][:2] == ["Progress", "Findings"]
+    assert [s.value for s in at.subheader][:2] == ["Steps", "What it found"]
+
+
+def test_run_detail_opens_a_step_to_show_what_it_was_given_and_produced(ui, submitted):
+    """The strip echoes the Home page; clicking a step shows its input and output."""
+    at = ui("pages/2_Run_Detail.py", run_id=submitted)
+    labels = [b.label for b in at.button]
+    assert "✓ The reader" in labels and "✓ The claim spotter" in labels
+    assert "⏸ The pause" in labels
+
+    # The reader is open by default: submitted text in, clean text and a section map out.
+    shown = " ".join(m.value for m in at.markdown)
+    assert "What it was given" in shown and "The section map" in shown
+
+    next(b for b in at.button if b.label == "✓ The claim spotter").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("claim(s)." in c.value for c in at.caption)
+
+
+def test_the_steps_endpoint_gives_every_node_its_input_and_output(client, submitted):
+    steps = {s["node"]: s for s in client.get(f"/reviews/{submitted}/steps").json()["steps"]}
+    assert list(steps)[:4] == ["ingest", "extract_claims", "preapproved_filter", "select_rules"]
+
+    assert "**" not in steps["ingest"]["produced"]["document"]
+    assert steps["ingest"]["produced"]["doc_meta"]["sections"]
+    assert steps["ingest"]["given"]["submitted_text"]
+
+    claims = steps["extract_claims"]["produced"]["claims"]
+    assert claims and steps["extract_claims"]["given"]["document"]
+    assert steps["preapproved_filter"]["given"]["claims"] == claims
+    assert steps["select_rules"]["produced"]["rules_applied"]
+    assert steps["select_rules"]["given"]["audience"] == "hcp"
+
+    # Findings are credited to the reviewer that raised them, and none are lost or doubled.
+    raised = [f["id"] for s in steps.values() for f in s["produced"].get("findings", [])]
+    assert raised and len(raised) == len(set(raised))
+    assert (steps["human_review"]["status"], steps["finalize"]["status"]) == ("waiting", "pending")
 
 
 def test_run_detail_shows_two_runs_side_by_side_for_a_tenant_comparison(ui, submitted):

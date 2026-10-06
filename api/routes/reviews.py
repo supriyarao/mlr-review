@@ -10,7 +10,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Response, UploadFile
 
-from api import export, ingest, submissions
+from api import export, ingest, steps, submissions
 from api.deps import known_tenant
 from mlr import service
 from mlr.schemas import ReviewDecision, ReviewReport, RunStatus
@@ -184,6 +184,13 @@ def get_audit(run_id: str) -> dict[str, Any]:
     _report(run_id)
     events = service.get_audit(run_id)
     return {"run_id": run_id, "events": events, "integrity": integrity_of(run_id, events)}
+
+
+@router.get("/reviews/{run_id}/steps")
+def get_steps(run_id: str) -> dict[str, Any]:
+    """The run node by node: each step's status, what it was given and what it produced."""
+    _report(run_id)
+    return steps.steps(run_id)
 
 
 @router.get("/reviews/{run_id}/document")

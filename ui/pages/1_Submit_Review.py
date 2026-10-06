@@ -70,7 +70,7 @@ market = market_col.text_input("Market", value="us")
 
 if text:
     with st.expander("Preview of the text that will be reviewed", expanded=True):
-        st.markdown(f'<div class="mlr-proof">{view.escape(text)}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="mlr-proof">{view.block(text)}</div>', unsafe_allow_html=True)
 elif upload:
     st.caption(f"{upload[0]} will be read as text when the review starts.")
 
