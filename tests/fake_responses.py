@@ -105,8 +105,9 @@ EQUIVALENT = json.dumps({"equivalent": True, "reason": "Same population, endpoin
 def subgroup_case_script() -> dict[str, list[str]]:
     """Responses for the reference case: a subgroup figure presented as a general result.
 
-    Produces a substantiation blocker and a reference_support blocker, plus a promotional-code finding
-    on the same claim and the same quote -- which is what exercises the editor's merge path.
+    Produces two substantiation blockers -- one for the overstated subgroup figure, one for the
+    citation that reports something else -- plus a promotional-code finding on the same claim and the
+    same quote as the first, which is what exercises the editor's merge path.
     """
     return {
         "extract_claims": [
@@ -127,6 +128,8 @@ def subgroup_case_script() -> dict[str, list[str]]:
             )
         ],
         "preapproved_filter": [NOT_EQUIVALENT],
+        # One call, both failure families: the evidence question on c1 and the citation question
+        # on c2. Before the checks merged these were two scripted responses from two nodes.
         "substantiation": [
             findings(
                 finding(
@@ -142,11 +145,7 @@ def subgroup_case_script() -> dict[str, list[str]]:
                     citations=[
                         {"source_id": "acme_pharma:reference:zel-302:2", "passage": ZEL302_PASSAGE}
                     ],
-                )
-            )
-        ],
-        "reference_support": [
-            findings(
+                ),
                 finding(
                     claim_id="c2",
                     quote=REF_QUOTE,
@@ -159,7 +158,7 @@ def subgroup_case_script() -> dict[str, list[str]]:
                     citations=[
                         {"source_id": "acme_pharma:reference:zel-303:1", "passage": ZEL303_PASSAGE}
                     ],
-                )
+                ),
             )
         ],
         "off_label": [NO_FINDINGS],
@@ -187,16 +186,17 @@ def subgroup_case_script() -> dict[str, list[str]]:
 def clean_script(quote: str, normalized: str, *, preapproved: bool = True) -> dict[str, list[str]]:
     """Responses for a compliant piece: one claim, no findings from any check.
 
-    ``preapproved`` matters more than it looks. A pre-approved claim is skipped by the substantiation
-    check by design, so a test that scripts a substantiation response AND marks the claim approved
-    will never reach that response -- the check returns early with nothing. Pass ``preapproved=False``
-    when the test is about what substantiation does.
+    ``preapproved`` matters more than it looks. A pre-approved claim skips the *evidence* half of
+    substantiation by design -- the committee already did that work -- so a test that scripts a
+    substantiation response and marks the claim approved may never reach it. The claim here carries a
+    reference marker, which keeps it in scope for the *citation* half, but that is a narrow escape
+    hatch and not what a test should lean on. Pass ``preapproved=False`` when the test is about what
+    substantiation does.
     """
     return {
         "extract_claims": [claims(claim(quote, normalized=normalized, refs=["1"]))],
         "preapproved_filter": [EQUIVALENT if preapproved else NOT_EQUIVALENT],
         "substantiation": [NO_FINDINGS],
-        "reference_support": [NO_FINDINGS],
         "off_label": [NO_FINDINGS],
         "fair_balance": [NO_FINDINGS],
         "safety_prominence": [NO_FINDINGS],

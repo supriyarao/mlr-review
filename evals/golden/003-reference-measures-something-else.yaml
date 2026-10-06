@@ -7,6 +7,12 @@ why_hard: >-
   endpoint and the timepoint, and the only way to see it is to read what the cited study actually
   measured rather than whether it exists. A retrieval system that scores relevance will rank ZEL-303
   highly for this claim, which is exactly the trap.
+
+  This is the citation half of substantiation, which is why the case matters more since the two
+  checks merged: one reviewer now has to hold both questions at once, and the failure mode to watch
+  for is it answering only the easier one. The claim is defensible on its face -- nothing about
+  "PASI-90 maintained at 12 weeks" is implausible for this product -- so a reviewer that only asks
+  "does the evidence support this?" finds nothing wrong.
 tenant_id: acme_pharma
 product_id: zelvoran
 label_version: "1.0"
@@ -36,7 +42,7 @@ promo: |
 
   Please see full Prescribing Information.
 expected_findings:
-  - check_type: reference_support
+  - check_type: substantiation
     claim_contains: maintained at 12 weeks
     severity: blocker
     note: ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.
@@ -44,4 +50,4 @@ expected_route: senior_regulatory
 must_not_flag:
   - Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults
   - Please see full Prescribing Information
-tags: [reference_support, endpoint_mismatch, timepoint_mismatch]
+tags: [substantiation, citation_mismatch, endpoint_mismatch, timepoint_mismatch]

@@ -100,7 +100,6 @@ def test_every_model_backed_node_serves_its_prompt(client):
         "extract_claims",
         "preapproved_filter",
         "substantiation",
-        "reference_support",
         "off_label",
         "fair_balance",
         "safety_prominence",

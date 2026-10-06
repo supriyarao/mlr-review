@@ -92,7 +92,6 @@ def script_for(document: str, *, tenant_id: str = "") -> dict[str, list[str]]:
         "extract_claims": [json.dumps({"claims": []})],
         "preapproved_filter": [json.dumps({"equivalent": False, "reason": "No fixture match."})],
         "substantiation": [NO_FINDINGS],
-        "reference_support": [NO_FINDINGS],
         "off_label": [NO_FINDINGS],
         "fair_balance": [NO_FINDINGS],
         "safety_prominence": [NO_FINDINGS],

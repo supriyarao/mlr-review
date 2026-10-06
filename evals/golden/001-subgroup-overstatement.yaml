@@ -52,8 +52,10 @@ expected_findings:
     severity: blocker
     note: Quotes the subgroup rate without naming the subgroup.
 
-  # Cites Reference 3 for an endpoint and timepoint that reference does not report.
-  - check_type: reference_support
+  # Cites Reference 3 for an endpoint and timepoint that reference does not report. Same check as
+  # the two above: substantiation judges both whether the evidence supports a claim and whether the
+  # study it cites reports it.
+  - check_type: substantiation
     claim_contains: maintained at 12 weeks
     severity: blocker
     note: >-
@@ -79,6 +81,6 @@ must_not_flag:
 tags:
   - substantiation
   - subgroup
-  - reference_support
+  - citation_mismatch
   - rule_finding
   - reference_example

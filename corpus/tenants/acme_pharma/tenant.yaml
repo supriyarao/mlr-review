@@ -5,7 +5,7 @@
 
 tenant_id: acme_pharma
 name: Acme Pharma
-version: "2026.1"
+version: "2026.2"
 
 # Findings below this confidence are flagged low_confidence and escalate. Acme accepts more
 # machine judgement than Borealis does, trading a little safety for review throughput.
@@ -25,16 +25,14 @@ severity_rules:
     rationale: Promotion outside the approved population or indication is not correctable by wording.
 
   # An efficacy claim the evidence does not support at the stated strength misleads a prescriber.
+  # Covers citation failures too: ACME-SEV-REFERENCE was a separate entry until the substantiation
+  # check absorbed reference checking, and it graded identically, so folding it in changed nothing.
   - check_type: substantiation
     severity: blocker
     rule_id: ACME-SEV-SUBSTANTIATION
-    rationale: An unsupported or overstated efficacy claim changes a prescribing decision.
-
-  # Citing a study that measured something else is unsupported, regardless of the wording.
-  - check_type: reference_support
-    severity: blocker
-    rule_id: ACME-SEV-REFERENCE
-    rationale: A citation that does not measure the claimed endpoint or population is no citation.
+    rationale: >-
+      An unsupported or overstated efficacy claim changes a prescribing decision, and a citation
+      that does not measure the claimed endpoint or population is no citation.
 
   # Missing required safety information is a blocker; placement alone is advisory for Acme.
   - check_type: safety_prominence

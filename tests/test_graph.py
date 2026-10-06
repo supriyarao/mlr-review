@@ -198,7 +198,9 @@ def test_findings_from_several_branches_all_arrive(subgroup_run):
     raw = result["state"]["findings"]
     checks_seen = {f.check_type for f in raw}
     assert "substantiation" in checks_seen
-    assert "reference_support" in checks_seen
+    # Both halves of the merged check arrived: the overstated figure on c1 and the bad citation
+    # on c2 are separate findings from the one node.
+    assert {f.claim_id for f in raw if f.check_type == "substantiation"} >= {"c1", "c2"}
     assert any(f.rule_id for f in raw), "no rule finding arrived"
 
 
@@ -440,7 +442,8 @@ def test_a_patient_scoped_rule_fires_only_on_a_patient_piece(seeded):
 
 def test_a_schema_failure_escalates_rather_than_looking_clean(seeded):
     """A check that could not run must never be indistinguishable from one that found nothing."""
-    # preapproved=False, or substantiation skips the claim and never reaches the bad response.
+    # preapproved=False, so the claim is in scope for substantiation on both halves of its
+    # question and the bad response is certain to be reached.
     quote = "In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved"
     script = fr.clean_script(quote, quote, preapproved=False)
     # Two unparseable responses from substantiation: one attempt plus its retry.

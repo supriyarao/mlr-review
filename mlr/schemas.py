@@ -49,12 +49,15 @@ __all__ = [
     "AppliedRule",
 ]
 
-# The five specialist checks, plus one bucket for tenant business rules that do not map onto a
+# The four specialist checks, plus one bucket for tenant business rules that do not map onto a
 # specific check. A rule may declare any of these as its check_type, which is why the rules engine
 # treats check_type as an opaque string: the platform must not enumerate a use case's checks.
+#
+# ``reference_support`` was a fifth member until substantiation absorbed it: both judged the same
+# claim against the same retrieved evidence, and both tenants graded them identically. A citation
+# that does not report what the claim says is now a substantiation finding.
 CheckType = Literal[
     "substantiation",
-    "reference_support",
     "off_label",
     "fair_balance",
     "safety_prominence",
@@ -128,7 +131,7 @@ class Claim(BaseModel):
     location: str = ""
     char_span: tuple[int, int] = (0, 0)
     claim_type: ClaimType = "other"
-    # Reference markers the copy attached to this claim, e.g. ["1", "3"]. The reference_support
+    # Reference markers the copy attached to this claim, e.g. ["1", "3"]. The substantiation
     # check needs these to know which study it is being asked to verify against.
     reference_markers: list[str] = Field(default_factory=list)
 

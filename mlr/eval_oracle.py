@@ -164,7 +164,6 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
 
     for check in (
         "substantiation",
-        "reference_support",
         "off_label",
         "fair_balance",
         "safety_prominence",

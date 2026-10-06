@@ -1,6 +1,6 @@
-"""Prompts for the five specialist checks.
+"""Prompts for the four specialist checks.
 
-One module rather than five, because they share a response schema and a set of standing rules. The
+One module rather than four, because they share a response schema and a set of standing rules. The
 differences between the checks are their question and their evidence, which is exactly what varies
 between the entries in ``CHECKS`` -- keeping them side by side makes those differences legible, and
 makes it obvious when one check's instructions drift away from the others'.
@@ -110,15 +110,30 @@ class CheckPrompt:
 
 SUBSTANTIATION = CheckPrompt(
     name="substantiation",
-    version="substantiation-v1",
+    version="substantiation-v2",
     tier="strong",
     system=(
         "You are a regulatory reviewer checking whether promotional claims are supported by the "
-        "approved label and the cited evidence, at the strength the copy states."
+        "approved label and the cited evidence, at the strength the copy states, and whether each "
+        "reference the copy cites reports what the claim citing it says."
     ),
-    question="""For each claim, decide whether the evidence supports it AS STATED.
+    # v2 merges the former ``reference_support`` check into this one. Both asked their question of
+    # the same retrieved passages -- the label, the study summaries and the cleared-claim library all
+    # sit in one tenant collection -- and both routinely landed on the same claim, leaving the editor
+    # to merge near-duplicate findings. One reviewer, one evidence block, one finding per problem.
+    #
+    # Trade-off: a reviewer can no longer tell the two failure families apart from ``check_type``
+    # alone -- "the claim overstates the evidence" and "the footnote points at the wrong study" are
+    # now both ``substantiation``. They need different fixes, so the distinction has to survive in
+    # the finding's ``issue`` and ``suggested_fix``, which is why the question below asks for it
+    # explicitly. It was worth giving up: both tenants already graded the two identically (blocker),
+    # so no routing or severity decision depended on the split.
+    question="""For each claim, decide whether the evidence supports it AS STATED, and whether any
+reference the claim cites reports what the claim says.
 
-The failures to look for, in order of how often they matter:
+Two kinds of failure. Report either one; a claim can have both.
+
+**A. The claim overstates the evidence.** In order of how often they matter:
 
   1. A result from a subgroup presented as a general result. If the evidence reports a figure for a
      subgroup -- prior treatment, disease severity, age band -- and the claim applies it to patients
@@ -128,26 +143,25 @@ The failures to look for, in order of how often they matter:
   3. A dropped comparator, so a relative result reads as an absolute one.
   4. A dropped population limit, so a result in a defined population reads as applying to everyone.
   5. A claim with no support anywhere in the evidence. Report it with no citation and say you could
-     not verify it. Do not treat absence of evidence as support.""",
-)
+     not verify it. Do not treat absence of evidence as support.
 
-REFERENCE_SUPPORT = CheckPrompt(
-    name="reference_support",
-    version="reference_support-v1",
-    tier="strong",
-    system=(
-        "You are a regulatory reviewer checking whether each cited reference actually reports what "
-        "the claim citing it says."
-    ),
-    question="""For each claim that cites a reference, check that the cited study reports the
-endpoint, the population and the timepoint the claim states.
+**B. The cited reference does not report the claim.** For a claim carrying a reference marker, check
+that the cited study reports the endpoint, the population and the timepoint the claim states. A
+citation fails if the study measured a different endpoint (PASI-90 where the study reports PASI-75),
+reported a different timepoint (Week 12 where the study assessed Week 16), studied a different
+population, or used a different comparator. The study being broadly about the product is not enough:
+the specific thing claimed has to be the thing measured.
 
-A citation fails if the study measured a different endpoint (PASI-90 where the study reports
-PASI-75), reported a different timepoint (Week 12 where the study assessed Week 16), studied a
-different population, or used a different comparator. The study being broadly about the product is
-not enough: the specific thing claimed has to be the thing measured.
+Reference markers in the claims map to the numbered reference list in the piece, and from there to
+the sources in the evidence block by study id.
 
-Reference numbers in the claims map to the sources in the evidence block.""",
+These two failures need different corrections, so say which one you found. A claim the evidence
+cannot support at any strength has to be weakened or withdrawn; a claim whose footnote points at the
+wrong study may only need the right citation. Make ``suggested_fix`` say which.
+
+Some claims are marked ``cleared="yes"``. The company's review committee has already approved that
+wording against the evidence, so do not re-judge it under A -- report it only if its citation fails
+under B.""",
 )
 
 OFF_LABEL = CheckPrompt(
@@ -211,8 +225,7 @@ still misleading, so report it. Layout metrics are given below.""",
 )
 
 CHECKS: dict[str, CheckPrompt] = {
-    c.name: c
-    for c in (SUBSTANTIATION, REFERENCE_SUPPORT, OFF_LABEL, FAIR_BALANCE, SAFETY_PROMINENCE)
+    c.name: c for c in (SUBSTANTIATION, OFF_LABEL, FAIR_BALANCE, SAFETY_PROMINENCE)
 }
 
 # Exposed so the audit log and eval provenance can record every prompt version in one place.

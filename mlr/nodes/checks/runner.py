@@ -1,14 +1,14 @@
-"""The five specialist checks, run through one shared implementation.
+"""The four specialist checks, run through one shared implementation.
 
 **LLM decisions.** Each check asks a different question of the same piece, so what differs between
 them is their prompt, their evidence, and which claims they see -- not their mechanics. One runner
 parameterised by :class:`~mlr.prompts.checks.CheckPrompt` keeps those differences in one visible place
 and means a fix to grounding, retrieval or error handling lands in all five at once.
 
-Cost tiering: substantiation, reference_support and off_label use the strong model because they are
-inferential -- "is this subgroup result being generalised" is the hardest judgement in the system.
-fair_balance and safety_prominence use the fast model because they mostly reason over layout numbers
-that ingest already computed.
+Cost tiering: substantiation and off_label use the strong model because they are inferential --
+"is this subgroup result being generalised" is the hardest judgement in the system. fair_balance and
+safety_prominence use the fast model because they mostly reason over layout numbers that ingest
+already computed.
 """
 
 from __future__ import annotations
@@ -27,22 +27,28 @@ from platform_core.retrieval import Passage, TenantRetriever
 # should say so rather than be given eighty.
 EVIDENCE_K = 8
 
+# substantiation answers two questions off one retrieval -- whether the evidence supports the claim,
+# and whether the study it cites reports it -- so it gets a larger share. Before the two checks were
+# merged they drew eight passages each; twelve for the one check is still a net saving, and starving
+# it would show up as "could not verify" on claims whose study simply fell outside the window.
+EVIDENCE_K_BY_CHECK: dict[str, int] = {"substantiation": 12}
+
 
 def _claims_for(check: str, state: dict[str, Any]) -> list[Claim]:
     """Which claims a given check examines.
 
-    The only non-obvious entry is substantiation, which skips pre-approved claims: the committee has
-    already done that work. Every other check still sees them, because approved wording in a new
-    context can still mislead.
+    The only non-obvious entry is substantiation, whose rule has two halves because the check does.
+    A pre-approved claim skips the evidence question -- the committee has already done that work --
+    but it does *not* skip the citation question: clearing the wording said nothing about the
+    footnote later attached to it. So a cleared claim is still examined if it cites a reference, and
+    ``_format_claims`` marks it so the prompt knows to judge only that half.
+
+    Every other check sees every claim, because approved wording in a new context can still mislead.
     """
     claims: list[Claim] = list(state.get("claims") or [])
     if check == "substantiation":
         matched = set(state.get("preapproved_matches") or {})
-        return [c for c in claims if c.id not in matched]
-    if check == "reference_support":
-        # Nothing to verify for a claim that cites nothing. The missing-reference case is a tenant
-        # business rule, not this check.
-        return [c for c in claims if c.reference_markers]
+        return [c for c in claims if c.id not in matched or c.reference_markers]
     return claims
 
 
@@ -59,6 +65,15 @@ def _evidence_query(check: str, claims: list[Claim], state: dict[str, Any]) -> s
             "indications and usage limitations of use population age paediatric adults "
             + " ".join(c.normalized_claim for c in claims[:4])
         )
+    if check == "substantiation":
+        # The claim text, plus the markers it cites. The markers are study ids in the piece's
+        # reference list often enough that including them lifts the cited study into the window --
+        # which is the weakest link in the citation half of this check. See docs/known-issues.md:
+        # nothing *resolves* a marker to a source, so this biases retrieval rather than guaranteeing
+        # anything.
+        markers = " ".join(m for c in claims[:6] for m in c.reference_markers)
+        text = " ".join(c.normalized_claim or c.original_text for c in claims[:6])
+        return f"{text} {markers}".strip() or "indications"
     return " ".join(c.normalized_claim or c.original_text for c in claims[:6]) or "indications"
 
 
@@ -70,14 +85,22 @@ def _format_evidence(passages: list[Passage]) -> str:
     )
 
 
-def _format_claims(claims: list[Claim]) -> str:
+def _format_claims(claims: list[Claim], cleared: set[str] | None = None) -> str:
+    """The claims block. ``cleared`` marks claims the tenant's committee has already approved.
+
+    Only substantiation passes it, and only because it is the one check whose question is partly
+    waived for an approved claim. Marking in the block rather than filtering in ``_claims_for``
+    keeps the waiver visible to the model instead of hiding it in Python.
+    """
     if not claims:
         return "(no claims to examine)"
+    cleared = cleared or set()
     lines = []
     for c in claims:
         refs = f" cites=[{', '.join(c.reference_markers)}]" if c.reference_markers else ""
+        mark = ' cleared="yes"' if c.id in cleared else ""
         lines.append(
-            f'<claim id="{c.id}" type="{c.claim_type}" section="{c.location}"{refs}>\n'
+            f'<claim id="{c.id}" type="{c.claim_type}" section="{c.location}"{refs}{mark}>\n'
             f"  as written: {c.original_text}\n"
             f"  in full:    {c.normalized_claim}\n"
             f"</claim>"
@@ -118,12 +141,15 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             _evidence_query(check_name, claims, state),
             product_id=str(state.get("product_id") or ""),
             label_version=str(state.get("label_version") or ""),
-            k=EVIDENCE_K,
+            k=EVIDENCE_K_BY_CHECK.get(check_name, EVIDENCE_K),
         )
 
+        cleared = (
+            set(state.get("preapproved_matches") or {}) if check_name == "substantiation" else set()
+        )
         prompt_text = check.build(
             document=str(state.get("document") or ""),
-            claims_block=_format_claims(claims),
+            claims_block=_format_claims(claims, cleared),
             evidence_block=_format_evidence(passages),
             extra=_layout_block(state) if check.document_level else "",
         )

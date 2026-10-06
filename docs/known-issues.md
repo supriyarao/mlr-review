@@ -121,3 +121,38 @@ findings most likely to involve emphasised copy. Character offsets are also shif
 text and any `char_span` disagree.
 
 **Fix.** Store the normalised text, or normalise on read. One line, in `api/`.
+
+---
+
+## 5. The citation check never fetches the reference it is checking
+
+**Where:** `mlr/nodes/checks/runner.py:_evidence_query` and `mlr/prompts/checks.py:SUBSTANTIATION`
+(failure family B).
+
+**What.** `substantiation` now answers two questions: does the evidence support this claim, and
+does the study the claim cites report it. The second question names a specific source — "Reference
+3" — and **nothing in the pipeline resolves that marker to a source.**
+
+A claim's `reference_markers` are extracted and shown in the claims block as `cites=[3]`, and the
+marker text is folded into the retrieval query as a weak hint. But retrieval is still a semantic
+search over the whole tenant collection. Whether ZEL-303 lands in the twelve passages the check
+receives is a property of embedding similarity, not of the claim pointing at it. The model then has
+to resolve `[3]` → `ZEL-303` by reading the piece's own References section, which is visible inside
+`<piece>` — an inference the prompt asks for but nothing enforces.
+
+**Why it matters.** It fails *silently*. If the cited study falls outside the retrieval window, the
+check does not report "I could not find Reference 3"; it reports nothing, or — worse — judges the
+claim against whichever study did surface. Golden case 003 passes today, and its own `why_hard`
+names the dependency: *"A retrieval system that scores relevance will rank ZEL-303 highly for this
+claim."* True for a six-study corpus. At forty studies it stops being reliable, and the failure
+looks like a model regression rather than a retrieval gap.
+
+This predates the merge of `reference_support` into `substantiation` — the old check had the same
+hole. It is recorded now precisely because merging makes it *look* addressed when it is not.
+
+**Fix.** Resolve markers at ingest, not at retrieval time. Parse the piece's numbered reference
+list in `build_doc_meta`, map each marker to a source id in the tenant collection, and carry the
+mapping on the claim. The check then **fetches those sources directly** and lets retrieval fill only
+the remaining slots. A marker that resolves to nothing becomes an explicit "cited reference not
+found in this tenant's evidence" outcome that escalates — which is a finding a reviewer wants
+anyway, and which the system currently cannot produce.

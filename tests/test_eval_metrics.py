@@ -252,7 +252,6 @@ def test_the_golden_set_covers_both_tenants_and_every_check():
     checks = {f.check_type for c in cases for f in c.expected_findings}
     assert {
         "substantiation",
-        "reference_support",
         "off_label",
         "fair_balance",
         "safety_prominence",

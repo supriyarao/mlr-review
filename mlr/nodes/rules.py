@@ -84,7 +84,6 @@ def _rule_findings(violations: list[RuleViolation], *, prefix: str) -> list[Find
 
 _VALID_CHECKS = {
     "substantiation",
-    "reference_support",
     "off_label",
     "fair_balance",
     "safety_prominence",

@@ -6,7 +6,9 @@ description: >-
   so a reader can verify the claim against its source.
 kind: deterministic
 severity: blocker
-check_type: reference_support
+# A missing marker is a different failure from "the cited study measured something else", but both
+# are now reported under substantiation: the separate reference_support check no longer exists.
+check_type: substantiation
 scope:
   audience: any
 params:

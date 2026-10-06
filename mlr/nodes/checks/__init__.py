@@ -1,6 +1,6 @@
-"""The five specialist checks, fanned out in parallel.
+"""The four specialist checks, fanned out in parallel.
 
-substantiation, reference_support, off_label, fair_balance, safety_prominence.
+substantiation, off_label, fair_balance, safety_prominence.
 
 Each is a thin binding over :func:`mlr.nodes.checks.runner.run_check`: what distinguishes them is
 their prompt and evidence, not their mechanics, so the mechanics live in one place. The separate
@@ -16,13 +16,9 @@ from mlr.nodes.checks.runner import run_check
 
 
 def substantiation(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
-    """Is each claim supported by the evidence at the strength stated? Strong model."""
+    """Is each claim supported by the evidence at the strength stated, and does the reference it
+    cites report the claimed endpoint, population and timepoint? Strong model."""
     return run_check("substantiation", state, fake=fake)
-
-
-def reference_support(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
-    """Does each cited reference report the claimed endpoint, population and timepoint? Strong model."""
-    return run_check("reference_support", state, fake=fake)
 
 
 def off_label(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
@@ -43,7 +39,6 @@ def safety_prominence(state: dict[str, Any], *, fake: Any = None) -> dict[str, A
 __all__ = [
     "fair_balance",
     "off_label",
-    "reference_support",
     "run_check",
     "safety_prominence",
     "substantiation",

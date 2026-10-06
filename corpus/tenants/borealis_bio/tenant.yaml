@@ -6,7 +6,7 @@
 
 tenant_id: borealis_bio
 name: Borealis Bio
-version: "2026.3"
+version: "2026.4"
 
 # Higher bar than Acme: Borealis wants a human to look at anything the system is less than
 # confident about. Costs review throughput, buys fewer missed problems.
@@ -31,15 +31,14 @@ severity_rules:
     rule_id: BOR-SEV-OFFLABEL
     rationale: Promotion outside the approved population or indication is not correctable by wording.
 
+  # Covers citation failures too: BOR-SEV-REFERENCE was a separate entry until the substantiation
+  # check absorbed reference checking, and it graded identically, so folding it in changed nothing.
   - check_type: substantiation
     severity: blocker
     rule_id: BOR-SEV-SUBSTANTIATION
-    rationale: An unsupported or overstated efficacy claim changes a prescribing decision.
-
-  - check_type: reference_support
-    severity: blocker
-    rule_id: BOR-SEV-REFERENCE
-    rationale: A citation that does not measure the claimed endpoint or population is no citation.
+    rationale: >-
+      An unsupported or overstated efficacy claim changes a prescribing decision, and a citation
+      that does not measure the claimed endpoint or population is no citation.
 
   - check_type: safety_prominence
     severity: blocker

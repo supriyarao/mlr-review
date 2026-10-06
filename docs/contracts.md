@@ -67,8 +67,8 @@ this, which is why a model cannot assert a citation into existence.
 
 ```
 id                   str
-check_type           CheckType     substantiation | reference_support | off_label |
-                                   fair_balance | safety_prominence | business_rule
+check_type           CheckType     substantiation | off_label | fair_balance |
+                                   safety_prominence | business_rule
 claim_id             str           "" for a document-level finding
 quote                str           verbatim from `document`; "" when the finding is an absence
 char_span            (int, int)
