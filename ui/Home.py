@@ -288,7 +288,12 @@ def node_card(node: Node, prompts: dict[str, dict]) -> None:
         if prompt:
             with link.popover("Read the prompt"):
                 st.caption(f"`{prompt['file']}`, version `{prompt['version']}`")
-                st.code(prompt["text"], language=None, wrap_lines=True)
+                # Plain escaped HTML rather than st.code: the code block loads its highlighter
+                # from the server on first use, and that fetch fails if the server has restarted.
+                st.markdown(
+                    f'<pre class="prompt-text">{view.escape(prompt["text"])}</pre>',
+                    unsafe_allow_html=True,
+                )
 
 
 def node_grid(nodes: list[Node], prompts: dict[str, dict]) -> None:
@@ -324,6 +329,11 @@ FLOW_CSS = """
 }
 .flow-node.model { border-radius: 999px; border-color: #1F3A5F; background: rgba(31,58,95,.1); }
 .flow-down { text-align: center; font-size: 0.7rem; line-height: 0.6; opacity: 0.55; }
+.prompt-text {
+  white-space: pre-wrap; font-size: 0.8rem; line-height: 1.5; max-width: 640px;
+  max-height: 420px; overflow-y: auto; padding: 0.7rem 0.85rem; border-radius: 4px;
+  background: rgba(128,128,128,.1);
+}
 .flow-next { align-self: center; font-size: 1.1rem; opacity: 0.55; }
 @media (max-width: 900px) { .flow { flex-direction: column; } .flow-next { transform: rotate(90deg); } }
 </style>
