@@ -73,7 +73,7 @@ if task.get("evidence"):
     with st.expander(f"Supporting evidence ({len(task['evidence'])})"):
         for item in task["evidence"]:
             st.markdown(
-                f'<div class="mlr-proof source">{view.escape(item.get("passage", ""))}</div>',
+                f'<div class="mlr-proof source">{view.block(item.get("passage", ""))}</div>',
                 unsafe_allow_html=True,
             )
             st.caption(item.get("title") or item.get("source_id", ""))

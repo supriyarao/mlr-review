@@ -174,6 +174,16 @@ def show_error(exc: api.ApiError) -> None:
 # --- Small pieces --------------------------------------------------------------------------------
 
 
+def block(text: str) -> str:
+    """Escape multi-line text for an HTML box.
+
+    Line breaks become character references. Markdown ends an HTML block at the first blank line
+    and would then read the rest of an uploaded piece as markdown: its headings would render as
+    headings and its ** as bold, which is exactly what a "show me the raw text" box must not do.
+    """
+    return escape(text).replace("\n", "&#10;")
+
+
 def chip(text: str, kind: str = "") -> str:
     return f'<span class="mlr-chip {kind}">{escape(str(text))}</span>'
 
@@ -188,7 +198,7 @@ def severity_of(finding: dict[str, Any]) -> str:
 
 
 def tier_label(tier: str) -> str:
-    return tier.replace("_", " ").capitalize() if tier else "Not routed yet"
+    return tier.replace("_", " ").capitalize() if tier else "Not worked out yet"
 
 
 def money(value: float) -> str:
@@ -199,9 +209,29 @@ def duration(ms: float) -> str:
     return f"{ms / 1000:.1f} s" if ms >= 1000 else f"{int(ms)} ms"
 
 
+STATUS_WORDS = {
+    "queued": "Starting",
+    "running": "Running",
+    "awaiting_human": "Ready to read",
+    "complete": "Closed",
+    "failed": "Stopped early",
+}
+
+
 def status_chip(status: str) -> str:
-    kind = {"failed": "blocker", "awaiting_human": "advisory", "complete": "pass"}.get(status, "")
-    return chip(status.replace("_", " ").capitalize(), kind)
+    kind = {"failed": "blocker", "awaiting_human": "pass", "complete": "pass"}.get(status, "")
+    return chip(STATUS_WORDS.get(status, status.replace("_", " ").capitalize()), kind)
+
+
+def plain(value: Any) -> str:
+    """A recorded value as something readable in a table cell."""
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    if isinstance(value, dict):
+        return ", ".join(f"{k.replace('_', ' ')}: {plain(v)}" for k, v in value.items()) or "none"
+    if isinstance(value, list):
+        return ", ".join(plain(v) for v in value) or "none"
+    return str(value)
 
 
 def run_label(run: dict[str, Any]) -> str:
@@ -309,8 +339,8 @@ def excerpt_html(document: str, quote: str, char_span: list[int], severity: str)
     lead = "…" if start > 260 else ""
     tail = "…" if end + 260 < len(document) else ""
     return (
-        f'<div class="mlr-proof">{lead}{escape(before)}'
-        f'<mark class="{escape(severity)}">{escape(quote)}</mark>{escape(after)}{tail}</div>'
+        f'<div class="mlr-proof">{lead}{block(before)}'
+        f'<mark class="{escape(severity)}">{block(quote)}</mark>{block(after)}{tail}</div>'
     )
 
 
@@ -345,7 +375,7 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
             st.markdown(marked, unsafe_allow_html=True)
         elif finding.get("quote"):
             st.markdown(
-                f'<div class="mlr-proof"><mark class="{severity}">{escape(finding["quote"])}'
+                f'<div class="mlr-proof"><mark class="{severity}">{block(finding["quote"])}'
                 "</mark></div>",
                 unsafe_allow_html=True,
             )
@@ -355,10 +385,10 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
     with right:
         st.markdown('<div class="mlr-caption">Judged against</div>', unsafe_allow_html=True)
         if not finding.get("citations"):
-            st.warning("No citation. A finding without one is escalated, never dropped.")
+            st.warning("No source to point to. It's kept and flagged, not dropped.")
         for citation in finding.get("citations", []):
             st.markdown(
-                f'<div class="mlr-proof source">{escape(citation["passage"])}</div>',
+                f'<div class="mlr-proof source">{block(citation["passage"])}</div>',
                 unsafe_allow_html=True,
             )
             kind = CITATION_LABELS.get(citation["kind"], citation["kind"])
@@ -393,35 +423,43 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
     )
 
 
+GATE_NAMES = {
+    "schema": "Did the models answer in the right shape?",
+    "grounding": "Can every finding be looked up?",
+    "confidence": "Is the system sure enough?",
+}
+
+
 def gates(gate_results: list[dict[str, Any]]) -> None:
     """The validation gates, each with its verdict. A pass says what was checked, too."""
     if not gate_results:
-        st.caption("No gate has run yet.")
+        st.caption("No checks have run yet.")
         return
     for column, gate in zip(st.columns(len(gate_results)), gate_results, strict=True):
         with column.container(border=True):
             verdict = chip("Passed", "pass") if gate["passed"] else chip("Failed", "blocker")
             st.markdown(
-                f"**{escape(gate['gate'].capitalize())} gate** {verdict}", unsafe_allow_html=True
+                f"**{escape(GATE_NAMES.get(gate['gate'], gate['gate'].capitalize()))}** {verdict}",
+                unsafe_allow_html=True,
             )
             st.caption(gate["details"])
             if gate["failed_items"]:
-                st.caption(f"Tripped by: {', '.join(gate['failed_items'])}")
+                st.caption(f"Failed on: {', '.join(gate['failed_items'])}")
 
 
 def routing(report: dict[str, Any]) -> None:
     """Who this went to, and why -- in the tenant policy's terms."""
     if not report.get("route"):
-        st.caption("Not routed yet.")
+        st.caption("Not worked out yet.")
         return
     escalation = report.get("escalation")
     if not escalation or not escalation.get("reasons"):
         st.success(
-            f"Routed to **{tier_label(report['route'])}** for a routine review. "
-            "Nothing in the findings or the gates called for a higher tier."
+            f"Suggested reviewer: **{tier_label(report['route'])}**. "
+            "Nothing here needs someone more senior."
         )
         return
-    st.error(f"Escalated to **{tier_label(escalation['tier'])}**.")
+    st.warning(f"Suggested reviewer: **{tier_label(escalation['tier'])}**. Here's why.")
     for reason in escalation["reasons"]:
         items = f" (findings {', '.join(reason['items'])})" if reason.get("items") else ""
         st.markdown(
@@ -434,8 +472,8 @@ def summary_metrics(report: dict[str, Any]) -> None:
     blockers = sum(1 for f in findings if severity_of(f) == "blocker")
     cost = report.get("cost", {})
     a, b, c, d, e = st.columns(5)
-    a.metric("Blockers", blockers)
-    b.metric("Advisories", len(findings) - blockers)
-    c.metric("Routed to", tier_label(report.get("route", "")))
+    a.metric("Blockers", blockers, help="Must be fixed before the piece is used.")
+    b.metric("Advisories", len(findings) - blockers, help="Worth a look, not a showstopper.")
+    c.metric("Suggested reviewer", tier_label(report.get("route", "")))
     d.metric("Cost", money(cost.get("cost_usd", 0.0)))
-    e.metric("Model time", duration(cost.get("latency_ms", 0)))
+    e.metric("Time spent", duration(cost.get("latency_ms", 0)))
