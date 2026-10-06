@@ -67,21 +67,13 @@ REVIEWERS = [
     Node(
         "substantiation",
         "The evidence reviewer",
-        "Asks: does the evidence really back this claim, as strongly as the piece says it?",
+        "Asks: does the evidence really back this claim, as strongly as the piece says it? And "
+        "does the study in the footnote actually say it?",
         "Looks for a subgroup result passed off as a general one, a bigger result than was "
-        "measured, a dropped comparison, or a claim with no support at all.",
+        "measured, a dropped comparison, a claim with no support at all, or a footnote pointing "
+        "at a study that measured something else.",
         "The approved label and the studies (local search index) and the model.",
         "Findings, each with the quote and the passage it relies on.",
-        model=True,
-    ),
-    Node(
-        "reference_support",
-        "The citation checker",
-        "Asks: does the study in the footnote actually say this?",
-        "Compares the claim with the cited study: same result measured, same patients, same "
-        "point in time.",
-        "The cited studies (local search index) and the model.",
-        "Findings with the passage from the study.",
         model=True,
     ),
     Node(

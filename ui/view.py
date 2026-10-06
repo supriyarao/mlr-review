@@ -30,7 +30,6 @@ INK = "#1F3A5F"
 
 CHECK_LABELS = {
     "substantiation": "Substantiation",
-    "reference_support": "Reference support",
     "off_label": "Off-label",
     "fair_balance": "Fair balance",
     "safety_prominence": "Safety prominence",
