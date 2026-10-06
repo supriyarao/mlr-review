@@ -49,6 +49,7 @@ from mlr.nodes import grounding_gate as grounding
 from mlr.nodes import route as routing
 from mlr.nodes import severity as severity_node
 from mlr.nodes.editor import editor
+from mlr.prompts.checks import CHECKS
 from mlr.state import ReviewState
 
 # The four specialist checks, in the order they appear in the audit timeline.
@@ -116,10 +117,10 @@ def fan_out(state: ReviewState) -> list[Send]:
     sends: list[Send] = []
 
     for name in CORE_CHECKS:
-        # The two document-level checks run even with no claims: a piece with no extractable claims
-        # can still be missing its safety information.
-        document_level = name in ("fair_balance", "safety_prominence")
-        if claims or document_level:
+        # Which checks survive a piece with no extractable claims is the check's own property, read
+        # off its prompt rather than restated here -- a second copy of that list is a thing that
+        # drifts. A piece with nothing extractable can still be missing its safety information.
+        if claims or CHECKS[name].runs_without_claims:
             sends.append(Send(name, payload))
 
     kinds = {a.kind for a in applied}

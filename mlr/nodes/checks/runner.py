@@ -280,18 +280,22 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
 
     with node_run(state, check_name) as run:
         claims = _claims_for(check_name, state)
-        if not check.document_level and not claims:
+        if not check.runs_without_claims and not claims:
             run.output = {"claims": 0, "findings": 0, "note": "nothing in scope for this check"}
             return {}
 
-        retriever = TenantRetriever(str(state["tenant_id"]))
-        passages = _retrieve(
-            check_name,
-            retriever,
-            _evidence_query(check_name, claims, state),
-            state,
-            EVIDENCE_K_BY_CHECK.get(check_name, EVIDENCE_K),
-        )
+        # A check that declares no need for evidence does not open the collection at all. Skipping
+        # the call rather than discarding the result is the point: retrieval is the slowest thing in
+        # the node, and eight passages a check was never going to use still cost context.
+        passages: list[Passage] = []
+        if check.needs_evidence:
+            passages = _retrieve(
+                check_name,
+                TenantRetriever(str(state["tenant_id"])),
+                _evidence_query(check_name, claims, state),
+                state,
+                EVIDENCE_K_BY_CHECK.get(check_name, EVIDENCE_K),
+            )
 
         cleared = (
             set(state.get("preapproved_matches") or {}) if check_name == "substantiation" else set()
@@ -301,7 +305,7 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             document=str(state.get("document") or ""),
             claims_block=_format_claims(claims, cleared),
             evidence_block=_format_evidence(passages),
-            extra=_layout_block(state) if check.document_level else "",
+            extra=_layout_block(state) if check.needs_layout else "",
             tools_block=_format_tools(tool_results),
         )
 

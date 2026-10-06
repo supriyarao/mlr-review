@@ -80,8 +80,23 @@ class CheckPrompt:
     tier: str  # "strong" or "fast"
     system: str
     question: str
-    # Whether the check looks at individual claims or at the piece as a whole.
-    document_level: bool = False
+
+    # What this check is given, stated as four separate facts rather than one "document level"
+    # flag. That flag used to mean all four at once, and the checks do not actually agree: a
+    # fair-balance judgement is about the piece as a whole *and* needs the claims in front of it,
+    # which the single flag made impossible to express.
+    #
+    # Every finding is either an annotation on a claim or a comment on the piece, so a check that
+    # cannot see the claims can only ever produce the second kind.
+    shows_claims: bool = True
+    # Whether to retrieve from the tenant's corpus at all. A check that is not comparing the copy
+    # against a source does not need evidence, and eight irrelevant passages are not free.
+    needs_evidence: bool = True
+    # Whether ingest's layout measurements are included.
+    needs_layout: bool = False
+    # Whether the check still runs on a piece that yielded no claims. A piece with nothing
+    # extractable can still be missing its safety information.
+    runs_without_claims: bool = False
 
     def build(
         self,
@@ -105,14 +120,11 @@ class CheckPrompt:
             "",
             f"<piece>\n{document}\n</piece>",
         ]
-        if not self.document_level:
+        if self.shows_claims:
             parts += ["", f"<claims>\n{claims_block}\n</claims>"]
-        parts += [
-            "",
-            f"<evidence>\n{evidence_block}\n</evidence>",
-            "",
-            "Return JSON matching the schema.",
-        ]
+        if self.needs_evidence:
+            parts += ["", f"<evidence>\n{evidence_block}\n</evidence>"]
+        parts += ["", "Return JSON matching the schema."]
         return "\n".join(parts)
 
 
@@ -198,7 +210,7 @@ what was not reviewed when the claim was approved.""",
 
 FAIR_BALANCE = CheckPrompt(
     name="fair_balance",
-    version="fair_balance-v1",
+    version="fair_balance-v2",
     tier="fast",
     system=(
         "You are a regulatory reviewer checking whether risk information is presented with "
@@ -207,11 +219,19 @@ FAIR_BALANCE = CheckPrompt(
     question="""Decide whether the risk information in this piece is presented comparably to the
 benefit claims.
 
-Consider how a reader actually meets the piece: whether risk appears near the claims it qualifies or
-only at the end, how much space it gets relative to the benefit content, and whether the language
-minimises it. Layout metrics for this piece are given below if available.
+The benefit claims are listed below. Work claim by claim: for each one, is the risk that qualifies
+it close enough, prominent enough and plainly enough worded that a reader meets both? Consider how a
+reader actually encounters the piece -- whether risk appears beside the claim it qualifies or only
+at the end, how much space it gets, and whether the language minimises it.
 
-This is a judgement about prominence, not about whether the safety text is accurate.
+Attach each finding to the claim it concerns by setting claim_id. Leave claim_id empty only for a
+problem that is genuinely about the piece as a whole rather than about any one claim -- the safety
+section as a block being too short, for instance.
+
+This is a judgement about prominence, not about whether the safety text is accurate, and not about
+whether the claims are supported -- another reviewer is checking that. You are given no source
+evidence here because this question does not need any: everything it turns on is in the piece
+itself and in the measurements below.
 
 A <tool_results> block may carry measurements from the company's own fair-balance validator. Treat
 those numbers as established fact -- they were computed by qualified code, not estimated, and you
@@ -221,7 +241,10 @@ that judgement is yours, and it is the reason you are being asked.
 
 Where a measurement is "inconclusive", the company's code could not take it. That is not a pass. Say
 so in any finding that depends on it, and lower your confidence accordingly.""",
-    document_level=True,
+    shows_claims=True,
+    needs_evidence=False,
+    needs_layout=True,
+    runs_without_claims=True,
 )
 
 SAFETY_PROMINENCE = CheckPrompt(
@@ -238,7 +261,14 @@ useful, and positioned where a reader will encounter it alongside the claims it 
 The realistic failure is not absence but burial: safety information reduced to a single line, placed
 after the footnotes, or separated from the efficacy content by several pages. Present-but-buried is
 still misleading, so report it. Layout metrics are given below.""",
-    document_level=True,
+    # Trade-off: this one still retrieves, and still does not see the claims. Both are open
+    # questions for the same pass that reshaped fair_balance -- the retrieval arguably earns its
+    # place here, because "is the *required* safety information present" is answered against the
+    # label, but withholding the claims has the same weakness it had next door.
+    shows_claims=False,
+    needs_evidence=True,
+    needs_layout=True,
+    runs_without_claims=True,
 )
 
 CHECKS: dict[str, CheckPrompt] = {
