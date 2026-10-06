@@ -31,8 +31,11 @@ INK = "#1F3A5F"
 CHECK_LABELS = {
     "substantiation": "Substantiation",
     "off_label": "Off-label",
+    # Two concerns, one step. The labels stay separate because a finding still carries one or the
+    # other, and the tenants grade them differently.
     "fair_balance": "Fair balance",
     "safety_prominence": "Safety prominence",
+    "presentation": "Balance and safety",
     "business_rule": "Business rule",
 }
 GROUNDING_LABELS = {

@@ -19,6 +19,7 @@ from fastapi.encoders import jsonable_encoder
 from api import submissions
 from mlr import service
 from mlr.graph import CORE_CHECKS, PIPELINE
+from mlr.prompts.checks import NODE_FOR_CHECK_TYPE
 
 # What each of the first nodes reads from the state. Listed by hand because a node's inputs
 # are not recorded anywhere: the state is one shared object and a node simply reads what it needs.
@@ -78,7 +79,7 @@ def _findings_by_node(values: dict[str, Any]) -> dict[str, list[Any]]:
         if finding.get("rule_id"):
             node = node_for_kind.get(kinds.get(finding["rule_id"], ""), "")
         else:
-            node = finding["check_type"] if finding["check_type"] in CORE_CHECKS else ""
+            node = NODE_FOR_CHECK_TYPE.get(finding["check_type"], "")
         if node:
             grouped.setdefault(node, []).append(finding)
     return grouped

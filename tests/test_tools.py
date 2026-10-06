@@ -130,19 +130,50 @@ def test_minimising_language_is_caught_in_the_safety_block_only():
 # --- Reaching the model --------------------------------------------------------------------------
 
 
-def test_only_fair_balance_is_given_the_validator():
+def test_only_the_presentation_node_is_given_the_validators():
     document, meta = piece("zelvoran-hcp-isi-buried")
     state = {"document": document, "doc_meta": meta}
-    assert _run_tools("fair_balance", state, [])
+    results = _run_tools("presentation", state, [])
+    assert [r.tool for r in results] == [
+        "safety_prominence_validator",
+        "fair_balance_validator",
+    ]
     assert _run_tools("off_label", state, []) == []
     assert _run_tools("substantiation", state, []) == []
 
 
-def test_the_block_the_model_sees_names_the_tool_and_its_version():
+def test_the_block_the_model_sees_names_each_tool_and_its_version():
     document, meta = piece("zelvoran-hcp-isi-buried")
-    block = _format_tools(_run_tools("fair_balance", {"document": document, "doc_meta": meta}, []))
+    block = _format_tools(_run_tools("presentation", {"document": document, "doc_meta": meta}, []))
     assert '<tool name="fair_balance_validator" version="1.0.0">' in block
+    assert '<tool name="safety_prominence_validator" version="1.0.0">' in block
     assert "risk_benefit_word_ratio" in block
+    assert "placement" in block
+
+
+def test_the_safety_validator_catches_a_buried_but_complete_isi():
+    """The case that is this concern's whole point: present, complete, and where nobody reads it."""
+    from mlr.tools.safety_prominence_validator import validate_safety_prominence
+
+    document, meta = piece("zelvoran-hcp-isi-buried")
+    result = validate_safety_prominence(document=document, doc_meta=meta)
+    assert "placement" in result["failed"]
+    assert result["checks"]["placement"]["after_references"] is True
+
+
+def test_the_two_concerns_can_disagree_about_the_same_piece():
+    """One node, two validators, and they are not measuring the same thing.
+
+    The journal ad is balanced -- the fair-balance validator finds nothing -- which says nothing
+    about whether its safety block is complete. Folding the two into one measurement would lose
+    exactly this.
+    """
+    from mlr.tools.safety_prominence_validator import validate_safety_prominence
+
+    document, meta = piece("zelvoran-hcp-journal-ad")
+    assert validate_fair_balance(document=document, doc_meta=meta)["failed"] == []
+    safety = validate_safety_prominence(document=document, doc_meta=meta)
+    assert safety["checks"]["safety_block_present"]["verdict"] == "pass"
 
 
 def test_a_failed_call_is_shown_to_the_model_rather_than_dropped():

@@ -10,8 +10,7 @@ graph TD;
 	preapproved_filter(preapproved_filter)
 	substantiation(substantiation)
 	off_label(off_label)
-	fair_balance(fair_balance)
-	safety_prominence(safety_prominence)
+	presentation(presentation)
 	deterministic_rules(deterministic_rules)
 	llm_rules(llm_rules)
 	reference_doc_review(reference_doc_review)
@@ -28,23 +27,21 @@ graph TD;
 	deterministic_rules --> grounding_gate;
 	editor --> confidence_gate;
 	extract_claims --> preapproved_filter;
-	fair_balance --> grounding_gate;
 	grounding_gate --> severity;
 	human_review --> finalize;
 	ingest --> extract_claims;
 	llm_rules --> grounding_gate;
 	off_label --> grounding_gate;
 	preapproved_filter -.-> deterministic_rules;
-	preapproved_filter -.-> fair_balance;
 	preapproved_filter -.-> grounding_gate;
 	preapproved_filter -.-> llm_rules;
 	preapproved_filter -.-> off_label;
+	preapproved_filter -.-> presentation;
 	preapproved_filter -.-> reference_doc_review;
-	preapproved_filter -.-> safety_prominence;
 	preapproved_filter -.-> substantiation;
+	presentation --> grounding_gate;
 	reference_doc_review --> grounding_gate;
 	route --> human_review;
-	safety_prominence --> grounding_gate;
 	severity --> editor;
 	substantiation --> grounding_gate;
 	finalize --> __end__;

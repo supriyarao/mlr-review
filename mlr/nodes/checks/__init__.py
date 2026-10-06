@@ -1,6 +1,6 @@
-"""The four specialist checks, fanned out in parallel.
+"""The three specialist checks, fanned out in parallel.
 
-substantiation, off_label, fair_balance, safety_prominence.
+substantiation, off_label, presentation.
 
 Each is a thin binding over :func:`mlr.nodes.checks.runner.run_check`: what distinguishes them is
 their prompt and evidence, not their mechanics, so the mechanics live in one place. The separate
@@ -26,20 +26,20 @@ def off_label(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
     return run_check("off_label", state, fake=fake)
 
 
-def fair_balance(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
-    """Is risk information comparable in prominence to the benefit claims? Fast model."""
-    return run_check("fair_balance", state, fake=fake)
+def presentation(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
+    """How the piece presents risk: is the safety information there and readable, and is it given
+    weight comparable to the benefit claims? Fast model, reads doc_meta, calls two validators.
 
-
-def safety_prominence(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
-    """Is required safety information present and not buried? Fast model, reads doc_meta."""
-    return run_check("safety_prominence", state, fake=fake)
+    One node, two concerns. Findings carry ``safety_prominence`` or ``fair_balance`` as their
+    check_type so a tenant still grades them apart -- Acme treats imbalance as editorial and a
+    missing ISI as blocking, which is the whole of golden cases 007 and 008.
+    """
+    return run_check("presentation", state, fake=fake)
 
 
 __all__ = [
-    "fair_balance",
     "off_label",
+    "presentation",
     "run_check",
-    "safety_prominence",
     "substantiation",
 ]

@@ -36,6 +36,8 @@ import json
 import re
 from typing import Any
 
+from mlr.nodes.ingest import build_doc_meta
+from mlr.prompts.checks import NODE_FOR_CHECK_TYPE
 from platform_core.evals.schema import GoldenCase
 from platform_core.retrieval import TenantRetriever
 
@@ -64,6 +66,42 @@ def find_quote(document: str, needle: str) -> str:
             return cleaned if cleaned in document else sentence
     # The needle may be a phrase the case author expects in the issue text rather than the copy.
     return ""
+
+
+def find_measurement(
+    check_type: str, document: str, doc_meta: dict[str, Any]
+) -> dict[str, str] | None:
+    """A real figure from the company's validators, as a measurement citation.
+
+    The ``presentation`` check is given no evidence block -- its questions are not answered against
+    the label -- so its findings are grounded on measurements instead. The oracle has to cite the
+    same way a well-behaved model would, or every golden case with a balance or prominence
+    expectation would come back ungrounded and escalate for the wrong reason.
+
+    The figure is read back out of the tool's own output rather than written here, so a change to
+    what the validator reports cannot leave the oracle citing a number nobody computed.
+    """
+    from platform_core import tools
+
+    tool = (
+        "fair_balance_validator" if check_type == "fair_balance" else "safety_prominence_validator"
+    )
+    result = tools.call(tool, {"document": document, "doc_meta": doc_meta, "claims": []})
+    if not result.ok:
+        return None
+
+    # Prefer a figure from a check the validator actually failed: that is the measurement a finding
+    # about this piece would rest on.
+    checks = result.data.get("checks") or {}
+    ordered = list(result.data.get("failed") or []) + list(checks)
+    for name in ordered:
+        for key, value in (checks.get(name) or {}).items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                # No "kind": a reported citation carries only a source and a passage, and the
+                # runner derives the kind from what the check was given. The oracle has to emit
+                # exactly the shape a model would, or it stops testing the real path.
+                return {"source_id": tool, "passage": f"{name}.{key}: {value}"}
+    return None
 
 
 def find_citation(case: GoldenCase, query: str) -> dict[str, str] | None:
@@ -143,7 +181,18 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
         # which is what the apt passage talks about -- querying on the claim alone retrieves the
         # passage the claim resembles, which is usually the indication statement.
         query = " ".join(filter(None, (expected.claim_contains, expected.note))) or case.title
-        citation = None if _is_unverifiable(expected.claim_contains) else find_citation(case, query)
+        if NODE_FOR_CHECK_TYPE.get(expected.check_type) == "presentation":
+            # The case's own doc_meta where it pins one (001 does, so a parsing change cannot
+            # look like a model regression), otherwise the map ingest would compute.
+            citation = find_measurement(
+                expected.check_type,
+                document,
+                dict(case.doc_meta) or build_doc_meta(document),
+            )
+        elif _is_unverifiable(expected.claim_contains):
+            citation = None
+        else:
+            citation = find_citation(case, query)
 
         by_check.setdefault(expected.check_type, []).append(
             {
@@ -162,13 +211,18 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
             }
         )
 
-    for check in (
-        "substantiation",
-        "off_label",
-        "fair_balance",
-        "safety_prominence",
-    ):
-        script[check] = [json.dumps({"findings": by_check.get(check, [])})]
+    # Keyed by node, not by check_type: one node can answer several concerns, and when it does its
+    # findings carry a ``concern`` so the runner can tag each one the way the model would have.
+    from mlr.prompts.checks import CHECKS
+
+    for node, check in CHECKS.items():
+        concerns = check.emits or (node,)
+        findings = [
+            {**finding, **({"concern": concern} if check.emits else {})}
+            for concern in concerns
+            for finding in by_check.get(concern, [])
+        ]
+        script[node] = [json.dumps({"findings": findings})]
 
     # The LLM rule checker and the reference-document reviewer report any rule the case expects that
     # the deterministic engine cannot produce.

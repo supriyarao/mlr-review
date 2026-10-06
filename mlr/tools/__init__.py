@@ -6,6 +6,6 @@ to make the tools available -- a node never has to remember to import the module
 
 from __future__ import annotations
 
-from mlr.tools import fair_balance_validator
+from mlr.tools import fair_balance_validator, safety_prominence_validator
 
-__all__ = ["fair_balance_validator"]
+__all__ = ["fair_balance_validator", "safety_prominence_validator"]

@@ -59,7 +59,11 @@ CIRCULAR_DOC_TYPES: tuple[str, ...] = ("preapproved_claim",)
 # these rather than offering them for the model to choose: a measurement this check always needs is
 # not a decision, and making the model ask for it buys a round trip and nondeterminism for nothing.
 # The registry is the seam -- a model-driven call would be a change of caller, not of design.
-TOOLS_BY_CHECK: dict[str, tuple[str, ...]] = {"fair_balance": ("fair_balance_validator",)}
+TOOLS_BY_CHECK: dict[str, tuple[str, ...]] = {
+    # Two, in order, both feeding the one model call that follows. They answer the check's two
+    # concerns separately because a customer would own them separately.
+    "presentation": ("safety_prominence_validator", "fair_balance_validator"),
+}
 
 
 # Study identifiers as they appear in a piece's reference list: ZEL-302, NEX-114.
@@ -330,6 +334,7 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
 
         run.record(result)
         known_claims = {c.id for c in claims}
+        citation_kind = "evidence" if check.needs_evidence else "measurement"
         findings: list[Finding] = []
 
         for i, reported in enumerate(result.parsed.findings, start=1):
@@ -339,7 +344,10 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             findings.append(
                 Finding(
                     id=f"{check_name[:3]}-{i}",
-                    check_type=check_name,  # type: ignore[arg-type]
+                    # Usually the check's own name. A check answering more than one question
+                    # declares them in ``emits`` and the model says which this finding is, because
+                    # the tenant grades by check_type and the concerns are graded differently.
+                    check_type=check.check_type_for(reported.concern),  # type: ignore[arg-type]
                     # A claim id the check was not given is dropped rather than trusted: it is either
                     # a hallucination or a reference to a claim another check owns.
                     claim_id=reported.claim_id if reported.claim_id in known_claims else "",
@@ -350,7 +358,11 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
                         Citation(
                             source_id=c.source_id,
                             passage=c.passage,
-                            kind="evidence",
+                            # Derived from what the check was given, not asked of the model: a
+                            # check either had an evidence block to cite or it had measurements,
+                            # and we already know which. Asking would add a field the model can
+                            # get wrong, and a mislabelled citation fails grounding silently.
+                            kind=citation_kind,
                             title=next(
                                 (p.title for p in passages if p.source_id == c.source_id), ""
                             ),
@@ -368,6 +380,10 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             "claims_examined": len(claims),
             "evidence_passages": len(passages),
             "findings": len(findings),
+            "by_concern": {
+                concern: sum(1 for f in findings if f.check_type == concern)
+                for concern in (check.emits or (check_name,))
+            },
             "retry_needed": bool(result.recovered_from),
             # Which of the company's own code ran, what version, and what it said. An auditor
             # asking "did our validator run on this piece" must not have to infer it.
@@ -389,4 +405,11 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
             for f in findings
             for c in f.citations
         ]
-        return {"findings": findings}
+        # Tool output goes into state as well as the audit log, because the grounding gate verifies
+        # a "measurement" citation against it: a finding may cite a number its validator really
+        # reported, and nothing else.
+        published = [
+            {"tool": t.tool, "version": t.version, "ok": t.ok, "data": t.data, "error": t.error}
+            for t in tool_results
+        ]
+        return {"findings": findings, **({"tool_results": published} if published else {})}

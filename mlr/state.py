@@ -88,6 +88,12 @@ class ReviewState(TypedDict, total=False):
     # Append-only. Five check nodes plus the three rule nodes all write here concurrently.
     # DO NOT write a replacement list to this key -- see the module docstring.
     findings: Annotated[list[Finding], operator.add]
+
+    # What the company's own validators reported, one entry per tool call. Append-reduced for the
+    # same reason findings are: the checks that call tools run concurrently. Kept in state rather
+    # than only in the audit log because the grounding gate verifies a "measurement" citation
+    # against it -- a finding may cite a number the tool really produced, and nothing else.
+    tool_results: Annotated[list[dict[str, Any]], operator.add]
     # Append-only. Gates record their outcome whether they pass or fail, so the audit trail shows
     # that a gate ran and what it concluded rather than only recording failures.
     gate_results: Annotated[list[GateResult], operator.add]
@@ -143,7 +149,7 @@ REPLACEABLE_KEYS: frozenset[str] = frozenset(
 )
 
 # Keys with an append reducer. Writing a replacement to one of these concatenates instead.
-ACCUMULATED_KEYS: frozenset[str] = frozenset({"findings", "gate_results", "errors"})
+ACCUMULATED_KEYS: frozenset[str] = frozenset({"findings", "gate_results", "errors", "tool_results"})
 
 
 def initial_state(
@@ -180,6 +186,7 @@ def initial_state(
         findings=[],
         gate_results=[],
         errors=[],
+        tool_results=[],
         final_findings=[],
         route="",
         escalation=None,

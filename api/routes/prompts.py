@@ -55,7 +55,11 @@ def all_prompts() -> list[dict[str, Any]]:
                 "mlr/prompts/checks.py",
                 check.system,
                 check.question,
-                checks._SHARED,
+                # The standing rules as this check actually receives them: the citation half
+                # differs depending on whether the check is given evidence or measurements.
+                checks._SHARED_OPEN
+                + (checks._SHARED_EVIDENCE if check.needs_evidence else checks._SHARED_MEASUREMENT)
+                + checks._SHARED_CLOSE,
             )
         )
     # Both rule nodes share the platform's rule-checking instructions; the tenant's own rule text

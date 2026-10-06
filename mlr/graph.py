@@ -3,7 +3,7 @@
 Shape:
 
     ingest -> extract_claims -> preapproved_filter
-        -> [ 4 specialist checks | deterministic_rules | llm_rules | reference_doc_review ... ]
+        -> [ 3 specialist checks | deterministic_rules | llm_rules | reference_doc_review ... ]
         -> grounding_gate -> severity -> editor -> confidence_gate -> route
         -> human_review (interrupt) -> finalize
 
@@ -16,7 +16,7 @@ with no reducer. It also belongs beside ``policy_version``, which hashes the sam
 Trade-off: one node now does two things, in exchange for a pipeline a reader can follow without being
 told what a rulebook picker is.
 
-**The fan-out is one conditional edge returning a list of ``Send``.** Seven branches run concurrently
+**The fan-out is one conditional edge returning a list of ``Send``.** Six branches run concurrently
 and each appends to ``findings`` through its reducer. ``reference_doc_review`` gets one ``Send`` per
 applicable document rather than being handed several codes of practice at once, because a reviewer
 prompt carrying two unrelated documents does measurably worse at citing the right clause from either.
@@ -52,7 +52,7 @@ from mlr.nodes.editor import editor
 from mlr.prompts.checks import CHECKS
 from mlr.state import ReviewState
 
-# The four specialist checks, in the order they appear in the audit timeline.
+# The three specialist checks, in the order they appear in the audit timeline.
 #
 # ``substantiation`` covers what a separate ``reference_support`` check used to: both asked their
 # question of the same retrieved passages and both tenants graded them identically, so the split
@@ -60,8 +60,7 @@ from mlr.state import ReviewState
 CORE_CHECKS: tuple[str, ...] = (
     "substantiation",
     "off_label",
-    "fair_balance",
-    "safety_prominence",
+    "presentation",
 )
 
 RULE_BRANCHES: tuple[str, ...] = ("deterministic_rules", "llm_rules", "reference_doc_review")
@@ -170,8 +169,7 @@ def build(*, fake: Any = None) -> StateGraph:
 
     add("substantiation", _llm(checks.substantiation))
     add("off_label", _llm(checks.off_label))
-    add("fair_balance", _llm(checks.fair_balance))
-    add("safety_prominence", _llm(checks.safety_prominence))
+    add("presentation", _llm(checks.presentation))
 
     add("deterministic_rules", rules.deterministic_rules)
     add("llm_rules", _llm(rules.llm_rules))

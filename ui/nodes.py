@@ -87,22 +87,15 @@ REVIEWERS = [
         model=True,
     ),
     Node(
-        "fair_balance",
+        "presentation",
         "The balance reviewer",
-        "Asks: do the risks get a fair share of the page next to the benefits?",
-        "Mostly reasons over the layout numbers the reader worked out, so a small model is enough.",
-        "The section map from the reader, and the model.",
-        "Findings about prominence and placement.",
-        model=True,
-    ),
-    Node(
-        "safety_prominence",
-        "The safety reviewer",
-        "Asks: is the required safety information there, and easy to find?",
-        "Checks the safety section exists and isn't tucked away. Runs even when no claims were "
-        "found, since a piece can still be missing its safety text.",
-        "The section map, the label, and the model.",
-        "Findings about missing or buried safety information.",
+        "Asks two things: is the safety information there and easy to find, and do the risks get "
+        "a fair share of the page next to the benefits?",
+        "First runs the company's own two checkers - the ones they already use - then a small "
+        "model weighs up what they measured. Runs even when no claims were found, since a piece "
+        "can still be missing its safety text.",
+        "The claims, the section map, and the company's own checkers. No search needed.",
+        "Findings about missing or buried safety information, and about balance.",
         model=True,
     ),
     Node(

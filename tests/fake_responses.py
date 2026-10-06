@@ -162,8 +162,7 @@ def subgroup_case_script() -> dict[str, list[str]]:
             )
         ],
         "off_label": [NO_FINDINGS],
-        "fair_balance": [NO_FINDINGS],
-        "safety_prominence": [NO_FINDINGS],
+        "presentation": [NO_FINDINGS],
         "llm_rules": [NO_RULE_FINDINGS],
         "reference_doc_review": [
             rule_findings(
@@ -198,8 +197,7 @@ def clean_script(quote: str, normalized: str, *, preapproved: bool = True) -> di
         "preapproved_filter": [EQUIVALENT if preapproved else NOT_EQUIVALENT],
         "substantiation": [NO_FINDINGS],
         "off_label": [NO_FINDINGS],
-        "fair_balance": [NO_FINDINGS],
-        "safety_prominence": [NO_FINDINGS],
+        "presentation": [NO_FINDINGS],
         "llm_rules": [NO_RULE_FINDINGS],
         "reference_doc_review": [NO_RULE_FINDINGS],
     }

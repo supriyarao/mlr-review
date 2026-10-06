@@ -101,8 +101,7 @@ def test_every_model_backed_node_serves_its_prompt(client):
         "preapproved_filter",
         "substantiation",
         "off_label",
-        "fair_balance",
-        "safety_prominence",
+        "presentation",
         "llm_rules",
         "reference_doc_review",
     }

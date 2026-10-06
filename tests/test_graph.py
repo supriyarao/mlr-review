@@ -550,7 +550,7 @@ def test_the_fan_out_skips_branches_with_nothing_to_do(seeded):
     targets = {send.node for send in fan_out(state)}
     # No claims and no rules: only the document-level checks are worth running.
     assert "substantiation" not in targets
-    assert {"fair_balance", "safety_prominence"} <= targets
+    assert "presentation" in targets
     assert "llm_rules" not in targets
 
     state["rules_applied"] = [

@@ -13,6 +13,14 @@ Two conditions, both required:
    ``evidence``     the passage appears verbatim in a retrieved source **belonging to this tenant**
    ``rule``         the rule id and version were in this run's applied set
    ``doc_clause``   the clause appears verbatim in a reference document owned by this tenant
+   ``measurement``  the named tool ran on this piece, and the cited figure is in what it reported
+
+The fourth mode exists because some questions have no source to cite. "Is the risk given comparable
+weight to the benefit" is answered from the piece and from measurements, not from the label -- so
+the ``presentation`` check is given no evidence block at all, and without this its findings would
+every one be ungrounded and escalate every piece. What grounds them instead is stronger than a
+retrieved passage: a number the company's own code computed, recorded with the tool's version, and
+recomputable by hand.
 
 An ungrounded finding is **never dropped.** It is marked ``grounded=False`` and forces escalation.
 Discarding it would turn "I could not verify this" into "there is no problem here", which is the worst
@@ -21,6 +29,8 @@ thing a review system can do -- and it is a mistake no reviewer would ever see.
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Any
 
 from mlr.nodes.base import node_run
@@ -52,6 +62,7 @@ def _verify_citations(
     """Return the grounding mode that verified this finding, or "" if none did."""
     applied = {(a.id, a.version) for a in (state.get("rules_applied") or [])}
     product_id = str(state.get("product_id") or "")
+    measurements = _measurement_text(state)
 
     for citation in finding.citations:
         if citation.kind == "evidence":
@@ -66,12 +77,54 @@ def _verify_citations(
             if (citation.rule_id, citation.rule_version) in applied:
                 return "rule"
 
+        elif citation.kind == "measurement":
+            # Same shape as the rule check above: the source must have genuinely run on this piece,
+            # and the figure must be one it genuinely reported. A model cannot cite a measurement
+            # into existence any more than it can cite a rule that was never applied.
+            reported = measurements.get(citation.source_id)
+            cited = _figures_in(citation.passage)
+            # A figure is required, and every figure cited must be one the tool reported. Without
+            # the first condition an empty set is a subset of anything, so "the ratio was too low"
+            # with no number in it would verify against a tool that merely ran.
+            if reported is not None and cited and cited <= _figures_in(reported):
+                return "measurement"
+
         elif citation.kind == "doc_clause":
             clause = normalize_whitespace(citation.passage)
             if clause and any(clause in body for body in reference_docs.values()):
                 return "doc_clause"
 
     return ""
+
+
+_FIGURE = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def _figures_in(text: str) -> set[str]:
+    """The numbers in a string, normalised so 0.20 and 0.2 compare equal."""
+    out: set[str] = set()
+    for raw in _FIGURE.findall(text or ""):
+        try:
+            out.add(repr(float(raw)))
+        except ValueError:  # pragma: no cover - the pattern only matches numbers
+            continue
+    return out
+
+
+def _measurement_text(state: dict[str, Any]) -> dict[str, str]:
+    """What each tool reported on this run, keyed by the id a citation would name.
+
+    Both ``name`` and ``name vX`` are accepted as the source_id, because a model asked to cite a
+    tool will reasonably write either and the version is already recorded beside the result.
+    """
+    out: dict[str, str] = {}
+    for result in state.get("tool_results") or []:
+        if not result.get("ok"):
+            continue
+        body = json.dumps(result.get("data") or {}, sort_keys=True)
+        out[str(result.get("tool", ""))] = body
+        out[f"{result.get('tool', '')} v{result.get('version', '')}"] = body
+    return out
 
 
 def _load_reference_docs(tenant_id: str) -> dict[str, str]:
@@ -141,7 +194,7 @@ def grounding_gate(state: dict[str, Any]) -> dict[str, Any]:
 
         by_mode = {
             mode: sum(1 for f in verified if f.grounded_by == mode)
-            for mode in ("evidence", "rule", "doc_clause", "none")
+            for mode in ("evidence", "rule", "doc_clause", "measurement", "none")
         }
         passed = not ungrounded_ids
 
@@ -151,7 +204,8 @@ def grounding_gate(state: dict[str, Any]) -> dict[str, Any]:
             details=(
                 f"all {len(verified)} finding(s) verified "
                 f"({by_mode['evidence']} by evidence, {by_mode['rule']} by rule, "
-                f"{by_mode['doc_clause']} by document clause)"
+                f"{by_mode['doc_clause']} by document clause, "
+                f"{by_mode['measurement']} by measurement)"
                 if passed
                 else f"{len(ungrounded_ids)} of {len(verified)} finding(s) could not be verified: "
                 + "; ".join(f"{fid} ({reasons[fid]})" for fid in ungrounded_ids[:3])

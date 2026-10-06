@@ -77,7 +77,7 @@ ClaimType = Literal[
 ]
 
 # Where a citation points. See the grounding discussion in the module docstring.
-CitationKind = Literal["evidence", "rule", "doc_clause"]
+CitationKind = Literal["evidence", "rule", "doc_clause", "measurement"]
 
 # Which grounding mode actually verified a finding. "none" means it failed the grounding gate and
 # is therefore escalating -- it is never dropped.
