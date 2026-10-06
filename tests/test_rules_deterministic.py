@@ -173,9 +173,19 @@ def test_required_text_in_the_wrong_section_still_fails():
 
 
 def test_a_missing_required_section_is_reported_clearly():
+    """The piece has structure, and the section the text must live in is not part of it."""
+    r = disclaimer_rule(section="important_safety_information")
+    meta = {"sections": {"efficacy": {"start": 0, "end": 23}}}
+    violations = deterministic.evaluate(r, inp("No safety block at all.", doc_meta=meta))
+    assert "not present" in violations[0].message
+
+
+def test_scoped_required_text_also_declines_to_judge_without_a_section_map():
+    """Same distinction as required_section: no structure read is not the same as not present."""
     r = disclaimer_rule(section="important_safety_information")
     violations = deterministic.evaluate(r, inp("No safety block at all."))
-    assert "not present" in violations[0].message
+    assert "could not" in violations[0].message.lower()
+    assert violations[0].confidence <= 50
 
 
 # --- trademark_first_mention --------------------------------------------------------------------
@@ -237,8 +247,26 @@ def test_a_present_section_passes():
 
 
 def test_a_missing_section_fires():
-    violations = deterministic.evaluate(section_rule(), inp("copy", doc_meta={"sections": {}}))
+    """The piece has structure, and the required section is not in it. A real blocker."""
+    meta = {"sections": {"efficacy": {"start": 0, "end": 200}}}
+    violations = deterministic.evaluate(section_rule(), inp("copy", doc_meta=meta))
     assert "missing" in violations[0].message
+    assert violations[0].confidence == 100
+
+
+def test_no_section_map_reports_that_it_could_not_check_rather_than_missing():
+    """An empty section map is an absent *mechanism*, not an absent section.
+
+    This test used to assert the opposite -- that no sections meant the ISI was missing -- which is
+    how a correctly formatted PDF collected a confident false blocker. A document whose structure
+    could not be read gives the rule no evidence either way, so it says so, at a confidence low
+    enough that the tenant's gate escalates it instead of letting it block the piece.
+    """
+    violations = deterministic.evaluate(section_rule(), inp("copy", doc_meta={"sections": {}}))
+    assert len(violations) == 1
+    assert "could not" in violations[0].message.lower()
+    assert "missing" not in violations[0].message.lower()
+    assert violations[0].confidence <= 50
 
 
 def test_a_section_placed_too_far_away_fires():

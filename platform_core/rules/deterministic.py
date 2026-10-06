@@ -158,6 +158,19 @@ def check_required_text(rule: Rule, data: RuleInput) -> list[RuleViolation]:
 
     section = str(rule.params.get("section", "") or "")
     if section:
+        # Same distinction as check_required_section: no section map at all means the document had
+        # no structure this code could read, which is not the same as the section being absent.
+        if not (data.doc_meta.get("sections") or {}):
+            return [
+                _violation(
+                    rule,
+                    message=(
+                        f"Could not check the required text in the {section!r} section: this "
+                        f"document has no readable section structure."
+                    ),
+                    confidence=20,
+                )
+            ]
         haystack = _section_text(data, section)
         if haystack is None:
             return [
@@ -268,6 +281,29 @@ def check_required_section(rule: Rule, data: RuleInput) -> list[RuleViolation]:
         raise RuleEvaluationError(f"{rule.label()}: required_section needs params.section")
 
     sections = data.doc_meta.get("sections") or {}
+
+    # No section map at all is different from a section that is absent, and the difference matters
+    # to the reviewer reading the finding. An empty map means the document had no structure this
+    # code could read -- a PDF whose headings are set in colour rather than in size, a scan -- so
+    # the rule has no evidence either way. Reporting "the section is missing" there is a confident
+    # false blocker, and a reviewer cannot tell it apart from a real one.
+    #
+    # So it is reported as what it is, at low confidence, which routes it through the tenant's
+    # confidence gate and escalates it instead of blocking on it. The failure policy in
+    # mlr/nodes/base.py says a check that cannot complete must escalate rather than look clean;
+    # this is the same principle for a check whose *input* is missing.
+    if not sections:
+        return [
+            _violation(
+                rule,
+                message=(
+                    f"Could not check for the required section {section!r}: this document has no "
+                    f"readable section structure, so the rule could not be evaluated either way."
+                ),
+                confidence=20,
+            )
+        ]
+
     entry = sections.get(section)
     if not isinstance(entry, dict):
         return [_violation(rule, message=f"Required section {section!r} is missing.")]

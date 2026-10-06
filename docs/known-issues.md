@@ -48,61 +48,42 @@ the audit trail overstates what it knows.
 
 ---
 
-## 2. A PDF has no markdown headings, so `required_section` rules fire on every PDF
+## 2. ~~A PDF has no markdown headings, so `required_section` rules fire on every PDF~~ — RESOLVED
 
-**Where:** `mlr/nodes/ingest.py:build_doc_meta` and
-`platform_core/rules/deterministic.py:check_required_section`.
+**Fixed 6 Oct 2026**, in `platform_core/documents.py`. Kept here rather than deleted, because the
+limitation that remains is narrower than the one that was fixed and the difference matters.
 
-**What.** Section mapping is markdown-structural: `build_doc_meta` finds sections with
-`^#{1,6}[ \t]+`. PyMuPDF text extraction produces no `#` lines, so for a PDF `doc_meta["sections"]`
-comes out empty, the synthetic `efficacy` / `important_safety_information` keys never resolve, and
-`safety_block_chars` / `efficacy_block_chars` are `0`.
+Extraction now recovers headings from font size and weight: PyMuPDF exposes the size of every span,
+a heading is a short line set above the body size, and those are re-emitted as `#`/`##`/`###` so the
+section map, the fair-balance numbers and the placement rules all work on a PDF unchanged.
+Round-tripped against three corpus pieces, a PDF and the same piece as markdown now produce the same
+section map and a safety/efficacy ratio within 0.02 — see `tests/test_documents.py`.
 
-`check_required_section` reads those sections and, finding nothing, returns
-*"Required section 'important_safety_information' is missing."* — so a correctly formatted PDF
-collects a false blocker. The fair-balance and safety-prominence checks are handed
-`safety block size: 0 characters` for the same reason.
+The second half of the fix matters more than the first. When no structure can be read at all,
+`check_required_section` now reports *"could not be evaluated"* at confidence 20 — which routes
+through the tenant's confidence gate and escalates — instead of *"Required section is missing"* at
+full confidence. `_layout_block` likewise tells the model the measurements are UNKNOWN rather than
+handing it zeros, because a zero is a measurement and "0 characters of safety information" is a
+claim nobody made.
 
-**Why it matters.** This is worse than the documented limitation it sits next to. That text-only
-PDF extraction cannot see visual prominence is stated honestly in both `extract_text` docstrings.
-Emitting a confident false blocker is a different thing, and a reviewer has no way to tell it apart
-from a real one.
-
-**Fix.** Two parts, and they are separable:
-
-1. Make the layout-dependent checks and rules state their own precondition. When
-   `doc_meta["sections"]` is empty, a section rule has no evidence either way: that should produce
-   an explicit "could not be evaluated — no section structure in this document" outcome that
-   escalates, not a blocker and not silence. The failure policy in `mlr/nodes/base.py` already says
-   a check that cannot complete must escalate rather than look clean; this is the same principle
-   applied to a check whose *input* is missing.
-2. Derive headings from PDFs where it is honestly possible — PyMuPDF exposes font size and weight
-   per span, so a heading-detection pass is feasible. Layout-aware or multimodal parsing is the real
-   answer and is out of scope here; the point is that the gap should be visible, not silent.
-
-Until (1) lands, uploading a PDF is not a safe demo path. Markdown is.
+**What is still true.** Font size is structure, not layout. Two columns, a safety block in 4pt grey
+beside a full-page image, a heading set in colour rather than in size — none of that is visible, and
+a piece whose prominence problem is purely visual will still read as clean. That needs layout-aware
+or multimodal parsing. The difference from before is that the system no longer manufactures a
+confident blocker out of its own blindness.
 
 ---
 
-## 3. Two document-extraction code paths that nothing keeps in step
+## 3. ~~Two document-extraction code paths that nothing keeps in step~~ — RESOLVED
 
-**Where:** `api/ingest.py:extract_text(filename, data)` and
-`mlr/nodes/ingest.py:extract_text(path)`.
+**Fixed 6 Oct 2026.** Both paths now call `platform_core.documents`: `extract_bytes` for the API's
+uploads, `extract_path` for the graph and the eval harness, with the second implemented in terms of
+the first so they cannot drift. `api/ingest.py` keeps the `IngestError` and `extract_text` names its
+routes already import, and keeps the front-matter split, which is genuinely an API concern.
 
-**What.** Both turn `.md` / `.txt` / `.pdf` into reviewable text, and both implement it separately:
-the API reads uploaded bytes, the node reads a path (used by `scripts/loop.py` and the eval
-harness). They agree today. Nothing enforces that they keep agreeing — a PDF handling change in one
-would leave the other behind, and the eval harness and the API would then be reviewing subtly
-different text from the same file.
-
-**Why it matters.** The eval baseline is only meaningful if the harness sees what the API sees. Two
-extractors is one divergence away from a baseline that no longer describes production behaviour.
-
-**Fix.** One extraction module both import. It cannot live in `api/` — `mlr/` must not depend on a
-delivery surface — and bytes-to-text is genuinely use-case-agnostic, so it belongs in the platform:
-`platform_core/documents.py`, exposing extraction from both bytes and paths, with `api/` and
-`mlr/nodes/ingest.py` as its only callers. Add a test asserting both entry points produce identical
-text for the same corpus file.
+`tests/test_documents.py::test_both_entry_points_produce_identical_text` asserts the two produce
+byte-identical text for the same corpus file, which is what makes the eval baseline describe the
+API's behaviour rather than its own.
 
 ---
 

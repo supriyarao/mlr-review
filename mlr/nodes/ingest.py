@@ -145,20 +145,15 @@ def build_doc_meta(document: str) -> dict[str, Any]:
 
 
 def extract_text(path: Path) -> str:
-    """Read a submission. Text for .md/.txt, PyMuPDF text extraction for .pdf.
+    """Read a submission from disk. Used by ``scripts/loop.py`` and the eval harness.
 
-    Trade-off: PDF handling is text-only. Real promotional material is laid out visually -- a safety
-    block in 4pt type beside a full-page image is a fair-balance problem that no text extraction can
-    see -- so a production system needs layout-aware or multimodal parsing. That is noted as a
-    limitation rather than pretended away, and the layout hints here come from markdown structure,
-    which is honest about what it can know.
+    Delegates to :func:`platform_core.documents.extract_path`, which is the same code the API runs
+    on an upload. That is deliberate: the eval baseline only describes the API's behaviour if the
+    harness reads a corpus file into the same string the API would.
     """
-    if path.suffix.lower() == ".pdf":
-        import pymupdf
+    from platform_core.documents import extract_path
 
-        with pymupdf.open(path) as doc:
-            return "\n\n".join(page.get_text() for page in doc)
-    return path.read_text(encoding="utf-8")
+    return extract_path(path)
 
 
 def applicable_rules(

@@ -161,8 +161,23 @@ def _format_claims(claims: list[Claim], cleared: set[str] | None = None) -> str:
 
 
 def _layout_block(state: dict[str, Any]) -> str:
-    """Layout numbers for the two document-level checks, computed by ingest."""
+    """Layout numbers for the two document-level checks, computed by ingest.
+
+    When ingest found no section structure the numbers below would all read as zero, and a zero is
+    a measurement: "the safety block is 0 characters" says the safety information is absent, which
+    is a different claim from "nobody could measure it". So that case says so instead, and tells the
+    check to judge on the text alone and report low confidence rather than inventing a verdict.
+    """
     meta = state.get("doc_meta") or {}
+    if not (meta.get("sections") or {}):
+        return (
+            "<layout>\n"
+            "  No section structure could be read from this document, so none of the usual layout\n"
+            "  measurements are available. They are UNKNOWN, not zero. Judge only from the text of\n"
+            "  the piece itself, say in your finding that the layout could not be measured, and\n"
+            "  report low confidence -- a reviewer will be asked to look at the original.\n"
+            "</layout>"
+        )
     rows = [
         ("safety section", meta.get("safety_section") or "not found"),
         ("safety block size", f"{meta.get('safety_block_chars', 0)} characters"),
