@@ -31,6 +31,15 @@ def _report(run_id: str) -> ReviewReport:
 
 
 def _document(run_id: str) -> str:
+    """The text the checks actually read, which is what every finding's quote and offset refer to.
+
+    Taken from the run's own state once ingest has run, because ingest normalises the text (it
+    strips emphasis markers, for one) and offsets into the raw upload would point at the wrong
+    words. The copy kept at submission is only a fallback for a run that has not got that far.
+    """
+    normalised = (service.get_state(run_id)["values"] or {}).get("document")
+    if normalised:
+        return str(normalised)
     stored = submissions.load(run_id)
     return stored["document"] if stored else ""
 
@@ -181,10 +190,11 @@ def get_audit(run_id: str) -> dict[str, Any]:
 def get_document(run_id: str) -> dict[str, Any]:
     """The text that was submitted, so a finding's quote can be shown highlighted in place."""
     _report(run_id)
-    stored = submissions.load(run_id)
-    if stored is None:
+    document = _document(run_id)
+    if not document:
         raise HTTPException(404, f"no stored document for run {run_id}")
-    return stored
+    stored = submissions.load(run_id) or {"run_id": run_id, "filename": ""}
+    return {**stored, "document": document}
 
 
 @router.get("/reviews/{run_id}/report.json")

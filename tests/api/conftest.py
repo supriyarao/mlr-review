@@ -14,6 +14,8 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from tests.test_service import seeded  # noqa: F401  (the shipped corpus, indexed for this test)
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "api"
 SAMPLE = REPO_ROOT / "corpus" / "promo" / "zelvoran-hcp-subgroup-claim.md"
@@ -104,8 +106,21 @@ def seeded_rules(isolated_data_dir) -> None:
 
 
 @pytest.fixture
-def submitted(client) -> str:
-    """Submit the sample piece the contract examples are built around; returns its run id."""
+def real_runs(monkeypatch, seeded):  # noqa: F811
+    """Reviews run the real graph, offline, and finish before the request returns.
+
+    The service normally runs a review on a worker thread and the client polls. A test wants the
+    finished run, so submissions are made blocking here; nothing else about the path changes.
+    """
+    from mlr import service
+
+    start = service.start_run
+    monkeypatch.setattr(service, "start_run", lambda **kwargs: start(**{**kwargs, "block": True}))
+
+
+@pytest.fixture
+def submitted(client, real_runs) -> str:
+    """Submit the sample piece and return its run id. The run stops at the human step."""
     response = client.post(
         "/reviews",
         data={

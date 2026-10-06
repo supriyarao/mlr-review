@@ -115,6 +115,12 @@ def graph_source() -> str:
     return get_json("/graph")["source"]
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def prompts() -> dict[str, dict[str, Any]]:
+    """Each model-backed node's prompt, keyed by node name."""
+    return {p["node"]: p for p in get_json("/prompts")["prompts"]}
+
+
 def runs(tenant_id: str = "", status: str = "") -> list[dict[str, Any]]:
     return get_json("/reviews", tenant_id=tenant_id, status=status)["runs"]
 

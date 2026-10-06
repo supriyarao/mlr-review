@@ -21,7 +21,7 @@ PAGES = ["Home.py", *sorted(f"pages/{p.name}" for p in (UI_DIR / "pages").glob("
 
 
 @pytest.fixture
-def ui(monkeypatch, seeded_rules):
+def ui(monkeypatch, seeded):
     """Run a page by filename against the in-process API."""
     from api.main import app
 
@@ -41,6 +41,7 @@ def ui(monkeypatch, seeded_rules):
         api_client.samples,
         api_client.sample,
         api_client.graph_source,
+        api_client.prompts,
     ):
         cached.clear()
 
@@ -76,26 +77,56 @@ def test_page_renders_without_an_exception(ui, page):
 
 
 @pytest.mark.parametrize("page", PAGES)
-def test_every_page_carries_the_disclaimer_and_says_when_data_is_an_example(ui, page):
+def test_every_page_carries_the_disclaimer(ui, page):
     text = " ".join(m.value for m in ui(page).markdown)
     assert "not medical, legal or regulatory advice" in text
-    assert "Example data." in text  # the review service is a stub today
 
 
-def test_the_reviewer_queue_shows_the_humans_decide_banner(ui):
+def test_the_home_page_explains_every_node_in_the_graph(ui, client):
+    """The node guide is hand-written, so it is checked against the graph it describes."""
+    import view
+
+    at = ui("Home.py")
+    described = " ".join(c.value for c in at.caption)
+    nodes = view.graph_nodes(client.get("/graph").json()["source"])
+    assert len(nodes) >= 15, f"could not read the graph's nodes: {nodes}"
+    missing = [n for n in nodes if f"`{n}`" not in described]
+    assert not missing, f"nodes in the graph with no description on the home page: {missing}"
+
+
+def test_every_model_backed_node_serves_its_prompt(client):
+    prompts = {p["node"]: p for p in client.get("/prompts").json()["prompts"]}
+    assert set(prompts) == {
+        "extract_claims",
+        "preapproved_filter",
+        "substantiation",
+        "reference_support",
+        "off_label",
+        "fair_balance",
+        "safety_prominence",
+        "llm_rules",
+        "reference_doc_review",
+    }
+    for prompt in prompts.values():
+        assert prompt["version"] and prompt["file"].endswith(".py") and len(prompt["text"]) > 100
+        assert prompt["tier"] in {"strong", "fast"}
+
+
+def test_the_run_pages_invite_a_submission_when_there_are_no_runs(ui):
+    at = ui("pages/2_Run_Detail.py")
+    assert any("No reviews yet" in i.value for i in at.info)
+
+
+def test_a_reviewer_decision_is_sent_and_confirmed(ui, client, submitted):
+    tier = client.get(f"/reviews/{submitted}").json()["route"]
     at = ui("pages/3_Reviewer_Queue.py")
-    assert any("The system recommends; a human decides." in m.value for m in at.markdown)
-
-
-def test_a_reviewer_decision_is_sent_and_confirmed(ui):
-    """Senior tier is the second option; the example run is escalated to it."""
-    at = ui("pages/3_Reviewer_Queue.py")
-    at.selectbox[0].select("senior_regulatory").run()
+    at.selectbox[0].select(tier).run()
     assert not at.exception, [e.value for e in at.exception]
 
     at.button(key="decide-request_changes").click().run()
     assert not at.exception, [e.value for e in at.exception]
     assert any("Recorded: request changes by a.reviewer" in s.value for s in at.success)
+    assert client.get(f"/reviews/{submitted}").json()["status"] == "complete"
 
 
 def test_the_queue_is_empty_for_a_tier_nothing_was_routed_to(ui):
@@ -104,8 +135,14 @@ def test_the_queue_is_empty_for_a_tier_nothing_was_routed_to(ui):
     assert any("Nothing is waiting for legal" in i.value for i in at.info)
 
 
-def test_run_detail_shows_two_runs_side_by_side_for_a_tenant_comparison(ui):
-    compare = [("Acme Pharma", "a1b2c3d4e5f6"), ("Borealis Bio", "a1b2c3d4e5f6")]
+def test_run_detail_shows_a_finished_review(ui, submitted):
+    at = ui("pages/2_Run_Detail.py", run_id=submitted)
+    assert not at.exception, [e.value for e in at.exception]
+    assert [s.value for s in at.subheader][:2] == ["Progress", "Findings"]
+
+
+def test_run_detail_shows_two_runs_side_by_side_for_a_tenant_comparison(ui, submitted):
+    compare = [("Acme Pharma", submitted), ("Borealis Bio", submitted)]
     at = ui("pages/2_Run_Detail.py", compare=compare)
     assert not at.exception, [e.value for e in at.exception]
     assert [h.value for h in at.header] == ["Acme Pharma", "Borealis Bio"]

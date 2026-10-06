@@ -1,7 +1,8 @@
-"""Review endpoints, checked against the committed contract examples.
+"""Review endpoints, run against the real graph with the offline model backend.
 
-The service façade is a stub returning the canonical example run, so most of these assert equality
-with a fixture: if the API reshapes, renames or drops anything on the way through, the test fails.
+Each run is a real review, so its ids and timings are its own. Responses are therefore checked for
+the *shape* of the committed contract examples -- a renamed or dropped field still fails -- and for
+behaviour directly: what a submission stores, who may decide a run, what the export contains.
 """
 
 from __future__ import annotations
@@ -12,9 +13,8 @@ import pytest
 from openpyxl import load_workbook
 
 from mlr import service
-from tests.api.conftest import SAMPLE, fixture
+from tests.api.conftest import SAMPLE, assert_same_shape, fixture
 
-RUN_ID = "a1b2c3d4e5f6"
 SUBMISSION = {"tenant_id": "acme_pharma", "product_id": "zelvoran"}
 DECISION = {"decision": "reject", "reviewer": "a.reviewer", "tier": "senior_regulatory"}
 
@@ -76,19 +76,32 @@ def test_no_endpoint_lets_the_system_approve_content(client):
 # --- Submitting ----------------------------------------------------------------------------------
 
 
-def test_submitting_text_matches_the_contract_example(client):
+def test_submitting_text_registers_a_run_that_can_be_read_at_once(client, real_runs):
     response = client.post("/reviews", data={**SUBMISSION, "text": "Zelvoran works."})
     assert response.status_code == 202
-    assert response.json() == fixture("POST_reviews.json")
+    assert_same_shape(response.json(), fixture("POST_reviews.json"))
+    assert response.json()["status"] == "queued"
+    assert client.get(f"/reviews/{response.json()['run_id']}").status_code == 200
 
 
-def test_submitting_a_file_stores_the_text_without_its_front_matter(client, submitted):
+def test_the_stored_document_is_the_text_the_checks_read(client, submitted):
+    """Front matter gone and emphasis markers stripped, so finding offsets point at the right words."""
     document = client.get(f"/reviews/{submitted}/document").json()
     assert document["filename"] == SAMPLE.name
     assert document["document"].startswith("# Nearly 6 in 10 adults reached PASI-90")
     assert "synthetic: true" not in document["document"]
+    assert "**" not in document["document"]
     # Audience and channel are recorded as submitted, never inferred from the front matter.
     assert (document["audience"], document["channel"]) == ("hcp", "sales_aid")
+
+    report = client.get(f"/reviews/{submitted}").json()
+    quoted = [f for f in report["findings"] if f["quote"]]
+    assert quoted, "the sample should produce findings that quote the piece"
+    for finding in quoted:
+        assert finding["quote"] in document["document"]
+        start, end = finding["char_span"]
+        if end:  # not every producer records an offset; when one is given it must be right
+            assert document["document"][start:end] == finding["quote"]
 
 
 def test_the_submission_reaches_the_service_with_its_audience_and_channel(client, monkeypatch):
@@ -130,7 +143,7 @@ def test_a_bad_submission_is_refused_before_a_run_starts(client, monkeypatch, da
     assert client.post("/reviews", data=data, files=files).status_code == status
 
 
-def test_a_pdf_upload_is_read_as_text(client):
+def test_a_pdf_upload_is_read_as_text(client, real_runs):
     import pymupdf
 
     with pymupdf.open() as pdf:
@@ -146,17 +159,18 @@ def test_a_pdf_upload_is_read_as_text(client):
 # --- Reading -------------------------------------------------------------------------------------
 
 
-def test_a_run_matches_the_contract_example(client):
-    assert client.get(f"/reviews/{RUN_ID}").json() == fixture("GET_reviews_{run_id}.json")
+def test_a_finished_run_has_the_contract_shape_and_waits_for_a_person(client, submitted):
+    report = client.get(f"/reviews/{submitted}").json()
+    assert_same_shape(report, fixture("GET_reviews_{run_id}.json"))
+    assert report["status"] == "awaiting_human"
+    assert report["route"], "a run that has been routed names who it went to"
+    assert any(f["severity_final"] == "blocker" for f in report["findings"])
 
 
-def test_an_unknown_run_is_a_404(client, monkeypatch):
-    def not_found(run_id):
-        raise service.RunNotFoundError(f"no run {run_id}")
-
-    monkeypatch.setattr(service, "get_status", not_found)
+def test_an_unknown_run_is_a_404(client):
     for path in ("", "/audit", "/report.json", "/report.xlsx", "/document"):
         assert client.get(f"/reviews/nope{path}").status_code == 404
+    assert client.post("/reviews/nope/decision", json=DECISION).status_code == 404
 
 
 def test_a_run_id_that_could_escape_the_data_directory_is_never_looked_up(client, monkeypatch):
@@ -168,8 +182,10 @@ def test_a_run_id_that_could_escape_the_data_directory_is_never_looked_up(client
     assert client.get("/reviews/a.b").status_code == 404
 
 
-def test_the_run_list_matches_the_contract_example_and_filters(client):
-    assert client.get("/reviews").json() == fixture("GET_reviews.json")
+def test_the_run_list_has_the_contract_shape_and_filters(client, submitted):
+    listed = client.get("/reviews").json()
+    assert_same_shape(listed, fixture("GET_reviews.json"))
+    assert [r["run_id"] for r in listed["runs"]] == [submitted]
     assert client.get("/reviews", params={"tenant_id": "acme_pharma"}).json()["total"] == 1
     assert client.get("/reviews", params={"tenant_id": "borealis_bio"}).json() == {
         "runs": [],
@@ -179,26 +195,30 @@ def test_the_run_list_matches_the_contract_example_and_filters(client):
     assert client.get("/reviews", params={"status": "approved"}).status_code == 422
 
 
-def test_the_queue_matches_the_contract_example_and_filters_by_tier(client):
-    queue = client.get("/queue", params={"tier": "senior_regulatory"}).json()
-    assert queue == fixture("GET_queue.json")
-    assert client.get("/queue", params={"tier": "legal"}).json() == {"tier": "legal", "tasks": []}
+def test_the_queue_has_the_contract_shape_and_filters_by_tier(client, submitted):
+    tier = client.get(f"/reviews/{submitted}").json()["route"]
+    queue = client.get("/queue", params={"tier": tier}).json()
+    assert_same_shape(queue, fixture("GET_queue.json"))
+    assert [t["run_id"] for t in queue["tasks"]] == [submitted]
+    assert client.get("/queue", params={"tier": "nobody"}).json() == {"tier": "nobody", "tasks": []}
     assert len(client.get("/queue").json()["tasks"]) == 1
 
 
-def test_the_audit_trail_matches_the_contract_example(client):
-    assert client.get(f"/reviews/{RUN_ID}/audit").json() == fixture(
-        "GET_reviews_{run_id}_audit.json"
-    )
+def test_the_audit_trail_has_the_contract_shape_and_is_complete(client, submitted):
+    trail = client.get(f"/reviews/{submitted}/audit").json()
+    assert_same_shape(trail, fixture("GET_reviews_{run_id}_audit.json"))
+    assert trail["integrity"]["sequence_complete"] is True
+    nodes = [e["node"] for e in trail["events"]]
+    assert nodes[0] == "ingest" and "grounding_gate" in nodes and "route" in nodes
 
 
-def test_audit_integrity_reports_a_dropped_or_duplicated_event(client, monkeypatch):
+def test_audit_integrity_reports_a_dropped_or_duplicated_event(client, submitted, monkeypatch):
     """The check has to be able to fail, or it is decoration."""
-    events = service.get_audit(RUN_ID)
+    events = service.get_audit(submitted)
     broken = [e for e in events if e["seq"] != 3] + [events[0]]
     monkeypatch.setattr(service, "get_audit", lambda _run_id: broken)
 
-    integrity = client.get(f"/reviews/{RUN_ID}/audit").json()["integrity"]
+    integrity = client.get(f"/reviews/{submitted}/audit").json()["integrity"]
     assert integrity["sequence_complete"] is False
     assert integrity["duplicate_seqs"] == [1]
 
@@ -206,11 +226,19 @@ def test_audit_integrity_reports_a_dropped_or_duplicated_event(client, monkeypat
 # --- Deciding ------------------------------------------------------------------------------------
 
 
-def test_a_decision_resumes_the_run_and_matches_the_contract_example(client):
-    response = client.post(f"/reviews/{RUN_ID}/decision", json=DECISION)
-    assert response.status_code == 200
-    assert response.json() == fixture("POST_reviews_{run_id}_decision.json")
-    assert response.json() == fixture("GET_reviews_{run_id}__complete.json")
+def _decision_for(client, run_id: str, **overrides) -> dict:
+    """A valid decision from the tier the run was actually routed to."""
+    return {**DECISION, "tier": client.get(f"/reviews/{run_id}").json()["route"], **overrides}
+
+
+def test_a_decision_resumes_the_run_to_completion(client, submitted):
+    response = client.post(f"/reviews/{submitted}/decision", json=_decision_for(client, submitted))
+    assert response.status_code == 200, response.text
+    assert_same_shape(response.json(), fixture("POST_reviews_{run_id}_decision.json"))
+    assert response.json()["status"] == "complete"
+    assert response.json()["route"], "even a completed run names who was responsible"
+    assert client.get("/queue").json()["tasks"] == []
+    assert client.get(f"/reviews/{submitted}/audit").json()["events"][-1]["node"] == "finalize"
 
 
 @pytest.mark.parametrize(
@@ -227,43 +255,49 @@ def test_an_invalid_decision_never_reaches_the_run(client, monkeypatch, payload)
         raise AssertionError("an invalid decision must not resume a run")
 
     monkeypatch.setattr(service, "resume", must_not_resume)
-    assert client.post(f"/reviews/{RUN_ID}/decision", json=payload).status_code == 422
+    assert client.post("/reviews/anyrun/decision", json=payload).status_code == 422
 
 
-def test_a_reviewer_of_the_wrong_tier_cannot_decide_an_escalated_run(client, monkeypatch):
+def test_a_reviewer_of_the_wrong_tier_cannot_decide_an_escalated_run(client, submitted):
     """Otherwise a standard reviewer could clear a piece that policy escalated past them."""
+    routed_to = client.get(f"/reviews/{submitted}").json()["route"]
+    assert routed_to != "standard_reviewer", "the sample is expected to escalate"
 
-    def must_not_resume(*_args):
-        raise AssertionError("a decision from the wrong tier must not resume a run")
-
-    monkeypatch.setattr(service, "resume", must_not_resume)
     response = client.post(
-        f"/reviews/{RUN_ID}/decision", json={**DECISION, "tier": "standard_reviewer"}
+        f"/reviews/{submitted}/decision",
+        json=_decision_for(client, submitted, tier="standard_reviewer"),
     )
     assert response.status_code == 403
-    assert "senior_regulatory" in response.json()["detail"]
+    assert routed_to in response.json()["detail"]
+    assert client.get(f"/reviews/{submitted}").json()["status"] == "awaiting_human"
 
 
-def test_a_run_that_is_not_waiting_for_a_person_cannot_be_decided(client, monkeypatch):
-    monkeypatch.setattr(service, "get_review_task", lambda _run_id: None)
-    assert client.post(f"/reviews/{RUN_ID}/decision", json=DECISION).status_code == 409
+def test_a_run_that_has_been_decided_cannot_be_decided_again(client, submitted):
+    decision = _decision_for(client, submitted)
+    assert client.post(f"/reviews/{submitted}/decision", json=decision).status_code == 200
+    assert client.post(f"/reviews/{submitted}/decision", json=decision).status_code == 409
 
 
 # --- Exporting -----------------------------------------------------------------------------------
 
 
-def test_the_json_export_matches_the_contract_example(client, submitted):
-    """The location column is derived from the submitted text, so this also checks that a finding
-    is placed under the heading it actually sits under."""
-    assert client.get(f"/reviews/{submitted}/report.json").json() == fixture(
-        "GET_reviews_{run_id}_report.json"
-    )
+def test_the_json_export_has_one_located_row_per_finding(client, submitted):
+    report = client.get(f"/reviews/{submitted}").json()
+    exported = client.get(f"/reviews/{submitted}/report.json").json()
+    assert_same_shape(exported, fixture("GET_reviews_{run_id}_report.json"))
+    assert [r["finding_id"] for r in exported["rows"]] == [f["id"] for f in report["findings"]]
+    # A finding that quotes the piece is placed under the heading it actually sits under.
+    located = {r["location"] for r in exported["rows"] if r["quote"]}
+    assert located and "" not in located
 
 
-def test_the_export_leaves_location_blank_rather_than_guessing(client):
-    """With no stored document there is nothing to locate a finding in."""
-    rows = client.get(f"/reviews/{RUN_ID}/report.json").json()["rows"]
-    assert rows and all(row["location"] == "" for row in rows)
+def test_the_export_leaves_location_blank_rather_than_guessing(client, submitted):
+    """With no document to look in, or nothing quoted, there is no location to report."""
+    from api.export import export_rows
+    from mlr.schemas import ReviewReport
+
+    report = ReviewReport.model_validate(client.get(f"/reviews/{submitted}").json())
+    assert all(row["location"] == "" for row in export_rows(report, document=""))
 
 
 def test_the_spreadsheet_has_the_same_rows_as_the_json_export(client, submitted):
