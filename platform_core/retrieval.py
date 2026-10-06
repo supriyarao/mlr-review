@@ -213,8 +213,10 @@ class TenantRetriever:
         if label_version:
             clauses.append({"label_version": {"$eq": label_version}})
         if doc_type:
+            # Narrowing to one kind already rules every other kind out, so an exclusion alongside
+            # it is redundant at best and a self-contradicting filter at worst.
             clauses.append({"doc_type": {"$eq": doc_type}})
-        if exclude_doc_types:
+        elif exclude_doc_types:
             clauses.append({"doc_type": {"$nin": sorted(set(exclude_doc_types))}})
         return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 

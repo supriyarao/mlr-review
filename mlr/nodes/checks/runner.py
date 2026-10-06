@@ -183,18 +183,23 @@ def _retrieve(
 ) -> list[Passage]:
     """The evidence a check is shown.
 
-    Every check but substantiation takes one ranked window over everything in scope. substantiation
-    fills its window in two passes -- studies first, then everything else except the cleared-claim
-    library -- because its two questions want different sources and one ranking cannot serve both:
-    a single pass ranks by similarity to the claim, and the label's indication statement reads more
-    like a promotional claim than a study's endpoint table does, so the studies lose.
+    No check sees the cleared-claim library: that pool answers "has this wording been approved
+    before", which is the preapproved_filter node's question, and it is the wrong answer to every
+    question asked here. Ruling it out is enough on its own for three of the four checks -- their
+    queries are already worded like the source they need, so the right passages win the ranking
+    once the cleared claims stop taking slots.
+
+    substantiation is the exception and fills its window in two passes, studies first. Its query is
+    claim text, and a claim reads more like the label's indication statement than like a study's
+    endpoint table, so in a single ranked pass the studies lose -- which is fatal for a check whose
+    second question is "does the study this claim cites report it".
     """
     scope: dict[str, Any] = {
         "product_id": str(state.get("product_id") or ""),
         "label_version": str(state.get("label_version") or ""),
     }
     if check != "substantiation":
-        return retriever.search(query, **scope, k=k)
+        return retriever.search(query, **scope, exclude_doc_types=CIRCULAR_DOC_TYPES, k=k)
 
     studies = retriever.search(query, **scope, doc_type=STUDY_DOC_TYPE, k=min(STUDY_SLOTS, k))
     others = retriever.search(
