@@ -26,12 +26,17 @@ def isolated_data_dir(tmp_path, monkeypatch):
     Autouse because the alternative -- remembering to request it -- means one forgotten fixture
     writes a test's SQLite rows into the developer's real ``data/`` and the next run sees them.
     """
+    from mlr import service
     from platform_core import audit
 
     monkeypatch.setenv("MLR_DATA_DIR", str(tmp_path / "data"))
     audit.reset_engine()
+    # The service caches a checkpoint reader keyed on the data directory; drop it so a test cannot
+    # read another test's checkpoints.
+    service.reset_read_cache()
     yield tmp_path / "data"
     audit.reset_engine()
+    service.reset_read_cache()
 
 
 @pytest.fixture

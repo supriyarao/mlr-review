@@ -27,6 +27,7 @@ which part was stood in for.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -92,6 +93,70 @@ def describe_backend_note() -> str:
             f"more often than with a hosted model."
         )
     return f"Running against {info['model_strong']} (strong) and {info['model_fast']} (fast)."
+
+
+# A read-only graph, shared across status polls.
+#
+# Reads need a compiled graph only to interpret a checkpoint -- no node executes -- but building and
+# compiling one costs about 20ms, and a UI polling twice a second was paying it on every call. That is
+# pure waste: the graph's structure never changes.
+#
+# Safe to share: SqliteSaver holds its own lock and documents that ``check_same_thread=False`` is fine
+# because of it, so one long-lived connection serves every reader. Writes (start_run, advance, resume)
+# still compile their own, because each binds a per-run scripted model into the nodes.
+#
+# Keyed on the checkpoint path so the cache invalidates when MLR_DATA_DIR changes, which every test does.
+_read_graphs: dict[tuple[str, bool], Any] = {}
+_read_saver: Any = None
+_read_saver_path: str = ""
+_read_lock = threading.Lock()
+
+
+def _read_graph(step: bool) -> Any:
+    """A compiled graph for reading checkpoints. Cached; never used to execute a node."""
+    global _read_saver, _read_saver_path
+
+    path = str(runtime.checkpoint_path())
+    with _read_lock:
+        if _read_saver is None or _read_saver_path != path:
+            _reset_read_cache_locked()
+            import sqlite3
+
+            from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+            from langgraph.checkpoint.sqlite import SqliteSaver
+
+            from mlr.state import CHECKPOINT_TYPES
+            from platform_core.runtime import _allowlist
+
+            conn = sqlite3.connect(path, check_same_thread=False)
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            _read_saver = SqliteSaver(
+                conn, serde=JsonPlusSerializer(allowed_msgpack_modules=_allowlist(CHECKPOINT_TYPES))
+            )
+            _read_saver_path = path
+
+        key = (path, step)
+        if key not in _read_graphs:
+            _read_graphs[key] = compile_with(_read_saver, step=step)
+        return _read_graphs[key]
+
+
+def _reset_read_cache_locked() -> None:
+    """Drop the cached reader. Caller holds ``_read_lock``."""
+    global _read_saver, _read_saver_path
+    _read_graphs.clear()
+    if _read_saver is not None:
+        # A closed connection is the desired end state either way.
+        with contextlib.suppress(Exception):  # pragma: no cover
+            _read_saver.conn.close()
+    _read_saver, _read_saver_path = None, ""
+
+
+def reset_read_cache() -> None:
+    """Drop the cached reader. Tests call this when they change the data directory."""
+    with _read_lock:
+        _reset_read_cache_locked()
 
 
 def _fake_for(document: str, tenant_id: str) -> Any:
@@ -245,9 +310,8 @@ def _document_for(run_id: str) -> str:
     submission is no longer in memory -- and the scripted model has to be primed from the same text the
     run started with, or the demo's findings would not match the piece.
     """
-    with checkpointer() as saver:
-        graph = compile_with(saver, step=True)
-        values = getattr(graph.get_state(runtime.thread_config(run_id)), "values", None) or {}
+    snapshot = _read_graph(True).get_state(runtime.thread_config(run_id))
+    values = getattr(snapshot, "values", None) or {}
     return str(values.get("document") or "")
 
 
@@ -340,9 +404,7 @@ def get_status(run_id: str) -> ReviewReport:
         # checkpointer itself is unavailable -- so reporting the failure must not depend on reading one.
         return _report_from(run_id, record, {})
 
-    with checkpointer() as saver:
-        graph = compile_with(saver, step=record.stepping)
-        values = runtime.get_status(graph, run_id)["values"] or {}
+    values = runtime.get_status(_read_graph(record.stepping), run_id)["values"] or {}
     return _report_from(run_id, record, values)
 
 
@@ -356,9 +418,7 @@ def get_state(run_id: str) -> dict[str, Any]:
     if record is None:
         raise RunNotFoundError(run_id)
 
-    with checkpointer() as saver:
-        graph = compile_with(saver, step=record.stepping)
-        status = runtime.get_status(graph, run_id)
+    status = runtime.get_status(_read_graph(record.stepping), run_id)
 
     return {
         "run_id": run_id,
@@ -381,9 +441,7 @@ def get_history(run_id: str) -> list[dict[str, Any]]:
     if record is None:
         raise RunNotFoundError(run_id)
 
-    with checkpointer() as saver:
-        graph = compile_with(saver, step=record.stepping)
-        return runtime.history(graph, run_id)
+    return runtime.history(_read_graph(record.stepping), run_id)
 
 
 def get_review_task(run_id: str) -> ReviewTask | None:
@@ -397,9 +455,7 @@ def get_review_task(run_id: str) -> ReviewTask | None:
     if record.status != "awaiting_human":
         return None
 
-    with checkpointer() as saver:
-        graph = compile_with(saver, step=record.stepping)
-        status = runtime.get_status(graph, run_id)
+    status = runtime.get_status(_read_graph(record.stepping), run_id)
 
     payload = status.get("interrupt")
     if payload:
@@ -511,5 +567,4 @@ def get_graph_mermaid() -> str:
     Rendered from the compiled graph rather than drawn by hand, so the diagram in the README and on the
     UI home page cannot drift from the code it documents.
     """
-    with checkpointer() as saver:
-        return runtime.render_mermaid(compile_with(saver))
+    return runtime.render_mermaid(_read_graph(False))
