@@ -1,15 +1,14 @@
 {
-  "eval_run_id": "af910c51bf7f",
-  "started_at": "2026-10-05T23:42:59.255170+00:00",
-  "finished_at": "2026-10-05T23:43:30.681417+00:00",
+  "eval_run_id": "524d33131d96",
+  "started_at": "2026-10-06T20:59:34.794114+00:00",
+  "finished_at": "2026-10-06T21:00:09.306338+00:00",
   "mode": "offline",
-  "git_sha": "c5612a8",
+  "git_sha": "df64f5b",
   "backend": "fake",
   "model_strong": "fake-strong",
   "model_fast": "fake-fast",
   "prompt_versions": {
-    "substantiation": "substantiation-v1",
-    "reference_support": "reference_support-v1",
+    "substantiation": "substantiation-v2",
     "off_label": "off_label-v1",
     "fair_balance": "fair_balance-v1",
     "safety_prominence": "safety_prominence-v1",
@@ -17,8 +16,8 @@
     "preapproved_filter": "preapproved-v1"
   },
   "tenant_config_hashes": {
-    "acme_pharma": "a6062d2216a1137f",
-    "borealis_bio": "5891e762c01ff110"
+    "acme_pharma": "d0bbcd14ee44b5c5",
+    "borealis_bio": "084b7b6475840231"
   },
   "repeats": 1,
   "cases": [
@@ -53,7 +52,7 @@
         },
         {
           "expected": {
-            "check_type": "reference_support",
+            "check_type": "substantiation",
             "claim_contains": "maintained at 12 weeks",
             "severity": "blocker",
             "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis."
@@ -61,7 +60,7 @@
           "matched": true,
           "severity_mismatch": false,
           "actual_severity": "blocker",
-          "matched_finding_id": "ref-1"
+          "matched_finding_id": "sub-3"
         }
       ],
       "unexpected_findings": [],
@@ -69,7 +68,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 11550,
+      "latency_ms": 8882,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -122,7 +121,7 @@
           "rule_id": "ACME-DOC-001",
           "rule_version": 1,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": [
             "rd-ACME-DOC-001-1"
           ]
@@ -162,12 +161,12 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         },
         {
-          "id": "ref-1",
-          "check_type": "reference_support",
+          "id": "sub-3",
+          "check_type": "substantiation",
           "claim_id": "c3",
           "quote": "Sustained response: PASI-90 was maintained at 12 weeks in the extension study [3].",
           "char_span": [
@@ -192,7 +191,7 @@
           ],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
-          "severity_rule_id": "ACME-SEV-REFERENCE",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
           "confidence": 90,
           "low_confidence": false,
           "grounded": true,
@@ -200,7 +199,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "reference_support-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         }
       ],
@@ -292,7 +291,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7990,
+      "latency_ms": 9774,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -485,7 +484,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         },
         {
@@ -553,7 +552,7 @@
       "matches": [
         {
           "expected": {
-            "check_type": "reference_support",
+            "check_type": "substantiation",
             "claim_contains": "maintained at 12 weeks",
             "severity": "blocker",
             "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12."
@@ -561,7 +560,7 @@
           "matched": true,
           "severity_mismatch": false,
           "actual_severity": "blocker",
-          "matched_finding_id": "ref-1"
+          "matched_finding_id": "sub-1"
         }
       ],
       "unexpected_findings": [],
@@ -569,15 +568,15 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 9542,
+      "latency_ms": 6599,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
       "error": "",
       "findings": [
         {
-          "id": "ref-1",
-          "check_type": "reference_support",
+          "id": "sub-1",
+          "check_type": "substantiation",
           "claim_id": "c1",
           "quote": "PASI-90 was achieved and maintained at 12 weeks in the extension study [3].",
           "char_span": [
@@ -602,7 +601,7 @@
           ],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
-          "severity_rule_id": "ACME-SEV-REFERENCE",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
           "confidence": 92,
           "low_confidence": false,
           "grounded": true,
@@ -610,7 +609,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "reference_support-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         }
       ],
@@ -656,7 +655,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7007,
+      "latency_ms": 7790,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -743,7 +742,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7474,
+      "latency_ms": 8110,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -771,7 +770,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         }
       ],
@@ -821,7 +820,7 @@
       "expected_route": "legal",
       "actual_route": "legal",
       "route_correct": true,
-      "latency_ms": 9536,
+      "latency_ms": 8619,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -862,7 +861,7 @@
           "rule_id": "BOR-LLM-001",
           "rule_version": 1,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": [
             "lr-1"
           ]
@@ -901,7 +900,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 7338,
+      "latency_ms": 8809,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -947,7 +946,7 @@
       "unexpected_findings": [
         {
           "id": "dr-2",
-          "check_type": "reference_support",
+          "check_type": "substantiation",
           "severity": null,
           "quote": "PASI-75 at Week 16",
           "issue": "Claim carries no reference marker."
@@ -964,7 +963,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7787,
+      "latency_ms": 7081,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1010,7 +1009,7 @@
         },
         {
           "id": "dr-2",
-          "check_type": "reference_support",
+          "check_type": "substantiation",
           "claim_id": "c1",
           "quote": "PASI-75 at Week 16",
           "char_span": [
@@ -1021,16 +1020,16 @@
           "suggested_fix": "Add a reference citation supporting this claim.",
           "citations": [
             {
-              "source_id": "BOR-REF-001 v1",
+              "source_id": "BOR-REF-001 v2",
               "passage": "Every efficacy claim must carry a numbered reference marker identifying the study that supports it, so a reader can verify the claim against its source.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "BOR-REF-001 v1",
+              "title": "BOR-REF-001 v2",
               "rule_id": "BOR-REF-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "blocker",
@@ -1041,7 +1040,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "BOR-REF-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -1135,7 +1134,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 5141,
+      "latency_ms": 8001,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1247,7 +1246,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 10441,
+      "latency_ms": 9318,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1295,7 +1294,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7199,
+      "latency_ms": 10945,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1323,7 +1322,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         }
       ],
@@ -1373,7 +1372,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7547,
+      "latency_ms": 7844,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1401,7 +1400,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v1",
+          "prompt_version": "substantiation-v2",
           "merged_from": []
         }
       ],
@@ -1451,7 +1450,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 7705,
+      "latency_ms": 7365,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1546,7 +1545,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 9980,
+      "latency_ms": 7632,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1666,7 +1665,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 10013,
+      "latency_ms": 7897,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1753,7 +1752,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 9028,
+      "latency_ms": 8016,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1850,9 +1849,9 @@
     },
     "cost_and_latency": {
       "runs": 16,
-      "latency_p50_ms": 7990.0,
-      "latency_p95_ms": 10441.0,
-      "latency_mean_ms": 8454.9,
+      "latency_p50_ms": 8016.0,
+      "latency_p95_ms": 9774.0,
+      "latency_mean_ms": 8292.6,
       "tokens_in_total": 0,
       "tokens_out_total": 0,
       "cost_usd_total": 0.0,
@@ -1985,9 +1984,9 @@
       },
       "cost_and_latency": {
         "runs": 13,
-        "latency_p50_ms": 7705.0,
-        "latency_p95_ms": 10441.0,
-        "latency_mean_ms": 8305.8,
+        "latency_p50_ms": 8016.0,
+        "latency_p95_ms": 9774.0,
+        "latency_mean_ms": 8411.5,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
@@ -2026,9 +2025,9 @@
       },
       "cost_and_latency": {
         "runs": 3,
-        "latency_p50_ms": 9536.0,
-        "latency_p95_ms": 9980.0,
-        "latency_mean_ms": 9101.0,
+        "latency_p50_ms": 7632.0,
+        "latency_p95_ms": 8619.0,
+        "latency_mean_ms": 7777.3,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,

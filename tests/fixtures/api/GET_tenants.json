@@ -3,7 +3,7 @@
     {
       "tenant_id": "acme_pharma",
       "name": "Acme Pharma",
-      "version": "2026.1",
+      "version": "2026.2",
       "confidence_threshold": 70,
       "products": [
         {
@@ -13,12 +13,12 @@
           "indication": "moderate-to-severe plaque psoriasis in adults"
         }
       ],
-      "config_hash": "c754d98309699857"
+      "config_hash": "7670d97b144853d9"
     },
     {
       "tenant_id": "borealis_bio",
       "name": "Borealis Bio",
-      "version": "2026.3",
+      "version": "2026.4",
       "confidence_threshold": 80,
       "products": [
         {
@@ -34,7 +34,7 @@
           "indication": "moderate-to-severe plaque psoriasis in adults"
         }
       ],
-      "config_hash": "1c8b9fada77781ce"
+      "config_hash": "8a3e98adecc226b7"
     }
   ]
 }

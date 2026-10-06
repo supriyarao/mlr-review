@@ -45,7 +45,7 @@
       "rule_id": "",
       "rule_version": 0,
       "model": "claude-sonnet-5",
-      "prompt_version": "substantiation-v1",
+      "prompt_version": "substantiation-v2",
       "merged_from": []
     }
   ],

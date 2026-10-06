@@ -9,7 +9,6 @@ graph TD;
 	extract_claims(extract_claims)
 	preapproved_filter(preapproved_filter)
 	substantiation(substantiation)
-	reference_support(reference_support)
 	off_label(off_label)
 	fair_balance(fair_balance)
 	safety_prominence(safety_prominence)
@@ -41,11 +40,9 @@ graph TD;
 	preapproved_filter -.-> llm_rules;
 	preapproved_filter -.-> off_label;
 	preapproved_filter -.-> reference_doc_review;
-	preapproved_filter -.-> reference_support;
 	preapproved_filter -.-> safety_prominence;
 	preapproved_filter -.-> substantiation;
 	reference_doc_review --> grounding_gate;
-	reference_support --> grounding_gate;
 	route --> human_review;
 	safety_prominence --> grounding_gate;
 	severity --> editor;

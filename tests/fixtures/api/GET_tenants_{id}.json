@@ -1,7 +1,7 @@
 {
   "tenant_id": "acme_pharma",
   "name": "Acme Pharma",
-  "version": "2026.1",
+  "version": "2026.2",
   "confidence_threshold": 70,
   "products": [
     {
@@ -11,7 +11,7 @@
       "indication": "moderate-to-severe plaque psoriasis in adults"
     }
   ],
-  "config_hash": "c754d98309699857",
+  "config_hash": "7670d97b144853d9",
   "severity_rules": [
     {
       "check_type": "off_label",
@@ -25,14 +25,7 @@
       "when_tag": null,
       "severity": "blocker",
       "rule_id": "ACME-SEV-SUBSTANTIATION",
-      "rationale": "An unsupported or overstated efficacy claim changes a prescribing decision."
-    },
-    {
-      "check_type": "reference_support",
-      "when_tag": null,
-      "severity": "blocker",
-      "rule_id": "ACME-SEV-REFERENCE",
-      "rationale": "A citation that does not measure the claimed endpoint or population is no citation."
+      "rationale": "An unsupported or overstated efficacy claim changes a prescribing decision, and a citation that does not measure the claimed endpoint or population is no citation."
     },
     {
       "check_type": "safety_prominence",

@@ -65,7 +65,7 @@
       "rule_id": "",
       "rule_version": 0,
       "model": "claude-sonnet-5",
-      "prompt_version": "substantiation-v1",
+      "prompt_version": "substantiation-v2",
       "merged_from": []
     },
     {
@@ -108,7 +108,7 @@
     },
     {
       "id": "f3",
-      "check_type": "reference_support",
+      "check_type": "substantiation",
       "claim_id": "c2",
       "quote": "PASI-90 was maintained at 12 weeks in the extension study",
       "char_span": [
@@ -133,7 +133,7 @@
       ],
       "severity_proposed": "blocker",
       "severity_final": "blocker",
-      "severity_rule_id": "ACME-SEV-REFERENCE",
+      "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
       "confidence": 95,
       "low_confidence": false,
       "grounded": true,
@@ -141,7 +141,7 @@
       "rule_id": "",
       "rule_version": 0,
       "model": "claude-sonnet-5",
-      "prompt_version": "reference_support-v1",
+      "prompt_version": "substantiation-v2",
       "merged_from": []
     }
   ],

@@ -40,7 +40,7 @@
       "location": "Efficacy",
       "quote": "PASI-90 was maintained at 12 weeks in the extension study",
       "issue": "Cites Reference 3 (ZEL-303) for PASI-90 at 12 weeks. ZEL-303 reports PASI-75 at Week 16 and Week 52, did not assess PASI-90, and made no Week 12 assessment.",
-      "check": "reference_support",
+      "check": "substantiation",
       "severity": "blocker",
       "confidence": 95,
       "grounded_by": "evidence",
@@ -48,7 +48,7 @@
       "citation_passage": "ZEL-303 did not assess PASI-90.",
       "suggested_fix": "Cite a study that reports the endpoint and timepoint claimed.",
       "rule": "",
-      "severity_rule": "ACME-SEV-REFERENCE"
+      "severity_rule": "ACME-SEV-SUBSTANTIATION"
     }
   ]
 }
