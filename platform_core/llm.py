@@ -321,9 +321,24 @@ def get_chat_model(tier: Tier) -> Any:
                 "MLR_LLM_BACKEND=anthropic needs ANTHROPIC_API_KEY. Set it in .env, or use "
                 "MLR_LLM_BACKEND=ollama (free, local) or MLR_LLM_BACKEND=fake (offline)."
             )
+        # An organisation-level key is not scoped to a workspace, and the API then requires the
+        # workspace to be named explicitly -- without it every call fails with a 400 that says so.
+        # Supported here rather than insisting on a workspace-scoped key, because which kind of key
+        # someone can issue is their organisation's decision, not ours.
+        headers = {}
+        workspace = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
+        if workspace:
+            headers["anthropic-workspace-id"] = workspace
+
         # Note: these models reject temperature/top_p/top_k and thinking.budget_tokens with a
         # 400, so none of them are set here. Reasoning depth is controlled per node instead.
-        return ChatAnthropic(model=model, max_tokens=8192, timeout=120, stop=None)
+        return ChatAnthropic(
+            model=model,
+            max_tokens=8192,
+            timeout=120,
+            stop=None,
+            **({"default_headers": headers} if headers else {}),
+        )
 
     raise LLMConfigError(f"unsupported backend {name!r}")
 
@@ -340,6 +355,41 @@ def describe_backend() -> dict[str, str]:
 # ---------------------------------------------------------------------------------------------
 # Structured calls
 # ---------------------------------------------------------------------------------------------
+
+
+# HTTP statuses that mean the request itself is wrong, so sending it again cannot help: a bad or
+# unscoped key, a malformed request, a model the account cannot reach. Transient statuses (429,
+# 5xx) are deliberately absent -- the provider SDKs already retry those with backoff.
+_NON_RETRYABLE_STATUSES = {400, 401, 403, 404}
+
+
+def _request_fault(exc: BaseException) -> str:
+    """The provider's own message when a call failed for a reason a retry cannot fix.
+
+    Returns "" for anything that might be a model-output problem.
+
+    This exists because the retry below used to treat every exception as a schema failure, and a
+    400 then surfaced as "model output failed validation twice" -- which sent a reader to look at
+    the prompt when the actual message was "this API key is not scoped to a workspace". The cost
+    was a wasted second call and a misleading diagnosis, which is the worse half.
+
+    Detected by status code and class name rather than by importing a provider's exception types:
+    ``platform_core`` must not need to know which backend is configured to report its errors.
+    """
+    status = getattr(exc, "status_code", None) or getattr(
+        getattr(exc, "response", None), "status_code", None
+    )
+    name = type(exc).__name__
+    looks_like_request = any(
+        token in name for token in ("InvalidRequest", "Authentication", "Permission", "NotFound")
+    )
+    if status in _NON_RETRYABLE_STATUSES or looks_like_request:
+        return f"{name}: {exc}"
+    return ""
+
+
+class LLMRequestError(Exception):
+    """A call the provider rejected outright. Not a model-output problem, so never retried."""
 
 
 class SchemaFailure(Exception):
@@ -465,7 +515,14 @@ def call_structured(
 
             parsed = _validate(schema, text)
 
-        except Exception as exc:  # noqa: BLE001 - any failure here is a schema failure
+        except Exception as exc:  # noqa: BLE001 - sorted into request fault vs schema failure
+            fault = _request_fault(exc)
+            if fault:
+                # Retrying cannot fix the request, and reporting it as a schema failure would hide
+                # the provider's own explanation of what is wrong.
+                raise LLMRequestError(
+                    f"{node}: the {backend_name} backend rejected the request -- {fault}"
+                ) from exc
             if attempt == 1:
                 recovered_from = f"{type(exc).__name__}: {exc}"
                 attempt_prompt = prompt + _RETRY_SUFFIX.format(error=recovered_from)
