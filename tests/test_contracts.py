@@ -16,6 +16,7 @@ So this file asserts the promises rather than the implementation:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -120,6 +121,41 @@ def test_every_state_key_is_classified_as_accumulated_or_replaceable():
     assert not (ACCUMULATED_KEYS & REPLACEABLE_KEYS), "a key cannot be both"
     unclassified = declared - ACCUMULATED_KEYS - REPLACEABLE_KEYS
     assert not unclassified, f"unclassified state keys: {sorted(unclassified)}"
+
+
+def test_every_citation_kind_is_also_a_grounding_mode():
+    """The two literals have to move together, and once they did not.
+
+    "measurement" was added to CitationKind and not to GroundedBy. Nothing caught it: the grounding
+    gate sets grounded_by through model_copy(update=...), which does not validate, so the invalid
+    value was written to the checkpoint in silence and only surfaced when a reader validated it.
+    A gate that can verify a citation must be able to say so on the finding.
+    """
+    import typing
+
+    from mlr.schemas import CitationKind, GroundedBy
+
+    kinds = set(typing.get_args(CitationKind))
+    modes = set(typing.get_args(GroundedBy))
+    assert kinds <= modes, f"grounding modes missing for citation kind(s): {sorted(kinds - modes)}"
+    assert modes - kinds == {"none"}, (
+        f"unexpected grounding mode(s): {sorted(modes - kinds - {'none'})}"
+    )
+
+
+def test_the_grounding_gate_only_sets_modes_the_schema_allows():
+    """The gate writes this field without validation, so the literal is the only guard there is."""
+    import typing
+
+    from mlr.nodes import grounding_gate
+    from mlr.schemas import GroundedBy
+
+    source = Path(grounding_gate.__file__).read_text(encoding="utf-8")
+    returned = set(re.findall(r'^\s*return "([a-z_]+)"$', source, re.MULTILINE))
+    allowed = set(typing.get_args(GroundedBy))
+    assert returned <= allowed, (
+        f"gate can return {sorted(returned - allowed)}, which GroundedBy rejects"
+    )
 
 
 def test_the_editor_writes_a_separate_key_from_the_accumulator():

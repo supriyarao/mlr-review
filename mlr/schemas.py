@@ -81,7 +81,12 @@ CitationKind = Literal["evidence", "rule", "doc_clause", "measurement"]
 
 # Which grounding mode actually verified a finding. "none" means it failed the grounding gate and
 # is therefore escalating -- it is never dropped.
-GroundedBy = Literal["evidence", "rule", "doc_clause", "none"]
+#
+# Must stay in step with CitationKind above, plus "none". They were out of step once: "measurement"
+# was added to CitationKind and not here, and nothing caught it, because the grounding gate sets
+# this through model_copy(update=...) -- which does not validate. The bad value was written to the
+# checkpoint in silence and only surfaced when something read it back through a validating path.
+GroundedBy = Literal["evidence", "rule", "doc_clause", "measurement", "none"]
 
 RunStatus = Literal["queued", "running", "awaiting_human", "complete", "failed"]
 
