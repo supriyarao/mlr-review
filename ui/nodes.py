@@ -119,44 +119,18 @@ REVIEWERS = [
 
 CHECKING = [
     Node(
-        "grounding_gate",
-        "The fact-checker",
-        "Checks the reviewers' work. Nothing a model said is trusted until it has been looked up.",
-        "Two tests. The quote must appear word for word in the piece. The passage it cites must "
-        "appear word for word in this company's own sources. A finding that fails is kept and "
-        "marked as unverified. It is never quietly dropped.",
-        "The piece, plus the company's label, studies, rules and documents.",
-        "Each finding marked with how it was verified, and the gate's pass or fail.",
-    ),
-    Node(
-        "severity",
-        "The severity setter",
-        "Decides whether each finding is a blocker or an advisory.",
-        "A lookup in the company's settings, top to bottom, first match wins. One company can "
-        "treat a balance problem as a blocker and the other as an advisory. A finding from a "
-        "company rule keeps the severity that rule was written with.",
-        "The company's settings file.",
-        "The final severity, and which setting decided it. The reviewer's first suggestion is "
-        "kept too.",
-    ),
-    Node(
-        "editor",
-        "The editor",
-        "Tidies up. If two reviewers flagged the same words, you see one finding, not two.",
-        "Findings that quote exactly the same text are merged and keep all their evidence. "
-        "Confidence goes up when two reviewers agree and is capped low for anything unverified. "
-        "It is arithmetic, not a model, so it can never merge away a real problem.",
-        "Nothing outside the run.",
-        "The final list of findings shown in the report.",
-    ),
-    Node(
-        "confidence_gate",
-        "The confidence check",
-        "Flags findings the system isn't sure about.",
-        "Compares each finding's confidence with the company's threshold: 70 for one company, 80 "
-        "for the other. Anything below is flagged, not removed.",
-        "The company's threshold.",
-        "A low-confidence flag on each finding, and the gate's pass or fail.",
+        "consolidate",
+        "The checker",
+        "Checks the reviewers' work, then tidies it into the list you read. Nothing a model "
+        "said is trusted until it has been looked up.",
+        "Four things, always in this order, and no model is involved in any of them. It looks "
+        "up every quote and every source word for word, and marks anything it can't find as "
+        "unverified. It never quietly drops one. It uses the company's settings to decide "
+        "blocker or advisory. It merges two reviewers who flagged the same words into one "
+        "finding. Then it flags anything below the company's confidence threshold.",
+        "The piece, plus the company's label, studies, rules, documents and settings.",
+        "The final list of findings. Each one says how it was verified and which setting "
+        "decided its severity.",
     ),
     Node(
         "route",

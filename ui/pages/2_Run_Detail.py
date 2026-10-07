@@ -177,6 +177,57 @@ def tool_calls(tools: list[dict[str, Any]], step: dict[str, Any]) -> None:
     )
 
 
+def count(n: int, word: str) -> str:
+    return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
+def checker_panel(step: dict[str, Any]) -> None:
+    """The four things the checker did, in the order it did them."""
+    summary = step.get("summary") if isinstance(step.get("summary"), dict) else {}
+    grounding, severity = summary.get("grounding") or {}, summary.get("severity") or {}
+    editor, confidence = summary.get("editor") or {}, summary.get("confidence") or {}
+
+    modes = grounding.get("by_mode") or {}
+    found = [
+        f"{n} by {view.GROUNDING_SHORT[mode].lower()}"
+        for mode, n in modes.items()
+        if n and mode in view.GROUNDING_SHORT
+    ]
+    looked_up = ", ".join(found) or "Nothing to look up"
+    if modes.get("none"):
+        looked_up += f". {count(modes['none'], 'finding')} couldn't be verified"
+
+    advisories = severity.get("advisories", 0)
+    graded = (
+        f"{count(severity.get('blockers', 0), 'blocker')}, "
+        f"{advisories} {'advisory' if advisories == 1 else 'advisories'}"
+    )
+    changed = severity.get("severity_changed_from_proposal", 0)
+    if changed:
+        graded += f". The company's settings changed {changed} from what the reviewer proposed"
+
+    merged = f"{count(editor.get('in', 0), 'finding')} in, {editor.get('out', 0)} out"
+    if editor.get("merged_groups"):
+        merged += f". {count(editor['merged_groups'], 'group')} flagged the same words"
+
+    unsure = (
+        f"{confidence.get('below', 0)} below the company's threshold of "
+        f"{confidence.get('threshold', 'n/a')}"
+    )
+
+    st.markdown("**What it did, in order**")
+    stages = [
+        ("1. Looked everything up", looked_up),
+        ("2. Set the severity", graded),
+        ("3. Merged the repeats", merged),
+        ("4. Flagged the unsure ones", unsure),
+    ]
+    for column, (title, result) in zip(st.columns(4), stages, strict=True):
+        with column.container(border=True):
+            st.markdown(f"**{title}**")
+            st.caption(f"{result}.")
+
+
 def generic_panel(step: dict[str, Any], document: str) -> None:
     """For steps without a purpose-built view yet: the step's own summary, and any findings."""
     summary = step.get("summary")
@@ -237,6 +288,8 @@ def step_panel(step: dict[str, Any], document: str) -> None:
             claim_spotter_panel(given, produced)
         elif step["node"] == "preapproved_filter":
             matcher_panel(given, produced, step.get("summary"))
+        elif step["node"] == "consolidate":
+            checker_panel(step)
         else:
             generic_panel(step, document)
 
@@ -264,9 +317,9 @@ def step_headline(step: dict[str, Any]) -> str:
     if not isinstance(summary, dict):
         return "done"
 
-    def count(n: int, word: str) -> str:
-        return f"{n} {word}" if n == 1 else f"{n} {word}s"
-
+    if isinstance(summary.get("editor"), dict):
+        editor = summary["editor"]
+        return f"{count(editor.get('in', 0), 'finding')} in, {editor.get('out', 0)} out"
     if summary.get("route"):
         return f"suggests {view.tier_label(summary['route']).lower()}"
     if "matched" in summary:
