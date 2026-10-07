@@ -48,12 +48,17 @@ for row in (links[:3], links[3:]):
 
 
 def node_card(node: nodes.Node, prompts: dict[str, dict]) -> None:
-    prompt = prompts.get(node.key)
+    # Most model steps make one call, named after the step. The house-rule step makes two.
+    asked = [prompts[key] for key in nodes.MODEL_CALLS.get(node.key, (node.key,)) if key in prompts]
     with st.container(border=True):
         if node.model:
             size = {"strong": "the larger model", "fast": "the smaller model"}
-            which = size.get(prompt["tier"], "a model") if prompt else "a model"
-            kind = view.chip(f"Asks {which}")
+            if len(asked) == 1:
+                kind = view.chip(f"Asks {size.get(asked[0]['tier'], 'a model')}")
+            elif asked:
+                kind = view.chip("Asks both models")
+            else:
+                kind = view.chip("Asks a model")
         else:
             kind = view.chip("Plain code, no model", "quiet")
         st.markdown(f"**{node.name}** &nbsp;{kind}", unsafe_allow_html=True)
@@ -65,15 +70,17 @@ def node_card(node: nodes.Node, prompts: dict[str, dict]) -> None:
         )
         footer, link = st.columns([3, 2])
         footer.caption(f"Called `{node.key}` in the graph and the audit trail.")
-        if prompt:
-            with link.popover("Read the prompt"):
-                st.caption(f"`{prompt['file']}`, version `{prompt['version']}`")
-                # Plain escaped HTML rather than st.code: the code block loads its highlighter
-                # from the server on first use, and that fetch fails if the server has restarted.
-                st.markdown(
-                    f'<pre class="prompt-text">{view.block(prompt["text"])}</pre>',
-                    unsafe_allow_html=True,
-                )
+        if asked:
+            with link.popover("Read the prompt" if len(asked) == 1 else "Read the prompts"):
+                for prompt in asked:
+                    st.caption(f"`{prompt['file']}`, version `{prompt['version']}`")
+                    # Plain escaped HTML rather than st.code: the code block loads its highlighter
+                    # from the server on first use, and that fetch fails if the server has
+                    # restarted.
+                    st.markdown(
+                        f'<pre class="prompt-text">{view.block(prompt["text"])}</pre>',
+                        unsafe_allow_html=True,
+                    )
 
 
 def node_grid(stage: list[nodes.Node], prompts: dict[str, dict]) -> None:

@@ -102,14 +102,16 @@ REVIEWERS = [
     ),
     Node(
         "house_rules",
-        "The house-rule reader",
+        "The house-rule reviewer",
         "Applies the company's own rules: the yes-or-no ones, the ones that need judgement, and "
         "the company's code of practice.",
-        "The yes-or-no ones run first and cost nothing - banned words, required wording, required "
+        "The yes-or-no rules run first, as plain code: banned words, required wording, required "
         "sections, a trademark symbol on first mention. Only what a pattern can't answer goes to "
-        "a model. Rule text is treated as data, not instructions, and a finding naming a rule it "
-        "wasn't given is thrown away.",
-        "The company rules and reference documents that cover this piece.",
+        "a model. A small model reads the plain-English rules. A larger one reads the piece "
+        "against each company document and must quote the clause it relies on. Rule text is "
+        "treated as data, not instructions, and a finding that names a rule it wasn't given is "
+        "thrown away.",
+        "The company rules and reference documents that cover this piece, and the models.",
         "Findings that name the rule and its version, or quote the clause.",
         model=True,
     ),
@@ -189,6 +191,10 @@ WRAPPING_UP = [
     ),
 ]
 
+
+# Steps that make more than one model call, and what the API calls each one. The prompts and the
+# audit trail are listed under the call's name, not the step's.
+MODEL_CALLS: dict[str, tuple[str, ...]] = {"house_rules": ("llm_rules", "reference_doc_review")}
 
 STAGES = [
     ("1. Getting ready", GETTING_READY, True),
