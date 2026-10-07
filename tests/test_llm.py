@@ -23,11 +23,34 @@ def test_each_backend_has_sensible_defaults(monkeypatch):
     monkeypatch.delenv("MLR_MODEL_FAST", raising=False)
     for backend, strong in [
         ("anthropic", "claude-sonnet-5"),
-        ("ollama", "qwen2.5:7b"),
+        # Deliberately the small model, and deliberately the same as the fast tier: on a local CPU
+        # backend "strong" means slower rather than better, and at 7b a review did not finish.
+        # See the comment on DEFAULT_MODELS.
+        ("ollama", "qwen2.5:1.5b"),
         ("fake", "fake-strong"),
     ]:
         monkeypatch.setenv("MLR_LLM_BACKEND", backend)
         assert llm.model_id("strong") == strong
+
+
+def test_the_ollama_tiers_are_the_same_model_on_purpose(monkeypatch):
+    """Pinned so a well-meaning change back to a bigger strong model is a conscious one.
+
+    Tiering is real on a hosted backend and a fiction locally. Four fan-out branches queue on one
+    ollama process, so a larger strong model does not buy quality per unit time -- it stops the
+    review finishing at all.
+    """
+    monkeypatch.delenv("MLR_MODEL_STRONG", raising=False)
+    monkeypatch.delenv("MLR_MODEL_FAST", raising=False)
+    monkeypatch.setenv("MLR_LLM_BACKEND", "ollama")
+    assert llm.model_id("strong") == llm.model_id("fast")
+
+
+def test_the_model_tier_can_still_be_overridden(monkeypatch):
+    """Anyone who wants the larger local model can have it, and wait for it."""
+    monkeypatch.setenv("MLR_LLM_BACKEND", "ollama")
+    monkeypatch.setenv("MLR_MODEL_STRONG", "qwen2.5:7b")
+    assert llm.model_id("strong") == "qwen2.5:7b"
 
 
 def test_an_unknown_backend_fails_loudly(monkeypatch):
