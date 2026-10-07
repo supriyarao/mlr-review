@@ -101,34 +101,16 @@ REVIEWERS = [
         model=True,
     ),
     Node(
-        "deterministic_rules",
-        "The house-rule checker",
-        "Applies the company rules that have a yes-or-no answer.",
-        "Pattern matching: banned words, required wording, required sections, a trademark "
-        "symbol on first mention, too many claims without a reference. No model is called, so "
-        "the same piece always gets the same answer.",
-        "The company rules that cover this piece.",
-        "Findings that name the rule and its version.",
-    ),
-    Node(
-        "llm_rules",
+        "house_rules",
         "The house-rule reader",
-        "Applies the company rules written in plain English that need judgement.",
-        "A small model reads a handful of rules at once. Rule text is treated as data, not "
-        "instructions. A finding that names a rule it wasn't given is thrown away.",
-        "The company rules that cover this piece, and the model.",
-        "Findings that name the rule and its version.",
-        model=True,
-    ),
-    Node(
-        "reference_doc_review",
-        "The code-of-practice reviewer",
-        "Reads the piece against one of the company's own documents, such as a promotional "
-        "code. One reviewer per document.",
-        "The model must quote the clause it is relying on. Code checks that clause really is in "
-        "the document before the finding is kept.",
-        "The company's reference documents (files) and the model.",
-        "Findings with the clause quoted.",
+        "Applies the company's own rules: the yes-or-no ones, the ones that need judgement, and "
+        "the company's code of practice.",
+        "The yes-or-no ones run first and cost nothing - banned words, required wording, required "
+        "sections, a trademark symbol on first mention. Only what a pattern can't answer goes to "
+        "a model. Rule text is treated as data, not instructions, and a finding naming a rule it "
+        "wasn't given is thrown away.",
+        "The company rules and reference documents that cover this piece.",
+        "Findings that name the rule and its version, or quote the clause.",
         model=True,
     ),
 ]

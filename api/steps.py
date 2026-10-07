@@ -68,16 +68,12 @@ def _findings_by_node(values: dict[str, Any]) -> dict[str, list[Any]]:
     can: one from a tenant rule names its rule, and the rule's kind names the node; any other is
     from the specialist check of its type.
     """
-    kinds = {r["id"]: r["kind"] for r in values.get("rules_applied") or []}
-    node_for_kind = {
-        "deterministic": "deterministic_rules",
-        "llm": "llm_rules",
-        "reference_doc": "reference_doc_review",
-    }
+    rule_ids = {r["id"] for r in values.get("rules_applied") or []}
     grouped: dict[str, list[Any]] = {}
     for finding in values.get("findings") or []:
         if finding.get("rule_id"):
-            node = node_for_kind.get(kinds.get(finding["rule_id"], ""), "")
+            # Every rule finding comes from the one rules node now, whatever kind the rule is.
+            node = "house_rules" if finding["rule_id"] in rule_ids else ""
         else:
             node = NODE_FOR_CHECK_TYPE.get(finding["check_type"], "")
         if node:
@@ -106,15 +102,7 @@ def steps(run_id: str) -> dict[str, Any]:
             wrote[node] = _delta(snapshot["values"], following["values"])
 
     by_reviewer = _findings_by_node(values)
-    reviewers = (
-        set(by_reviewer)
-        | set(CORE_CHECKS)
-        | {
-            "deterministic_rules",
-            "llm_rules",
-            "reference_doc_review",
-        }
-    )
+    reviewers = set(by_reviewer) | set(CORE_CHECKS) | {"house_rules"}
     stored = submissions.load(run_id)
     last_done = max((i for i, n in enumerate(PIPELINE) if n in events), default=-1)
     live = report.status in ("queued", "running")

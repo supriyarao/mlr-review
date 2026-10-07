@@ -62,8 +62,9 @@ def all_prompts() -> list[dict[str, Any]]:
                 + checks._SHARED_CLOSE,
             )
         )
-    # Both rule nodes share the platform's rule-checking instructions; the tenant's own rule text
-    # or reference document is added at run time.
+    # Two model calls inside the one house_rules node, sharing the platform's rule-checking
+    # instructions; the tenant's own rule text or reference document is added at run time. Listed
+    # under the call's own name because that is what the audit trail and the cassettes key on.
     for node, tier in (("llm_rules", "fast"), ("reference_doc_review", "strong")):
         entries.append(
             _entry(

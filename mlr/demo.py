@@ -94,6 +94,7 @@ def script_for(document: str, *, tenant_id: str = "") -> dict[str, list[str]]:
         "substantiation": [NO_FINDINGS],
         "off_label": [NO_FINDINGS],
         "presentation": [NO_FINDINGS],
+        # Keyed by the model call inside house_rules, not by the node.
         "llm_rules": [NO_FINDINGS],
         "reference_doc_review": [NO_FINDINGS],
     }

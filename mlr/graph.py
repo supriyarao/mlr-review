@@ -3,7 +3,7 @@
 Shape:
 
     ingest -> extract_claims -> preapproved_filter
-        -> [ 3 specialist checks | deterministic_rules | llm_rules | reference_doc_review ... ]
+        -> [ 3 specialist checks | house_rules ]
         -> grounding_gate -> severity -> editor -> confidence_gate -> route
         -> human_review (interrupt) -> finalize
 
@@ -16,9 +16,10 @@ with no reducer. It also belongs beside ``policy_version``, which hashes the sam
 Trade-off: one node now does two things, in exchange for a pipeline a reader can follow without being
 told what a rulebook picker is.
 
-**The fan-out is one conditional edge returning a list of ``Send``.** Six branches run concurrently
-and each appends to ``findings`` through its reducer. ``reference_doc_review`` gets one ``Send`` per
-applicable document rather than being handed several codes of practice at once, because a reviewer
+**The fan-out is one conditional edge returning a list of ``Send``.** Four branches run concurrently
+and each appends to ``findings`` through its reducer. The tenant's rules are one branch, not three:
+inside ``house_rules`` the deterministic rules run first and free, then the judged ones, then one
+call per reference document -- never several codes of practice in one prompt, because a reviewer
 prompt carrying two unrelated documents does measurably worse at citing the right clause from either.
 
 **Everything after the fan-out is sequential and deterministic.** Grounding, severity, dedupe, the
@@ -63,7 +64,10 @@ CORE_CHECKS: tuple[str, ...] = (
     "presentation",
 )
 
-RULE_BRANCHES: tuple[str, ...] = ("deterministic_rules", "llm_rules", "reference_doc_review")
+# One branch for the tenant's own rules: the yes-or-no ones, the judged ones, and the reference
+# documents, in that order inside a single node. Three boxes in a timeline for "the company's
+# rules" told a reader nothing the finding's own citation does not.
+RULE_BRANCHES: tuple[str, ...] = ("house_rules",)
 
 # Nodes a stepped run pauses before.
 #
@@ -122,16 +126,8 @@ def fan_out(state: ReviewState) -> list[Send]:
         if claims or CHECKS[name].runs_without_claims:
             sends.append(Send(name, payload))
 
-    kinds = {a.kind for a in applied}
-    if "deterministic" in kinds:
-        sends.append(Send("deterministic_rules", payload))
-    if "llm" in kinds:
-        sends.append(Send("llm_rules", payload))
-
-    # One reviewer per reference document, not one prompt holding all of them.
-    for rule in applied:
-        if rule.kind == "reference_doc":
-            sends.append(Send("reference_doc_review", {**payload, "_rule_id": rule.id}))
+    if applied:
+        sends.append(Send("house_rules", payload))
 
     # A piece with nothing to check still has to reach a human, so the pipeline must not stall.
     return sends or [Send("grounding_gate", payload)]
@@ -171,9 +167,7 @@ def build(*, fake: Any = None) -> StateGraph:
     add("off_label", _llm(checks.off_label))
     add("presentation", _llm(checks.presentation))
 
-    add("deterministic_rules", rules.deterministic_rules)
-    add("llm_rules", _llm(rules.llm_rules))
-    add("reference_doc_review", _llm(rules.reference_doc_review))
+    add("house_rules", _llm(rules.house_rules))
 
     add("grounding_gate", grounding.grounding_gate)
     add("severity", severity_node.severity)

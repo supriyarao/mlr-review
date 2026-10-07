@@ -224,8 +224,9 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
         ]
         script[node] = [json.dumps({"findings": findings})]
 
-    # The LLM rule checker and the reference-document reviewer report any rule the case expects that
-    # the deterministic engine cannot produce.
+    # Inside house_rules the judged rules and the reference-document reviews are separate model
+    # calls, so the script still needs one scripted response per call, keyed by the call's node
+    # name rather than the graph node's.
     script["llm_rules"] = [json.dumps({"findings": _rule_findings(case, document, kind="llm")})]
     script["reference_doc_review"] = [
         json.dumps({"findings": _rule_findings(case, document, kind="reference_doc")})

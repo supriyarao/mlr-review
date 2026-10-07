@@ -89,7 +89,10 @@ def test_the_home_page_explains_every_node_in_the_graph(ui, client):
     at = ui("Home.py")
     described = " ".join(c.value for c in at.caption)
     nodes = view.graph_nodes(client.get("/graph").json()["source"])
-    assert len(nodes) >= 15, f"could not read the graph's nodes: {nodes}"
+    # A floor, not a target: it guards against the mermaid parse silently returning nothing. The
+    # graph has been shrinking deliberately as related nodes merge, so it is set well below the
+    # current count rather than tracking it.
+    assert len(nodes) >= 10, f"could not read the graph's nodes: {nodes}"
     missing = [n for n in nodes if f"`{n}`" not in described]
     assert not missing, f"nodes in the graph with no description on the home page: {missing}"
 

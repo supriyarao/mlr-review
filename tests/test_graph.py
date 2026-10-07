@@ -551,29 +551,45 @@ def test_the_fan_out_skips_branches_with_nothing_to_do(seeded):
     # No claims and no rules: only the document-level checks are worth running.
     assert "substantiation" not in targets
     assert "presentation" in targets
-    assert "llm_rules" not in targets
+    assert "house_rules" not in targets
 
     state["rules_applied"] = [
         AppliedRule(id="X", version=1, kind="llm", severity="blocker"),
         AppliedRule(id="D", version=1, kind="reference_doc", severity="advisory"),
     ]
-    targets = {send.node for send in fan_out(state)}
-    assert "llm_rules" in targets
-    assert "reference_doc_review" in targets
+    assert "house_rules" in {send.node for send in fan_out(state)}
 
 
-def test_one_send_per_reference_document(seeded):
-    """A prompt holding two unrelated codes of practice cites the wrong clause from both."""
+def test_one_model_call_per_reference_document(monkeypatch, seeded):
+    """A prompt holding two unrelated codes of practice cites the wrong clause from both.
+
+    This used to be a property of the fan-out -- one ``Send`` per document. Folding the three rule
+    nodes into one moved the loop inside ``house_rules``, so the guarantee is now about how many
+    times the reviewer runs, which is the thing that actually mattered.
+    """
+    from mlr.nodes import rules as rules_node
     from mlr.schemas import AppliedRule
 
-    state = initial_state(run_id="r", tenant_id="acme_pharma", product_id="zelvoran")
-    state["rules_applied"] = [
+    documents = [
         AppliedRule(id="DOC-1", version=1, kind="reference_doc", severity="blocker"),
         AppliedRule(id="DOC-2", version=1, kind="reference_doc", severity="blocker"),
     ]
-    sends = [s for s in fan_out(state) if s.node == "reference_doc_review"]
-    assert len(sends) == 2
-    assert {s.arg["_rule_id"] for s in sends} == {"DOC-1", "DOC-2"}
+    seen: list[str] = []
+
+    monkeypatch.setattr(
+        rules_node,
+        "_rules_of_kind",
+        lambda state, kind: documents if kind == "reference_doc" else [],
+    )
+    monkeypatch.setattr(
+        rules_node,
+        "_reference_doc_part",
+        lambda state, run, rule, fake=None: (seen.append(rule.id), ([], {}, [], []))[1],
+    )
+
+    state = initial_state(run_id="r", tenant_id="acme_pharma", product_id="zelvoran")
+    rules_node.house_rules(state)
+    assert seen == ["DOC-1", "DOC-2"]
 
 
 def test_the_graph_compiles_with_every_documented_node(seeded):

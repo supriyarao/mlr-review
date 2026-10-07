@@ -1,13 +1,23 @@
-"""Apply tenant business rules: deterministic, LLM-judged, and reference-document reviewers.
+"""Apply the tenant's business rules: the yes-or-no ones, the judged ones, and the documents.
 
-Three nodes, because the three kinds of rule have genuinely different costs and failure modes:
+One node, :func:`house_rules`, with three parts inside it. They were three nodes until the
+timeline made the cost obvious: three boxes labelled some variation of "the company's rules" told a
+reader nothing that the finding's own citation does not already say, and every one of these
+findings names its rule by id and version.
 
-* :func:`deterministic_rules` makes **no model call at all**. A banned-term list is not a judgement
-  call, and routing it through a model would add cost, latency and nondeterminism to a question regex
-  answers exactly. This is also what makes the rules demo work with no API key.
-* :func:`llm_rules` batches several rules into one call. Rules are short and a model can hold a
+The three parts remain genuinely different in cost and failure mode, and the order they run in is
+the repo's standing rule about when a model earns its place, made visible in one step:
+
+* :func:`_deterministic_part` makes **no model call at all**. A banned-term list is not a judgement
+  call, and routing it through a model would add cost, latency and nondeterminism to a question
+  regex answers exactly. This is also what makes the rules demo work with no API key.
+* :func:`_llm_part` batches several rules into one call. Rules are short and a model can hold a
   handful at once, so one call per rule would multiply cost for no accuracy gain -- up to a point.
-* :func:`reference_doc_review` puts a whole tenant document in context, one reviewer per document.
+* :func:`_reference_doc_part` puts a whole tenant document in context, one call per document.
+
+Each part contributes independently: a schema failure in one escalates on its own and leaves the
+others' findings intact. Three separate nodes gave that for free; one node has to preserve it
+deliberately, which is why the parts return their errors rather than raising them.
 
 All three convert a platform :class:`~platform_core.rules.schema.RuleViolation` into an MLR
 :class:`~mlr.schemas.Finding`. That conversion is the seam that lets the rules engine stay in
@@ -131,30 +141,33 @@ def _rules_of_kind(state: dict[str, Any], kind: str) -> list[Rule]:
     return [registry.get(rule_id, version=version) for rule_id, version in sorted(wanted)]
 
 
-def deterministic_rules(state: dict[str, Any]) -> dict[str, Any]:
-    """Run every applicable deterministic rule. **No model call.**
+def _deterministic_part(state: dict[str, Any]) -> tuple[list[Finding], dict[str, Any]]:
+    """Every applicable deterministic rule. **No model call, ever.**
+
+    Not routed through the tool registry, unlike the validators the presentation check calls. That
+    registry is for code the platform did not write -- a customer's own qualified scripts, reached
+    across a JSON boundary. This is the platform's own rules engine, it returns typed violations
+    carrying rule ids and versions, and serialising those through a tool call would lose exactly the
+    provenance that makes a rule finding citable.
 
     A misconfigured rule yields a violation describing the misconfiguration rather than raising, so
     one broken rule cannot take down the review and a broken blocker still reaches a human.
     """
-    with node_run(state, "deterministic_rules") as run:
-        rules = _rules_of_kind(state, "deterministic")
-        if not rules:
-            run.output = {"rules": 0, "violations": 0}
-            return {}
+    rules = _rules_of_kind(state, "deterministic")
+    if not rules:
+        return [], {"rules": 0, "violations": 0}
 
-        violations = deterministic.evaluate_all(rules, _rule_input(state))
-        findings = _rule_findings(violations, prefix="dr")
-        run.output = {
-            "rules": len(rules),
-            "violations": len(violations),
-            "by_rule": sorted({v.rule_id for v in violations}),
-        }
-        run.citations = [{"source_id": c.source_id} for f in findings for c in f.citations]
-        return {"findings": findings}
+    violations = deterministic.evaluate_all(rules, _rule_input(state))
+    return _rule_findings(violations, prefix="dr"), {
+        "rules": len(rules),
+        "violations": len(violations),
+        "by_rule": sorted({v.rule_id for v in violations}),
+    }
 
 
-def llm_rules(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
+def _llm_part(
+    state: dict[str, Any], run: Any, *, fake: Any = None
+) -> tuple[list[Finding], dict[str, Any], list[str], list[Any]]:
     """Judge the plain-English rules with a model, in batches.
 
     Two defences against a tenant's rule text being used as an instruction channel, beyond the
@@ -164,166 +177,52 @@ def llm_rules(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
       cannot invent a rule or attribute a finding to one it prefers;
     * the quote still has to survive the grounding gate, so no finding can be fabricated.
     """
-    with node_run(state, "llm_rules") as run:
-        rules = _rules_of_kind(state, "llm")
-        if not rules:
-            run.output = {"rules": 0, "violations": 0}
-            return {}
+    rules = _rules_of_kind(state, "llm")
+    if not rules:
+        return [], {"rules": 0, "violations": 0}, [], []
 
-        document = str(state.get("document") or "")
-        claims = state.get("claims") or []
-        findings: list[Finding] = []
-        discarded = 0
+    document = str(state.get("document") or "")
+    claims = state.get("claims") or []
+    findings: list[Finding] = []
+    discarded = 0
 
-        for batch_index in range(0, len(rules), LLM_RULE_BATCH_SIZE):
-            batch = rules[batch_index : batch_index + LLM_RULE_BATCH_SIZE]
-            allowed = {r.id: r for r in batch}
-            prompt = prompting.build_rule_check_prompt(batch, content=document)
-            prompt += rule_prompts.rule_response_instructions(claims)
-
-            try:
-                result = llm.call_structured(
-                    "fast",
-                    node="llm_rules",
-                    prompt=prompt,
-                    schema=rule_prompts.RuleCheckResponse,
-                    prompt_version=prompting.PROMPT_VERSION,
-                    fake=fake,
-                )
-            except llm.SchemaFailure as exc:
-                run.error = str(exc)
-                return {
-                    "errors": [f"llm_rules: {exc}"],
-                    "gate_results": [rule_prompts.schema_failure_gate("llm_rules", exc)],
-                }
-
-            run.record(result)
-            for i, reported in enumerate(result.parsed.findings):
-                rule = allowed.get(reported.rule_id)
-                if rule is None:
-                    # Either a hallucinated rule id or a successful injection. Either way it is not
-                    # something this batch was asked about, so it does not become a finding.
-                    discarded += 1
-                    continue
-                findings.append(
-                    Finding(
-                        id=f"lr-{batch_index + i + 1}",
-                        check_type=(
-                            rule.check_type if rule.check_type in _VALID_CHECKS else "business_rule"
-                        ),
-                        claim_id=reported.claim_id,
-                        quote=reported.quote,
-                        issue=reported.issue,
-                        suggested_fix=reported.suggested_fix,
-                        citations=[
-                            Citation(
-                                source_id=rule.label(),
-                                passage=rule.description,
-                                kind="rule",
-                                title=rule.title,
-                                rule_id=rule.id,
-                                rule_version=rule.version,
-                            )
-                        ],
-                        severity_proposed=rule.severity,
-                        confidence=reported.confidence,
-                        rule_id=rule.id,
-                        rule_version=rule.version,
-                        model=result.usage.model,
-                        prompt_version=result.prompt_version,
-                    )
-                )
-
-        run.output = {
-            "rules": len(rules),
-            "batches": (len(rules) + LLM_RULE_BATCH_SIZE - 1) // LLM_RULE_BATCH_SIZE,
-            "violations": len(findings),
-            "discarded_unknown_rule_id": discarded,
-        }
-        return {"findings": findings}
-
-
-def reference_doc_review(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
-    """Review the piece against one tenant reference document.
-
-    Receives a single ``rule_id`` in its payload, so the graph fans out one reviewer per applicable
-    document rather than stuffing several codes of practice into one prompt.
-
-    A cited clause is verified to exist in the document before it becomes a finding. A fabricated
-    clause would otherwise show a reviewer an authority they cannot look up, which is worse than no
-    citation at all.
-    """
-    rule_id = str(state.get("_rule_id") or "")
-    with node_run(state, "reference_doc_review", input_value={"rule_id": rule_id}) as run:
-        rules = {r.id: r for r in _rules_of_kind(state, "reference_doc")}
-        rule = rules.get(rule_id)
-        if rule is None:
-            run.output = {"rule_id": rule_id, "skipped": True}
-            return {}
-
-        docs_dir = tenant_reference_docs_dir(str(state["tenant_id"]))
-        doc_path = docs_dir / str(rule.params.get("doc_path", ""))
-        if not doc_path.is_file():
-            run.error = f"reference document missing: {doc_path.name}"
-            return {
-                "errors": [f"reference_doc_review: {rule.label()} cites a missing document"],
-            }
-
-        document_text = doc_path.read_text(encoding="utf-8")
-        piece = str(state.get("document") or "")
-        prompt = prompting.build_reference_doc_prompt(
-            rule,
-            document=document_text,
-            content=piece,
-            clauses=[str(c) for c in rule.params.get("clauses", []) or []],
-        )
-        prompt += rule_prompts.rule_response_instructions(state.get("claims") or [])
+    for batch_index in range(0, len(rules), LLM_RULE_BATCH_SIZE):
+        batch = rules[batch_index : batch_index + LLM_RULE_BATCH_SIZE]
+        allowed = {r.id: r for r in batch}
+        prompt = prompting.build_rule_check_prompt(batch, content=document)
+        prompt += rule_prompts.rule_response_instructions(claims)
 
         try:
             result = llm.call_structured(
-                "strong",
-                node="reference_doc_review",
+                "fast",
+                node="llm_rules",
                 prompt=prompt,
                 schema=rule_prompts.RuleCheckResponse,
                 prompt_version=prompting.PROMPT_VERSION,
                 fake=fake,
             )
         except llm.SchemaFailure as exc:
-            run.error = str(exc)
-            return {
-                "errors": [f"reference_doc_review: {exc}"],
-                "gate_results": [rule_prompts.schema_failure_gate("reference_doc_review", exc)],
-            }
+            # The batch is lost, the rest of the node is not. Before these three were one node a
+            # failure here could not touch the deterministic findings; keeping that true is the
+            # point of returning the error rather than raising it.
+            return (
+                findings,
+                {"rules": len(rules), "violations": len(findings), "failed": True},
+                [f"llm_rules: {exc}"],
+                [rule_prompts.schema_failure_gate("llm_rules", exc)],
+            )
 
         run.record(result)
-        flat_document = deterministic.normalize_whitespace(document_text)
-        findings: list[Finding] = []
-        unverifiable = 0
-
         for i, reported in enumerate(result.parsed.findings):
-            if reported.rule_id and reported.rule_id != rule.id:
+            rule = allowed.get(reported.rule_id)
+            if rule is None:
+                # Either a hallucinated rule id or a successful injection. Either way it is not
+                # something this batch was asked about, so it does not become a finding.
+                discarded += 1
                 continue
-            clause = (reported.clause or "").strip()
-            clause_exists = bool(clause) and (
-                deterministic.normalize_whitespace(clause) in flat_document
-            )
-            if clause and not clause_exists:
-                # The model quoted a clause the document does not contain. Reported with no clause
-                # citation and low confidence rather than dropped: the underlying observation may
-                # still be sound, and the grounding gate will escalate it.
-                unverifiable += 1
-
-            citation = Citation(
-                source_id=f"{rule.params.get('doc_path', '')}",
-                passage=clause if clause_exists else rule.description,
-                kind="doc_clause" if clause_exists else "rule",
-                title=f"{rule.title} ({rule.label()})",
-                rule_id=rule.id,
-                rule_version=rule.version,
-            )
             findings.append(
                 Finding(
-                    id=f"rd-{rule.id}-{i + 1}",
+                    id=f"lr-{batch_index + i + 1}",
                     check_type=(
                         rule.check_type if rule.check_type in _VALID_CHECKS else "business_rule"
                     ),
@@ -331,11 +230,18 @@ def reference_doc_review(state: dict[str, Any], *, fake: Any = None) -> dict[str
                     quote=reported.quote,
                     issue=reported.issue,
                     suggested_fix=reported.suggested_fix,
-                    citations=[citation],
+                    citations=[
+                        Citation(
+                            source_id=rule.label(),
+                            passage=rule.description,
+                            kind="rule",
+                            title=rule.title,
+                            rule_id=rule.id,
+                            rule_version=rule.version,
+                        )
+                    ],
                     severity_proposed=rule.severity,
-                    confidence=min(reported.confidence, 40)
-                    if clause and not clause_exists
-                    else reported.confidence,
+                    confidence=reported.confidence,
                     rule_id=rule.id,
                     rule_version=rule.version,
                     model=result.usage.model,
@@ -343,10 +249,178 @@ def reference_doc_review(state: dict[str, Any], *, fake: Any = None) -> dict[str
                 )
             )
 
-        run.output = {
+    return (
+        findings,
+        {
+            "rules": len(rules),
+            "batches": (len(rules) + LLM_RULE_BATCH_SIZE - 1) // LLM_RULE_BATCH_SIZE,
+            "violations": len(findings),
+            "discarded_unknown_rule_id": discarded,
+        },
+        [],
+        [],
+    )
+
+
+def _reference_doc_part(
+    state: dict[str, Any], run: Any, rule: Rule, *, fake: Any = None
+) -> tuple[list[Finding], dict[str, Any], list[str], list[Any]]:
+    """Review the piece against one tenant reference document.
+
+    One call per document, never several codes of practice in one prompt: a reviewer prompt
+    carrying two unrelated documents does measurably worse at citing the right clause from either.
+    The loop over documents is sequential inside this node now rather than a parallel fan-out --
+    each tenant has one such document today, so the concurrency was theoretical.
+
+    A cited clause is verified to exist in the document before it becomes a finding. A fabricated
+    clause would otherwise show a reviewer an authority they cannot look up, which is worse than no
+    citation at all.
+    """
+    docs_dir = tenant_reference_docs_dir(str(state["tenant_id"]))
+    doc_path = docs_dir / str(rule.params.get("doc_path", ""))
+    if not doc_path.is_file():
+        return (
+            [],
+            {"rule_id": rule.id, "missing_document": doc_path.name},
+            [f"reference_doc_review: {rule.label()} cites a missing document"],
+            [],
+        )
+
+    document_text = doc_path.read_text(encoding="utf-8")
+    prompt = prompting.build_reference_doc_prompt(
+        rule,
+        document=document_text,
+        content=str(state.get("document") or ""),
+        clauses=[str(c) for c in rule.params.get("clauses", []) or []],
+    )
+    prompt += rule_prompts.rule_response_instructions(state.get("claims") or [])
+
+    try:
+        result = llm.call_structured(
+            "strong",
+            node="reference_doc_review",
+            prompt=prompt,
+            schema=rule_prompts.RuleCheckResponse,
+            prompt_version=prompting.PROMPT_VERSION,
+            fake=fake,
+        )
+    except llm.SchemaFailure as exc:
+        return (
+            [],
+            {"rule_id": rule.id, "failed": True},
+            [f"reference_doc_review: {exc}"],
+            [rule_prompts.schema_failure_gate("reference_doc_review", exc)],
+        )
+
+    run.record(result)
+    flat_document = deterministic.normalize_whitespace(document_text)
+    findings: list[Finding] = []
+    unverifiable = 0
+
+    for i, reported in enumerate(result.parsed.findings):
+        if reported.rule_id and reported.rule_id != rule.id:
+            continue
+        clause = (reported.clause or "").strip()
+        clause_exists = bool(clause) and (
+            deterministic.normalize_whitespace(clause) in flat_document
+        )
+        if clause and not clause_exists:
+            # The model quoted a clause the document does not contain. Reported with no clause
+            # citation and low confidence rather than dropped: the underlying observation may
+            # still be sound, and the grounding gate will escalate it.
+            unverifiable += 1
+
+        citation = Citation(
+            source_id=f"{rule.params.get('doc_path', '')}",
+            passage=clause if clause_exists else rule.description,
+            kind="doc_clause" if clause_exists else "rule",
+            title=f"{rule.title} ({rule.label()})",
+            rule_id=rule.id,
+            rule_version=rule.version,
+        )
+        findings.append(
+            Finding(
+                id=f"rd-{rule.id}-{i + 1}",
+                check_type=(
+                    rule.check_type if rule.check_type in _VALID_CHECKS else "business_rule"
+                ),
+                claim_id=reported.claim_id,
+                quote=reported.quote,
+                issue=reported.issue,
+                suggested_fix=reported.suggested_fix,
+                citations=[citation],
+                severity_proposed=rule.severity,
+                confidence=min(reported.confidence, 40)
+                if clause and not clause_exists
+                else reported.confidence,
+                rule_id=rule.id,
+                rule_version=rule.version,
+                model=result.usage.model,
+                prompt_version=result.prompt_version,
+            )
+        )
+
+    return (
+        findings,
+        {
             "rule_id": rule.id,
             "document": doc_path.name,
             "violations": len(findings),
             "clauses_not_found_in_document": unverifiable,
-        }
-        return {"findings": findings}
+        },
+        [],
+        [],
+    )
+
+
+def house_rules(state: dict[str, Any], *, fake: Any = None) -> dict[str, Any]:
+    """Apply the tenant's own rules: the yes-or-no ones, the judged ones, and the documents.
+
+    **Mixed: deterministic first, then LLM decisions.** One node rather than three, because three
+    boxes in a timeline for "the company's rules" is noise to everyone except the person who wrote
+    the graph. The distinction that matters to a reviewer is not which node fired but what the
+    finding cites, and every one of these cites the rule or the clause by id and version.
+
+    The order is the point. The deterministic rules run first and cost nothing -- a banned-term list
+    is not a judgement call, and routing it through a model would add cost, latency and
+    nondeterminism to a question regex answers exactly. Only what regex cannot answer reaches a
+    model. That ordering is the repo's standing rule about when a model earns its place, made
+    visible in a single step.
+
+    Each part contributes independently: a schema failure in the judged rules escalates on its own
+    and leaves the deterministic findings intact, which is what the three separate nodes gave for
+    free and what this node has to preserve deliberately.
+    """
+    with node_run(state, "house_rules") as run:
+        findings: list[Finding] = []
+        errors: list[str] = []
+        gates: list[Any] = []
+        summary: dict[str, Any] = {}
+
+        got, summary["deterministic"] = _deterministic_part(state)
+        findings += got
+
+        got, summary["judged"], part_errors, part_gates = _llm_part(state, run, fake=fake)
+        findings += got
+        errors += part_errors
+        gates += part_gates
+
+        reviewed: list[dict[str, Any]] = []
+        for rule in _rules_of_kind(state, "reference_doc"):
+            got, detail, part_errors, part_gates = _reference_doc_part(state, run, rule, fake=fake)
+            findings += got
+            reviewed.append(detail)
+            errors += part_errors
+            gates += part_gates
+        summary["documents"] = reviewed
+
+        summary["findings"] = len(findings)
+        run.output = summary
+        run.citations = [{"source_id": c.source_id} for f in findings for c in f.citations]
+
+        out: dict[str, Any] = {"findings": findings}
+        if errors:
+            out["errors"] = errors
+        if gates:
+            out["gate_results"] = gates
+        return out
