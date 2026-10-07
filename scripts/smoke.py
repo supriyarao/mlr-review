@@ -22,6 +22,7 @@ from mlr.graph import checkpointer, compile_with
 from mlr.nodes.ingest import extract_text
 from mlr.state import initial_state, report_findings
 from platform_core import audit, runtime
+from platform_core.env import load_env
 from platform_core.llm import describe_backend
 from platform_core.tenancy import load_tenant
 
@@ -160,6 +161,7 @@ def run_one(stem: str, tenant_id: str, *, verbose: bool) -> dict:
 
 
 def main() -> int:
+    load_env()
     parser = argparse.ArgumentParser(description="Run promo pieces against a live model.")
     parser.add_argument("--piece", action="append", default=[], help="promo stem; repeatable")
     parser.add_argument("--tenant", default="acme_pharma")

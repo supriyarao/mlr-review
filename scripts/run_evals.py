@@ -31,6 +31,7 @@ from mlr.graph import checkpointer, compile_with
 from mlr.nodes.ingest import normalize_document, parse_front_matter
 from mlr.state import initial_state, report_findings
 from platform_core import audit, runtime
+from platform_core.env import load_env
 from platform_core.evals import harness
 from platform_core.evals.schema import CaseResult, EvalResult, GoldenCase, load_cases
 from platform_core.llm import FakeLLM, describe_backend
@@ -327,6 +328,7 @@ def print_report(result: EvalResult, sweep_data: dict[str, Any] | None) -> None:
 
 
 def main() -> int:
+    load_env()
     parser = argparse.ArgumentParser(description="Run the MLR golden set.")
     parser.add_argument("--mode", choices=("offline", "live", "replay"), default="offline")
     parser.add_argument("--tenant", default="", help="only cases for this tenant")

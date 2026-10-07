@@ -22,8 +22,14 @@ from api.export import DISCLAIMER
 from api.routes import evals as eval_routes
 from api.routes import prompts, reviews, rules, samples, tenants
 from mlr import service
+from platform_core.env import load_env
 from platform_core.rules.registry import RuleStorageError
 from platform_core.tenancy import TenantConfigError
+
+# .env holds the model backend, the key and the data directory, and this is one of the processes a
+# reader starts. Loaded here rather than at import of some shared module, because reading a file is
+# a side effect and it should happen where a process begins, not wherever an import chain reaches.
+load_env()
 
 app = FastAPI(
     title="MLR Review Agent",

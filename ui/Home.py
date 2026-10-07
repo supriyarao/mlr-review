@@ -8,6 +8,13 @@ import streamlit as st
 import view
 from streamlit_mermaid import st_mermaid
 
+from platform_core.env import load_env
+
+# MLR_API_URL is read from the environment and .env is where a reader sets it. Imported from
+# platform_core rather than duplicated here: it is configuration loading, not domain logic, and
+# the import boundary allows ui -> platform_core.
+load_env()
+
 view.page("MLR Review Agent")
 
 st.markdown(

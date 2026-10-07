@@ -24,7 +24,11 @@ seed: ## Index the synthetic corpus into a per-tenant vector store
 # a key that a fresh clone does not have. Under `fake` the LLM findings come from a fixture and
 # everything else runs for real; the API reports the backend on /health and the service returns the
 # sentence the UI should show.
-MLR_LLM_BACKEND ?= fake
+# Taken from .env when it names one, because .env is where a reader was told to configure this and
+# an exported default here would beat it -- which is how a key set in .env came to do nothing at
+# all. Falls back to fake so a fresh clone with no key still has a working demo, and an explicit
+# `MLR_LLM_BACKEND=anthropic make demo` still wins over both.
+MLR_LLM_BACKEND ?= $(or $(shell sed -n 's/^MLR_LLM_BACKEND=//p' .env 2>/dev/null | tail -1),fake)
 export MLR_LLM_BACKEND
 
 api: ## Run the FastAPI backend on :8000

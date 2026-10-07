@@ -24,6 +24,7 @@ from typing import Any
 import yaml
 
 from platform_core import tenancy
+from platform_core.env import load_env
 from platform_core.retrieval import Document, index_documents, reset_tenant_collection
 from platform_core.rules.registry import RuleRegistry
 
@@ -213,6 +214,7 @@ def seed_rules(tenant_id: str, *, activate: bool = True) -> tuple[list[str], lis
 
 
 def main() -> int:
+    load_env()
     parser = argparse.ArgumentParser(description="Seed the synthetic corpus and tenant rules.")
     parser.add_argument("--tenant", default="", help="seed only this tenant")
     parser.add_argument(

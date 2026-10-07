@@ -19,6 +19,7 @@ from pathlib import Path
 
 from mlr import service, store, trace
 from mlr.nodes.ingest import extract_text
+from platform_core.env import load_env
 from platform_core.llm import describe_backend
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -90,6 +91,7 @@ def show_report(report, *, show_findings: bool = True) -> None:
 
 
 def main() -> int:
+    load_env()
     parser = argparse.ArgumentParser(description="Run one review through the full loop.")
     parser.add_argument("--piece", default="zelvoran-hcp-subgroup-claim")
     parser.add_argument("--tenant", default="")
