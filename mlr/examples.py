@@ -380,9 +380,7 @@ def example_audit_events() -> list[dict[str, Any]]:
             5100,
         ),
         ("house_rules", "node", "claude-haiku-4-5", "rule-check-v1", 3120, 410, 0.00517, 1180),
-        ("grounding_gate", "gate", "", "", 0, 0, 0.0, 14),
-        ("severity", "node", "", "", 0, 0, 0.0, 4),
-        ("editor", "node", "claude-haiku-4-5", "editor-v1", 2250, 650, 0.00550, 1900),
+        ("consolidate", "gate", "", "", 0, 0, 0.0, 21),
         ("route", "node", "", "", 0, 0, 0.0, 3),
         ("human_review", "human", "", "", 0, 0, 0.0, 0),
     ]

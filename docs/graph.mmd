@@ -12,32 +12,26 @@ graph TD;
 	off_label(off_label)
 	presentation(presentation)
 	house_rules(house_rules)
-	grounding_gate(grounding_gate)
-	severity(severity)
-	editor(editor)
-	confidence_gate(confidence_gate)
+	consolidate(consolidate)
 	route(route)
 	human_review(human_review)
 	finalize(finalize)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> ingest;
-	confidence_gate --> route;
-	editor --> confidence_gate;
+	consolidate --> route;
 	extract_claims --> preapproved_filter;
-	grounding_gate --> severity;
-	house_rules --> grounding_gate;
+	house_rules --> consolidate;
 	human_review --> finalize;
 	ingest --> extract_claims;
-	off_label --> grounding_gate;
-	preapproved_filter -.-> grounding_gate;
+	off_label --> consolidate;
+	preapproved_filter -.-> consolidate;
 	preapproved_filter -.-> house_rules;
 	preapproved_filter -.-> off_label;
 	preapproved_filter -.-> presentation;
 	preapproved_filter -.-> substantiation;
-	presentation --> grounding_gate;
+	presentation --> consolidate;
 	route --> human_review;
-	severity --> editor;
-	substantiation --> grounding_gate;
+	substantiation --> consolidate;
 	finalize --> __end__;
 	classDef default fill:#f2f0ff,line-height:1.2
 	classDef first fill-opacity:0

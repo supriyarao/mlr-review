@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from mlr.nodes.base import node_run
 from mlr.schemas import Citation, Finding
 from platform_core.rules.deterministic import normalize_whitespace
 
@@ -101,38 +100,35 @@ def _merge(group: list[Finding]) -> Finding:
     )
 
 
-def editor(state: dict[str, Any]) -> dict[str, Any]:
-    """Produce the report's finding list: deduped, merged, calibrated."""
-    with node_run(state, "editor") as run:
-        from mlr.state import report_findings
+def tidy(findings: list[Finding], state: dict[str, Any]) -> tuple[list[Finding], dict[str, Any]]:
+    """Produce the report's finding list: deduped, merged, calibrated.
 
-        findings = report_findings(state)
-        if not findings:
-            run.output = {"in": 0, "out": 0}
-            return {"final_findings": []}
+    A part of the ``consolidate`` node rather than a node of its own."""
+    if not findings:
+        return [], {"in": 0, "out": 0}
 
-        groups: dict[tuple[str, str], list[Finding]] = {}
-        for finding in findings:
-            groups.setdefault(merge_key(finding), []).append(finding)
+    groups: dict[tuple[str, str], list[Finding]] = {}
+    for finding in findings:
+        groups.setdefault(merge_key(finding), []).append(finding)
 
-        merged: list[Finding] = []
-        for group in groups.values():
-            finding = _merge(group) if len(group) > 1 else group[0]
-            if not finding.grounded:
-                finding = finding.model_copy(
-                    update={"confidence": min(finding.confidence, UNGROUNDED_CEILING)}
-                )
-            merged.append(finding)
+    merged: list[Finding] = []
+    for group in groups.values():
+        finding = _merge(group) if len(group) > 1 else group[0]
+        if not finding.grounded:
+            finding = finding.model_copy(
+                update={"confidence": min(finding.confidence, UNGROUNDED_CEILING)}
+            )
+        merged.append(finding)
 
-        # Blockers first, then by confidence: the reviewer's attention should land on the most
-        # serious finding, not on whichever check happened to finish first.
-        merged.sort(key=lambda f: (f.is_blocker, f.confidence), reverse=True)
+    # Blockers first, then by confidence: the reviewer's attention should land on the most
+    # serious finding, not on whichever check happened to finish first.
+    merged.sort(key=lambda f: (f.is_blocker, f.confidence), reverse=True)
 
-        run.output = {
-            "in": len(findings),
-            "out": len(merged),
-            "merged_groups": sum(1 for g in groups.values() if len(g) > 1),
-            "blockers": sum(1 for f in merged if f.is_blocker),
-            "confidence_capped_for_ungrounded": sum(1 for f in merged if not f.grounded),
-        }
-        return {"final_findings": merged}
+    summary = {
+        "in": len(findings),
+        "out": len(merged),
+        "merged_groups": sum(1 for g in groups.values() if len(g) > 1),
+        "blockers": sum(1 for f in merged if f.is_blocker),
+        "confidence_capped_for_ungrounded": sum(1 for f in merged if not f.grounded),
+    }
+    return merged, summary

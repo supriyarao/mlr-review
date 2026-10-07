@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from mlr.nodes.base import node_run
 from mlr.schemas import Finding
 from platform_core.tenancy import SeverityRule, TenantConfig, load_tenant
 
@@ -48,35 +47,33 @@ def resolve_severity(finding: Finding, config: TenantConfig) -> tuple[str, str]:
     return chosen.severity, chosen.rule_id
 
 
-def severity(state: dict[str, Any]) -> dict[str, Any]:
-    """Apply the tenant's severity rules to every finding."""
-    with node_run(state, "severity") as run:
-        from mlr.state import report_findings
+def grade(findings: list[Finding], state: dict[str, Any]) -> tuple[list[Finding], dict[str, Any]]:
+    """Apply the tenant's severity rules to every finding.
 
-        findings = report_findings(state)
-        if not findings:
-            run.output = {"findings": 0}
-            return {}
+    A part of the ``consolidate`` node rather than a node of its own. Returns the graded findings
+    and what the audit trail should record about the grading."""
+    if not findings:
+        return [], {"findings": 0}
 
-        config = load_tenant(str(state["tenant_id"]))
-        graded: list[Finding] = []
-        changed = 0
+    config = load_tenant(str(state["tenant_id"]))
+    graded: list[Finding] = []
+    changed = 0
 
-        for finding in findings:
-            level, rule_id = resolve_severity(finding, config)
-            if level != finding.severity_proposed:
-                changed += 1
-            graded.append(
-                finding.model_copy(update={"severity_final": level, "severity_rule_id": rule_id})
-            )
+    for finding in findings:
+        level, rule_id = resolve_severity(finding, config)
+        if level != finding.severity_proposed:
+            changed += 1
+        graded.append(
+            finding.model_copy(update={"severity_final": level, "severity_rule_id": rule_id})
+        )
 
-        run.output = {
-            "findings": len(graded),
-            "blockers": sum(1 for f in graded if f.is_blocker),
-            "advisories": sum(1 for f in graded if not f.is_blocker),
-            # Visible on purpose: this is the tenant overriding what a check proposed, and it is one
-            # of the most interesting things in the audit trail.
-            "severity_changed_from_proposal": changed,
-            "tenant_config_version": config.version,
-        }
-        return {"final_findings": graded}
+    summary = {
+        "findings": len(graded),
+        "blockers": sum(1 for f in graded if f.is_blocker),
+        "advisories": sum(1 for f in graded if not f.is_blocker),
+        # Visible on purpose: this is the tenant overriding what a check proposed, and it is one
+        # of the most interesting things in the audit trail.
+        "severity_changed_from_proposal": changed,
+        "tenant_config_version": config.version,
+    }
+    return graded, summary

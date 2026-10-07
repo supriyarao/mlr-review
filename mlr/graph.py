@@ -4,7 +4,7 @@ Shape:
 
     ingest -> extract_claims -> preapproved_filter
         -> [ 3 specialist checks | house_rules ]
-        -> grounding_gate -> severity -> editor -> confidence_gate -> route
+        -> consolidate -> route
         -> human_review (interrupt) -> finalize
 
 Three things about the structure are worth explaining.
@@ -23,8 +23,8 @@ call per reference document -- never several codes of practice in one prompt, be
 prompt carrying two unrelated documents does measurably worse at citing the right clause from either.
 
 **Everything after the fan-out is sequential and deterministic.** Grounding, severity, dedupe, the
-confidence gate and routing are all plain code, in a fixed order, each consuming the previous one's
-output. That is what makes a decision reconstructable: given the findings the checks produced, the
+confidence threshold and routing are all plain code, in a fixed order -- the first four as stages
+of ``consolidate``, then ``route``. That is what makes a decision reconstructable: given the findings the checks produced, the
 route is a pure function of tenant policy, so an auditor can replay it by hand -- and the eval
 harness can recompute routing at five different confidence thresholds without calling a model again.
 
@@ -44,12 +44,9 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
 from mlr import trace
-from mlr.nodes import checks, finalize, human_review, ingest, preapproved, rules
+from mlr.nodes import checks, consolidate, finalize, human_review, ingest, preapproved, rules
 from mlr.nodes import extract_claims as extract
-from mlr.nodes import grounding_gate as grounding
 from mlr.nodes import route as routing
-from mlr.nodes import severity as severity_node
-from mlr.nodes.editor import editor
 from mlr.prompts.checks import CHECKS
 from mlr.state import ReviewState
 
@@ -81,10 +78,7 @@ STEPPABLE_NODES: tuple[str, ...] = (
     "ingest",
     "extract_claims",
     "preapproved_filter",
-    "grounding_gate",
-    "severity",
-    "editor",
-    "confidence_gate",
+    "consolidate",
     "route",
 )
 
@@ -95,10 +89,7 @@ PIPELINE: tuple[str, ...] = (
     "preapproved_filter",
     *CORE_CHECKS,
     *RULE_BRANCHES,
-    "grounding_gate",
-    "severity",
-    "editor",
-    "confidence_gate",
+    "consolidate",
     "route",
     "human_review",
     "finalize",
@@ -130,7 +121,7 @@ def fan_out(state: ReviewState) -> list[Send]:
         sends.append(Send("house_rules", payload))
 
     # A piece with nothing to check still has to reach a human, so the pipeline must not stall.
-    return sends or [Send("grounding_gate", payload)]
+    return sends or [Send("consolidate", payload)]
 
 
 def build(*, fake: Any = None) -> StateGraph:
@@ -169,10 +160,7 @@ def build(*, fake: Any = None) -> StateGraph:
 
     add("house_rules", _llm(rules.house_rules))
 
-    add("grounding_gate", grounding.grounding_gate)
-    add("severity", severity_node.severity)
-    add("editor", editor)
-    add("confidence_gate", routing.confidence_gate)
+    add("consolidate", consolidate.consolidate)
     add("route", routing.route)
     add("human_review", human_review.human_review)
     add("finalize", finalize.finalize)
@@ -186,15 +174,12 @@ def build(*, fake: Any = None) -> StateGraph:
     builder.add_conditional_edges(
         "preapproved_filter",
         fan_out,
-        [*CORE_CHECKS, *RULE_BRANCHES, "grounding_gate"],
+        [*CORE_CHECKS, *RULE_BRANCHES, "consolidate"],
     )
     for branch in (*CORE_CHECKS, *RULE_BRANCHES):
-        builder.add_edge(branch, "grounding_gate")
+        builder.add_edge(branch, "consolidate")
 
-    builder.add_edge("grounding_gate", "severity")
-    builder.add_edge("severity", "editor")
-    builder.add_edge("editor", "confidence_gate")
-    builder.add_edge("confidence_gate", "route")
+    builder.add_edge("consolidate", "route")
     builder.add_edge("route", "human_review")
     builder.add_edge("human_review", "finalize")
     builder.add_edge("finalize", END)

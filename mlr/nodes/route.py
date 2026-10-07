@@ -24,56 +24,60 @@ from platform_core.rules.registry import RuleRegistry
 from platform_core.tenancy import load_tenant
 
 
-def confidence_gate(state: dict[str, Any]) -> dict[str, Any]:
+def flag_low_confidence(
+    findings: list[Finding], state: dict[str, Any]
+) -> tuple[list[Finding], dict[str, Any], list[GateResult]]:
     """Flag findings below the tenant's confidence threshold.
 
-    A low-confidence finding is kept and escalated, never discarded. The threshold is the
-    safety-versus-throughput dial: Acme accepts machine judgement at 70, Borealis wants a human to
-    look at anything below 80. The eval harness sweeps it to show the trade-off curve, which is only
-    meaningful because this node is the single place the threshold is applied.
+    A part of the ``consolidate`` node rather than a node of its own. A low-confidence finding is
+    kept and escalated, never discarded. The threshold is the safety-versus-throughput dial: Acme
+    accepts machine judgement at 70, Borealis wants a human to look at anything below 80.
+
+    Still the single place the threshold is applied, which is what lets the eval harness sweep it
+    and recompute routing without calling a model again. Folding it into ``consolidate`` moved
+    where it runs, not how many places know about it.
+
+    Worth knowing when reading the sweep: the confidences feeding this are the reviewers' own
+    self-reports, and nothing calibrates them against observed correctness. The dial is in the
+    right place; what it is dialling has not been measured.
     """
-    with node_run(state, "confidence_gate", event_type="gate") as run:
-        from mlr.state import report_findings
-
-        findings = report_findings(state)
-        threshold = load_tenant(str(state["tenant_id"])).confidence_threshold
-
-        if not findings:
-            run.output = {"findings": 0, "threshold": threshold}
-            return {
-                "gate_results": [
-                    GateResult(
-                        gate="confidence",
-                        passed=True,
-                        details="no findings to assess",
-                        reason_code="low_confidence",
-                    )
-                ]
-            }
-
-        flagged: list[Finding] = []
-        below: list[str] = []
-        for finding in findings:
-            is_low = finding.confidence < threshold
-            if is_low:
-                below.append(finding.id)
-            flagged.append(finding.model_copy(update={"low_confidence": is_low}))
-
-        gate = GateResult(
-            gate="confidence",
-            passed=not below,
-            details=(
-                f"all {len(flagged)} finding(s) met the tenant threshold of {threshold}"
-                if not below
-                else f"{len(below)} of {len(flagged)} finding(s) fell below the tenant threshold "
-                f"of {threshold}"
-            ),
-            failed_items=below,
-            on_fail_route="escalate" if below else None,
-            reason_code="low_confidence",
+    threshold = load_tenant(str(state["tenant_id"])).confidence_threshold
+    if not findings:
+        return (
+            [],
+            {"findings": 0, "threshold": threshold},
+            [
+                GateResult(
+                    gate="confidence",
+                    passed=True,
+                    details="no findings to assess",
+                    reason_code="low_confidence",
+                )
+            ],
         )
-        run.output = {"findings": len(flagged), "threshold": threshold, "below": len(below)}
-        return {"final_findings": flagged, "gate_results": [gate]}
+
+    flagged: list[Finding] = []
+    below: list[str] = []
+    for finding in findings:
+        is_low = finding.confidence < threshold
+        if is_low:
+            below.append(finding.id)
+        flagged.append(finding.model_copy(update={"low_confidence": is_low}))
+
+    gate = GateResult(
+        gate="confidence",
+        passed=not below,
+        details=(
+            f"all {len(flagged)} finding(s) met the tenant threshold of {threshold}"
+            if not below
+            else f"{len(below)} of {len(flagged)} finding(s) fell below the tenant threshold "
+            f"of {threshold}"
+        ),
+        failed_items=below,
+        on_fail_route="escalate" if below else None,
+        reason_code="low_confidence",
+    )
+    return flagged, {"findings": len(flagged), "threshold": threshold, "below": len(below)}, [gate]
 
 
 def _escalation_reasons(state: dict[str, Any], findings: list[Finding]) -> list[EscalationReason]:

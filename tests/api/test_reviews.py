@@ -209,7 +209,7 @@ def test_the_audit_trail_has_the_contract_shape_and_is_complete(client, submitte
     assert_same_shape(trail, fixture("GET_reviews_{run_id}_audit.json"))
     assert trail["integrity"]["sequence_complete"] is True
     nodes = [e["node"] for e in trail["events"]]
-    assert nodes[0] == "ingest" and "grounding_gate" in nodes and "route" in nodes
+    assert nodes[0] == "ingest" and "consolidate" in nodes and "route" in nodes
 
 
 def test_audit_integrity_reports_a_dropped_or_duplicated_event(client, submitted, monkeypatch):

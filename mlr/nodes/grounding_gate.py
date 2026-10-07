@@ -33,7 +33,6 @@ import json
 import re
 from typing import Any
 
-from mlr.nodes.base import node_run
 from mlr.schemas import Finding, GateResult
 from platform_core.retrieval import TenantRetriever
 from platform_core.rules.deterministic import normalize_whitespace
@@ -142,82 +141,85 @@ def _load_reference_docs(tenant_id: str) -> dict[str, str]:
     }
 
 
-def grounding_gate(state: dict[str, Any]) -> dict[str, Any]:
-    """Mark each finding with how it was grounded, and record the gate's verdict."""
-    with node_run(state, "grounding_gate", event_type="gate") as run:
-        findings: list[Finding] = list(state.get("findings") or [])
-        if not findings:
-            run.output = {"findings": 0, "grounded": 0}
-            return {
-                "gate_results": [
-                    GateResult(
-                        gate="grounding",
-                        passed=True,
-                        details="no findings to verify",
-                        reason_code="ungrounded",
-                    )
-                ]
-            }
+def verify(
+    findings: list[Finding], state: dict[str, Any]
+) -> tuple[list[Finding], dict[str, Any], list[GateResult]]:
+    """Mark each finding with how it was grounded, and produce the gate's verdict.
 
-        document = str(state.get("document") or "")
-        tenant_id = str(state["tenant_id"])
-        retriever = TenantRetriever(tenant_id)
-        reference_docs = _load_reference_docs(tenant_id)
-
-        verified: list[Finding] = []
-        ungrounded_ids: list[str] = []
-        reasons: dict[str, str] = {}
-
-        for finding in findings:
-            quote_ok = _quote_is_in_the_piece(finding, document)
-            mode = (
-                _verify_citations(
-                    finding, retriever=retriever, state=state, reference_docs=reference_docs
+    A part of the ``consolidate`` node rather than a node of its own."""
+    if not findings:
+        return (
+            [],
+            {"findings": 0, "grounded": 0},
+            [
+                GateResult(
+                    gate="grounding",
+                    passed=True,
+                    details="no findings to verify",
+                    reason_code="ungrounded",
                 )
-                if quote_ok
-                else ""
-            )
-
-            grounded = bool(mode)
-            verified.append(
-                finding.model_copy(
-                    update={"grounded": grounded, "grounded_by": mode if grounded else "none"}
-                )
-            )
-            if not grounded:
-                ungrounded_ids.append(finding.id)
-                reasons[finding.id] = (
-                    "the quoted text does not appear in the submitted piece"
-                    if not quote_ok
-                    else "no citation could be verified against a source belonging to this tenant"
-                )
-
-        by_mode = {
-            mode: sum(1 for f in verified if f.grounded_by == mode)
-            for mode in ("evidence", "rule", "doc_clause", "measurement", "none")
-        }
-        passed = not ungrounded_ids
-
-        gate = GateResult(
-            gate="grounding",
-            passed=passed,
-            details=(
-                f"all {len(verified)} finding(s) verified "
-                f"({by_mode['evidence']} by evidence, {by_mode['rule']} by rule, "
-                f"{by_mode['doc_clause']} by document clause, "
-                f"{by_mode['measurement']} by measurement)"
-                if passed
-                else f"{len(ungrounded_ids)} of {len(verified)} finding(s) could not be verified: "
-                + "; ".join(f"{fid} ({reasons[fid]})" for fid in ungrounded_ids[:3])
-            ),
-            failed_items=ungrounded_ids,
-            on_fail_route="escalate" if ungrounded_ids else None,
-            reason_code="ungrounded",
+            ],
         )
 
-        run.output = {"findings": len(verified), "by_mode": by_mode, "passed": passed}
+    document = str(state.get("document") or "")
+    tenant_id = str(state["tenant_id"])
+    retriever = TenantRetriever(tenant_id)
+    reference_docs = _load_reference_docs(tenant_id)
 
-        # The verified findings replace the accumulator's contents via the editor's key, not this
-        # one -- `findings` has an append reducer, so writing here would double everything. The
-        # grounding flags therefore travel in `final_findings`, which the editor then refines.
-        return {"final_findings": verified, "gate_results": [gate]}
+    verified: list[Finding] = []
+    ungrounded_ids: list[str] = []
+    reasons: dict[str, str] = {}
+
+    for finding in findings:
+        quote_ok = _quote_is_in_the_piece(finding, document)
+        mode = (
+            _verify_citations(
+                finding, retriever=retriever, state=state, reference_docs=reference_docs
+            )
+            if quote_ok
+            else ""
+        )
+
+        grounded = bool(mode)
+        verified.append(
+            finding.model_copy(
+                update={"grounded": grounded, "grounded_by": mode if grounded else "none"}
+            )
+        )
+        if not grounded:
+            ungrounded_ids.append(finding.id)
+            reasons[finding.id] = (
+                "the quoted text does not appear in the submitted piece"
+                if not quote_ok
+                else "no citation could be verified against a source belonging to this tenant"
+            )
+
+    by_mode = {
+        mode: sum(1 for f in verified if f.grounded_by == mode)
+        for mode in ("evidence", "rule", "doc_clause", "measurement", "none")
+    }
+    passed = not ungrounded_ids
+
+    gate = GateResult(
+        gate="grounding",
+        passed=passed,
+        details=(
+            f"all {len(verified)} finding(s) verified "
+            f"({by_mode['evidence']} by evidence, {by_mode['rule']} by rule, "
+            f"{by_mode['doc_clause']} by document clause, "
+            f"{by_mode['measurement']} by measurement)"
+            if passed
+            else f"{len(ungrounded_ids)} of {len(verified)} finding(s) could not be verified: "
+            + "; ".join(f"{fid} ({reasons[fid]})" for fid in ungrounded_ids[:3])
+        ),
+        failed_items=ungrounded_ids,
+        on_fail_route="escalate" if ungrounded_ids else None,
+        reason_code="ungrounded",
+    )
+
+    summary = {"findings": len(verified), "by_mode": by_mode, "passed": passed}
+
+    # The verified findings replace the accumulator's contents via the editor's key, not this
+    # one -- `findings` has an append reducer, so writing here would double everything. The
+    # grounding flags therefore travel in `final_findings`, which the editor then refines.
+    return verified, summary, [gate]

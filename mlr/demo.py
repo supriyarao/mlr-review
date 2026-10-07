@@ -34,7 +34,8 @@ GOLDEN_DIR = REPO_ROOT / "evals" / "golden"
 
 # How much of a document to compare when matching a submission to a golden case. Enough to be
 # distinctive, short enough that a trailing edit does not stop it matching.
-MATCH_PREFIX_CHARS = 400
+# Kept only to describe the old behaviour in the comment below; nothing reads it.
+_OLD_MATCH_PREFIX_CHARS = 400
 
 NO_FINDINGS = json.dumps({"findings": []})
 
@@ -48,15 +49,30 @@ def _cases() -> tuple[GoldenCase, ...]:
 
 
 def _fingerprint(text: str) -> str:
-    return normalize_whitespace(text)[:MATCH_PREFIX_CHARS].lower()
+    """The whole piece, whitespace-normalised. Not a prefix.
+
+    This used to hash the first 400 characters, on the reasoning that ingest strips front matter
+    and emphasis and an exact match would fail for reasons unrelated to the content. The reasoning
+    was sound and the consequence was not: an edit below character 400 left the fingerprint
+    unchanged, so a modified piece silently matched the sample it was derived from and was handed
+    that sample's recorded findings.
+
+    That is the worst answer available. Someone pastes a sample in, adds a paediatric claim to a
+    medicine approved in adults, and gets back a confident review that never saw the edit -- not
+    "I cannot review this offline", but a specific clean verdict on a document nothing read.
+
+    Normalising still absorbs the whitespace and emphasis differences the prefix was there to
+    tolerate. What it no longer does is tolerate a different document.
+    """
+    return normalize_whitespace(text).lower()
 
 
 def match_case(document: str, *, tenant_id: str = "") -> GoldenCase | None:
     """The golden case this submission corresponds to, if any.
 
-    Matched on a normalised prefix rather than an exact hash, because ingest strips front matter and
-    emphasis and the UI may trim whitespace -- an exact match would fail for reasons that have nothing
-    to do with the content.
+    Matched on the whole normalised text: see :func:`_fingerprint` for why a prefix was worse than
+    no match at all. A piece that does not match any sample gets the no-findings script, which is
+    honest but useless -- an edited piece has to be reviewed by a real backend.
     """
     target = _fingerprint(document)
     if not target:
