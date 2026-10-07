@@ -1,0 +1,9 @@
+Recorded model responses live here, one JSON file per (node, prompt version, prompt) key.
+
+Committed empty, with this file, because git cannot store an empty directory and
+tests/test_scaffold.py requires the directory to exist -- without it a fresh clone fails
+`make test` before it fails anything interesting. evals/candidates/ is kept the same way.
+
+Empty today, which is why `make eval-replay` cannot run: there is nothing to replay. Record a
+set with `MLR_LLM_BACKEND=anthropic make eval` plus --record, and scrub anything key-shaped
+before committing (platform_core/llm.py does that on write).
