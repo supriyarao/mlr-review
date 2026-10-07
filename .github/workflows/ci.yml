@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -46,7 +46,7 @@ jobs:
       # The embedding model the vector store uses is downloaded on first use. Cached so the eval
       # step does not fetch it on every run.
       - name: Cache embedding model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/chroma
           key: chroma-onnx-${{ runner.os }}
@@ -65,11 +65,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # scan the whole history, not just the tip
 
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
