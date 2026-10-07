@@ -14,6 +14,9 @@ params:
   section: important_safety_information
   # Acme requires presence only. Borealis additionally constrains placement, and that single
   # difference is what makes the same piece route differently under the two tenants.
+  suggested_fix: >-
+    Add an Important Safety Information section carrying the contraindications, warnings and most
+    common adverse reactions.
 examples:
   - text: "Zelvoran® achieved PASI-75 in 68.4% of adults at Week 16.\n\nIMPORTANT SAFETY INFORMATION\nSerious infections have been reported."
     expected: pass

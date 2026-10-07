@@ -17,6 +17,8 @@ params:
     a family as implying use outside that population, even when the claim text itself is accurate and
     even when the claim is a pre-approved one. Judge the piece as a reader would encounter it,
     including captions and adjacent copy, not the claim sentence in isolation.
+  suggested_fix: >-
+    Use imagery and captions showing only the population the label covers.
 examples:
   - text: >-
       Zelvoran is indicated for moderate-to-severe plaque psoriasis in adults. Photo caption: the

@@ -1,9 +1,9 @@
 {
-  "eval_run_id": "0443be23120a",
-  "started_at": "2026-10-07T05:05:05.286881+00:00",
-  "finished_at": "2026-10-07T05:05:31.287664+00:00",
+  "eval_run_id": "cabd37adbe8b",
+  "started_at": "2026-10-07T05:20:03.735004+00:00",
+  "finished_at": "2026-10-07T05:20:33.375190+00:00",
   "mode": "offline",
-  "git_sha": "21a535b",
+  "git_sha": "b4707c1",
   "backend": "fake",
   "model_strong": "fake-strong",
   "model_fast": "fake-fast",
@@ -15,8 +15,8 @@
     "preapproved_filter": "preapproved-v1"
   },
   "tenant_config_hashes": {
-    "acme_pharma": "d0bbcd14ee44b5c5",
-    "borealis_bio": "6a7eaefa4ec8bbd5"
+    "acme_pharma": "5e3065cc56a644ca",
+    "borealis_bio": "5198e15619adfc77"
   },
   "repeats": 1,
   "cases": [
@@ -30,7 +30,9 @@
             "check_type": "substantiation",
             "claim_contains": "Nearly 6 in 10",
             "severity": "blocker",
-            "note": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%."
+            "note": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
+            "explanation": "The evidence reviewer checks that a claim is backed by the studies, at the strength it is made. This says nearly 6 in 10 adults got clear skin. That 58.1% figure is real, but it comes from one group in the trial -- people who had already tried a biologic. Across everyone in the study the figure was 44.2%.",
+            "suggested_fix": "Either give the overall figure, or name the group: \"In adults who had previously taken a biologic, 58.1% achieved PASI-90 at Week 16.\""
           },
           "matched": true,
           "severity_mismatch": false,
@@ -42,7 +44,9 @@
             "check_type": "substantiation",
             "claim_contains": "58.1%",
             "severity": "blocker",
-            "note": "Quotes the subgroup rate without naming the subgroup."
+            "note": "Quotes the subgroup rate without naming the subgroup.",
+            "explanation": "Same problem, stated as a bare number. 58.1% is the result for one group in the trial, and nothing next to it tells the reader which group.",
+            "suggested_fix": "Name the group alongside the number, or use the 44.2% overall figure."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -54,7 +58,9 @@
             "check_type": "substantiation",
             "claim_contains": "maintained at 12 weeks",
             "severity": "blocker",
-            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis."
+            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
+            "explanation": "This claim points at Reference 3 as its source. That study, ZEL-303, measured a different thing at a different time -- PASI-75 at Week 16 and Week 52. It never measured PASI-90, and it never measured anything at 12 weeks. So the footnote does not support the sentence above it.",
+            "suggested_fix": "Cite a study that actually measured PASI-90 at 12 weeks, or restate the claim as PASI-75 at Week 16 and keep this reference."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -67,7 +73,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3353,
+      "latency_ms": 3309,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -83,8 +89,8 @@
             0
           ],
           "issue": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Nearly 6 in 10 adults reached PASI-90'. 58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
-          "suggested_fix": "",
+          "explanation": "The evidence reviewer checks that a claim is backed by the studies, at the strength it is made. This says nearly 6 in 10 adults got clear skin. That 58.1% figure is real, but it comes from one group in the trial -- people who had already tried a biologic. Across everyone in the study the figure was 44.2%.",
+          "suggested_fix": "Either give the overall figure, or name the group: \"In adults who had previously taken a biologic, 58.1% achieved PASI-90 at Week 16.\"",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:8",
@@ -106,9 +112,9 @@
                 0
               ],
               "kind": "doc_clause",
-              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v2)",
               "rule_id": "ACME-DOC-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "blocker",
@@ -119,7 +125,7 @@
           "grounded": true,
           "grounded_by": "evidence",
           "rule_id": "ACME-DOC-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "fake-strong",
           "prompt_version": "substantiation-v3",
           "merged_from": [
@@ -136,8 +142,8 @@
             0
           ],
           "issue": "Quotes the subgroup rate without naming the subgroup.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran delivered PASI-90 in 58.1% of adults at Week 16 [2].'. Quotes the subgroup rate without naming the subgroup.",
-          "suggested_fix": "",
+          "explanation": "Same problem, stated as a bare number. 58.1% is the result for one group in the trial, and nothing next to it tells the reader which group.",
+          "suggested_fix": "Name the group alongside the number, or use the 44.2% overall figure.",
           "citations": [
             {
               "source_id": "acme_pharma:reference:zel-302:2",
@@ -175,8 +181,8 @@
             0
           ],
           "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Sustained response: PASI-90 was maintained at 12 weeks in the extension study [3].'. ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
-          "suggested_fix": "",
+          "explanation": "This claim points at Reference 3 as its source. That study, ZEL-303, measured a different thing at a different time -- PASI-75 at Week 16 and Week 52. It never measured PASI-90, and it never measured anything at 12 weeks. So the footnote does not support the sentence above it.",
+          "suggested_fix": "Cite a study that actually measured PASI-90 at 12 weeks, or restate the claim as PASI-75 at Week 16 and keep this reference.",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:9",
@@ -234,7 +240,9 @@
             "check_type": "off_label",
             "claim_contains": "whole family",
             "severity": "blocker",
-            "note": "The label covers adults only and has no paediatric data."
+            "note": "The label covers adults only and has no paediatric data.",
+            "explanation": "The label reviewer checks the piece against what the medicine is approved for. Zelvoran is approved for adults only, and no studies were done in children. \"The whole family\" invites a reader to include them.",
+            "suggested_fix": "Say who the medicine is for: \"for adults with moderate-to-severe plaque psoriasis\"."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -246,7 +254,9 @@
             "check_type": "off_label",
             "claim_contains": "nine-year-old",
             "severity": "blocker",
-            "note": "A named child in the caption implies paediatric use."
+            "note": "A named child in the caption implies paediatric use.",
+            "explanation": "A caption naming a nine-year-old puts a child in a piece for a medicine approved only in adults. A reader takes the picture as seriously as the words.",
+            "suggested_fix": "Use an adult in the image and caption, or remove the age."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -258,7 +268,9 @@
             "check_type": "substantiation",
             "claim_contains": "Most people see clear skin",
             "severity": "blocker",
-            "note": "Implies a typical result with no response rate, population or timepoint."
+            "note": "Implies a typical result with no response rate, population or timepoint.",
+            "explanation": "The evidence reviewer looks for claims the studies do not support as written. \"Most people\" and \"within weeks\" are both claims about how well and how fast the medicine works, and neither has a number, a patient group or a timepoint behind it.",
+            "suggested_fix": "Give the measured figure with its group and timepoint, for example \"68.4% of adults achieved PASI-75 at Week 16\"."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -293,7 +305,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3194,
+      "latency_ms": 4142,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -387,8 +399,8 @@
             0
           ],
           "issue": "The label covers adults only and has no paediatric data.",
-          "explanation": "The label reviewer flagged this. The piece says: 'Clearer skin, for the whole family'. The label covers adults only and has no paediatric data.",
-          "suggested_fix": "",
+          "explanation": "The label reviewer checks the piece against what the medicine is approved for. Zelvoran is approved for adults only, and no studies were done in children. \"The whole family\" invites a reader to include them.",
+          "suggested_fix": "Say who the medicine is for: \"for adults with moderate-to-severe plaque psoriasis\".",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:10",
@@ -426,8 +438,8 @@
             0
           ],
           "issue": "A named child in the caption implies paediatric use.",
-          "explanation": "The label reviewer flagged this. The piece says: 'Photo caption: the Hartley family on holiday \u2014 including nine-year-old Mia, back at the beach\\n> after years of covering up.*'. A named child in the caption implies paediatric use.",
-          "suggested_fix": "",
+          "explanation": "A caption naming a nine-year-old puts a child in a piece for a medicine approved only in adults. A reader takes the picture as seriously as the words.",
+          "suggested_fix": "Use an adult in the image and caption, or remove the age.",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:10",
@@ -465,8 +477,8 @@
             0
           ],
           "issue": "Implies a typical result with no response rate, population or timepoint.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Most people see clear skin within weeks.'. Implies a typical result with no response rate, population or timepoint.",
-          "suggested_fix": "",
+          "explanation": "The evidence reviewer looks for claims the studies do not support as written. \"Most people\" and \"within weeks\" are both claims about how well and how fast the medicine works, and neither has a number, a patient group or a timepoint behind it.",
+          "suggested_fix": "Give the measured figure with its group and timepoint, for example \"68.4% of adults achieved PASI-75 at Week 16\".",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:7",
@@ -504,20 +516,20 @@
             54
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v1",
+              "source_id": "ACME-TM-001 v2",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v1",
+              "title": "ACME-TM-001 v2",
               "rule_id": "ACME-TM-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "advisory",
@@ -528,7 +540,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -563,7 +575,9 @@
             "check_type": "substantiation",
             "claim_contains": "maintained at 12 weeks",
             "severity": "blocker",
-            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12."
+            "note": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
+            "explanation": "The footnote points at ZEL-303. That study measured PASI-75 at Week 16 and Week 52 -- not PASI-90, and nothing at 12 weeks. The study is real and about the right medicine, which is what makes this easy to miss.",
+            "suggested_fix": "Cite a study that measured PASI-90 at 12 weeks, or change the claim to match what ZEL-303 reports."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -576,7 +590,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2649,
+      "latency_ms": 2749,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -592,8 +606,8 @@
             0
           ],
           "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'PASI-90 was achieved and maintained at 12 weeks in the extension study [3].'. ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
-          "suggested_fix": "",
+          "explanation": "The footnote points at ZEL-303. That study measured PASI-75 at Week 16 and Week 52 -- not PASI-90, and nothing at 12 weeks. The study is real and about the right medicine, which is what makes this easy to miss.",
+          "suggested_fix": "Cite a study that measured PASI-90 at 12 weeks, or change the claim to match what ZEL-303 reports.",
           "citations": [
             {
               "source_id": "acme_pharma:label:zelvoran:v1.0:9",
@@ -651,7 +665,9 @@
             "check_type": "safety_prominence",
             "claim_contains": "Contraindicated in active serious infection",
             "severity": "blocker",
-            "note": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance."
+            "note": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
+            "explanation": "The safety reviewer checks that risk information is present and somewhere a reader will meet it. Here it is one line, placed after the footnotes, far from the benefit claims it is meant to balance.",
+            "suggested_fix": "Move the safety information up beside the efficacy claims and give it comparable space."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -664,7 +680,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2421,
+      "latency_ms": 3161,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -680,8 +696,8 @@
             0
           ],
           "issue": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
-          "explanation": "The safety reviewer flagged this. The piece says: 'Contraindicated in active serious infection.'. Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
-          "suggested_fix": "",
+          "explanation": "The safety reviewer checks that risk information is present and somewhere a reader will meet it. Here it is one line, placed after the footnotes, far from the benefit claims it is meant to balance.",
+          "suggested_fix": "Move the safety information up beside the efficacy claims and give it comparable space.",
           "citations": [
             {
               "source_id": "safety_prominence_validator",
@@ -739,7 +755,9 @@
             "check_type": "substantiation",
             "claim_contains": "works better than the leading biologics",
             "severity": "blocker",
-            "note": "No head-to-head trial exists; the label states none was conducted."
+            "note": "No head-to-head trial exists; the label states none was conducted.",
+            "explanation": "Saying one medicine works better than another is a comparison, and a comparison needs a trial that tested them against each other. No such trial exists for Zelvoran -- the label says so.",
+            "suggested_fix": "Remove the comparison, or replace it with what was measured against placebo."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -752,7 +770,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2220,
+      "latency_ms": 2458,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -768,8 +786,8 @@
             0
           ],
           "issue": "No head-to-head trial exists; the label states none was conducted.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran works better than the leading biologics for plaque psoriasis.'. No head-to-head trial exists; the label states none was conducted.",
-          "suggested_fix": "",
+          "explanation": "Saying one medicine works better than another is a comparison, and a comparison needs a trial that tested them against each other. No such trial exists for Zelvoran -- the label says so.",
+          "suggested_fix": "Remove the comparison, or replace it with what was measured against placebo.",
           "citations": [],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
@@ -818,7 +836,9 @@
             "check_type": "substantiation",
             "claim_contains": "works better than the leading therapies",
             "severity": "blocker",
-            "note": "No head-to-head cardiovascular outcomes trial exists."
+            "note": "No head-to-head cardiovascular outcomes trial exists.",
+            "explanation": "A claim that this works better than other therapies needs a trial comparing them directly. No cardiovascular outcomes trial has done that for Nexapril.",
+            "suggested_fix": "Drop the comparison, or state the placebo-controlled result instead."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -831,7 +851,7 @@
       "expected_route": "legal",
       "actual_route": "legal",
       "route_correct": true,
-      "latency_ms": 2344,
+      "latency_ms": 2537,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -847,11 +867,11 @@
             0
           ],
           "issue": "No head-to-head cardiovascular outcomes trial exists.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Nexapril works better than the leading therapies for cardiovascular risk reduction [1].'. No head-to-head cardiovascular outcomes trial exists.",
-          "suggested_fix": "",
+          "explanation": "A claim that this works better than other therapies needs a trial comparing them directly. No cardiovascular outcomes trial has done that for Nexapril.",
+          "suggested_fix": "Drop the comparison, or state the placebo-controlled result instead.",
           "citations": [
             {
-              "source_id": "BOR-LLM-001 v1",
+              "source_id": "BOR-LLM-001 v2",
               "passage": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head clinical trial against that comparator. No head-to-head trial exists for any Borealis product.",
               "char_span": [
                 0,
@@ -860,7 +880,7 @@
               "kind": "rule",
               "title": "Comparative language requires a named comparator and head-to-head evidence",
               "rule_id": "BOR-LLM-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "blocker",
@@ -871,7 +891,7 @@
           "grounded": false,
           "grounded_by": "none",
           "rule_id": "BOR-LLM-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "fake-strong",
           "prompt_version": "substantiation-v3",
           "merged_from": [
@@ -912,7 +932,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2174,
+      "latency_ms": 3026,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -947,7 +967,9 @@
             "check_type": "fair_balance",
             "claim_contains": "beyond the 600 allowed",
             "severity": "blocker",
-            "note": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence."
+            "note": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
+            "explanation": "This is one of Borealis's own rules. It requires safety information to sit within 600 characters of the first efficacy claim, so a reader meets the risk alongside the benefit. Here it is further away than that. Acme allows the same layout; Borealis does not.",
+            "suggested_fix": "Move the safety information next to the first efficacy claim."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -975,7 +997,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2238,
+      "latency_ms": 2725,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1069,8 +1091,8 @@
             0
           ],
           "issue": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
-          "explanation": "The balance reviewer flagged this. The piece says: 'beyond the 600 allowed'. BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
-          "suggested_fix": "",
+          "explanation": "This is one of Borealis's own rules. It requires safety information to sit within 600 characters of the first efficacy claim, so a reader meets the risk alongside the benefit. Here it is further away than that. Acme allows the same layout; Borealis does not.",
+          "suggested_fix": "Move the safety information next to the first efficacy claim.",
           "citations": [
             {
               "source_id": "fair_balance_validator",
@@ -1128,7 +1150,9 @@
             "check_type": "off_label",
             "claim_contains": "Whatever your age",
             "severity": "blocker",
-            "note": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads."
+            "note": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
+            "explanation": "The claim above this line is pre-approved wording and is fine on its own. \"Whatever your age\" is the problem: it widens the medicine to people it is not approved for. Approving a sentence does not approve the page it later sits on.",
+            "suggested_fix": "Remove the line, or replace it with \"for adults\"."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1149,7 +1173,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 878,
+      "latency_ms": 1053,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1165,8 +1189,8 @@
             0
           ],
           "issue": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
-          "explanation": "The label reviewer flagged this. The piece says: 'Whatever your age, whatever your stage, Zelvoran may be the answer your family has been waiting for.'. Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
-          "suggested_fix": "",
+          "explanation": "The claim above this line is pre-approved wording and is fine on its own. \"Whatever your age\" is the problem: it widens the medicine to people it is not approved for. Approving a sentence does not approve the page it later sits on.",
+          "suggested_fix": "Remove the line, or replace it with \"for adults\".",
           "citations": [
             {
               "source_id": "acme_pharma:reference:zel-301:2",
@@ -1204,20 +1228,20 @@
             44
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v1",
+              "source_id": "ACME-TM-001 v2",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v1",
+              "title": "ACME-TM-001 v2",
               "rule_id": "ACME-TM-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "advisory",
@@ -1228,7 +1252,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -1263,7 +1287,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2484,
+      "latency_ms": 2863,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1298,7 +1322,9 @@
             "check_type": "substantiation",
             "claim_contains": "92% of adults maintained completely clear skin at two years",
             "severity": "blocker",
-            "note": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation."
+            "note": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
+            "explanation": "There is no data past Week 52 for this medicine, so nothing in the evidence supports a two-year figure. The reviewer could not verify it at all, which is different from finding it wrong.",
+            "suggested_fix": "Remove the claim, or replace it with a figure from a timepoint that was actually measured."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1311,7 +1337,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2743,
+      "latency_ms": 2688,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1327,8 +1353,8 @@
             0
           ],
           "issue": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
-          "explanation": "The evidence reviewer flagged this. The piece says: '92% of adults maintained completely clear skin at two years.'. No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
-          "suggested_fix": "",
+          "explanation": "There is no data past Week 52 for this medicine, so nothing in the evidence supports a two-year figure. The reviewer could not verify it at all, which is different from finding it wrong.",
+          "suggested_fix": "Remove the claim, or replace it with a figure from a timepoint that was actually measured.",
           "citations": [],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
@@ -1377,7 +1403,9 @@
             "check_type": "substantiation",
             "claim_contains": "reduced major adverse cardiovascular events by 22%",
             "severity": "blocker",
-            "note": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported."
+            "note": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
+            "explanation": "The study behind this figure is NEX-114, which belongs to a different company. Acme's evidence has nothing about cardiovascular outcomes, so this reviewer had nothing to check the claim against and reported it as unverified rather than guessing.",
+            "suggested_fix": "Remove the claim, or supply evidence held by this company that supports it."
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1390,7 +1418,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2691,
+      "latency_ms": 2693,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1406,8 +1434,8 @@
             0
           ],
           "issue": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
-          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran reduced major adverse cardiovascular events by 22% over 36 months.'. The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
-          "suggested_fix": "",
+          "explanation": "The study behind this figure is NEX-114, which belongs to a different company. Acme's evidence has nothing about cardiovascular outcomes, so this reviewer had nothing to check the claim against and reported it as unverified rather than guessing.",
+          "suggested_fix": "Remove the claim, or supply evidence held by this company that supports it.",
           "citations": [],
           "severity_proposed": "blocker",
           "severity_final": "blocker",
@@ -1456,7 +1484,9 @@
             "check_type": "business_rule",
             "claim_contains": "cure",
             "severity": "blocker",
-            "note": "ACME-BAN-001. Deterministic, no model call, confidence 100."
+            "note": "ACME-BAN-001. Deterministic, no model call, confidence 100.",
+            "explanation": "",
+            "suggested_fix": ""
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1469,7 +1499,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2485,
+      "latency_ms": 2896,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1544,7 +1574,9 @@
             "check_type": "business_rule",
             "claim_contains": "Required text is missing",
             "severity": "blocker",
-            "note": "BOR-DISC-001. An absence, so the finding has no quote - and must still be grounded by the rule."
+            "note": "BOR-DISC-001. An absence, so the finding has no quote - and must still be grounded by the rule.",
+            "explanation": "",
+            "suggested_fix": ""
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1565,7 +1597,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2447,
+      "latency_ms": 2719,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1620,20 +1652,20 @@
             24
           ],
           "issue": "First mention of Nexapril does not carry a trademark symbol.",
-          "explanation": "This is BOR-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Nexapril does not carry a trademark symbol. The wording that triggered it is 'Nexapril'.",
+          "explanation": "This is BOR-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Nexapril does not carry a trademark symbol. The wording that triggered it is 'Nexapril'.",
           "suggested_fix": "Write Nexapril\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "BOR-TM-001 v1",
+              "source_id": "BOR-TM-001 v2",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "BOR-TM-001 v1",
+              "title": "BOR-TM-001 v2",
               "rule_id": "BOR-TM-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "advisory",
@@ -1644,7 +1676,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "BOR-TM-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -1687,7 +1719,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2307,
+      "latency_ms": 3030,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1703,20 +1735,20 @@
             24
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v1",
+              "source_id": "ACME-TM-001 v2",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v1",
+              "title": "ACME-TM-001 v2",
               "rule_id": "ACME-TM-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "advisory",
@@ -1727,7 +1759,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -1762,7 +1794,9 @@
             "check_type": "business_rule",
             "claim_contains": "Three years of sustained clear skin",
             "severity": "blocker",
-            "note": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document."
+            "note": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document.",
+            "explanation": "",
+            "suggested_fix": ""
           },
           "matched": true,
           "severity_mismatch": false,
@@ -1775,7 +1809,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3236,
+      "latency_ms": 2796,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1791,8 +1825,8 @@
             0
           ],
           "issue": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document.",
-          "explanation": "This is ACME-DOC-001 v1, one of the company's own rules. It says: Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
-          "suggested_fix": "",
+          "explanation": "This is ACME-DOC-001 v2, one of the company's own rules. It says: Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
+          "suggested_fix": "Reword the claim so it complies with the clause cited, or remove it.",
           "citations": [
             {
               "source_id": "acme-promotional-code.md",
@@ -1802,9 +1836,9 @@
                 0
               ],
               "kind": "doc_clause",
-              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v2)",
               "rule_id": "ACME-DOC-001",
-              "rule_version": 1
+              "rule_version": 2
             }
           ],
           "severity_proposed": "blocker",
@@ -1815,7 +1849,7 @@
           "grounded": true,
           "grounded_by": "doc_clause",
           "rule_id": "ACME-DOC-001",
-          "rule_version": 1,
+          "rule_version": 2,
           "model": "fake-strong",
           "prompt_version": "rule-check-v1",
           "merged_from": []
@@ -1873,9 +1907,9 @@
     },
     "cost_and_latency": {
       "runs": 16,
-      "latency_p50_ms": 2484.0,
-      "latency_p95_ms": 3236.0,
-      "latency_mean_ms": 2491.5,
+      "latency_p50_ms": 2796.0,
+      "latency_p95_ms": 3309.0,
+      "latency_mean_ms": 2802.8,
       "tokens_in_total": 0,
       "tokens_out_total": 0,
       "cost_usd_total": 0.0,
@@ -2009,9 +2043,9 @@
       },
       "cost_and_latency": {
         "runs": 13,
-        "latency_p50_ms": 2485.0,
-        "latency_p95_ms": 3236.0,
-        "latency_mean_ms": 2525.8,
+        "latency_p50_ms": 2863.0,
+        "latency_p95_ms": 3309.0,
+        "latency_mean_ms": 2835.7,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
@@ -2050,9 +2084,9 @@
       },
       "cost_and_latency": {
         "runs": 3,
-        "latency_p50_ms": 2344.0,
-        "latency_p95_ms": 2447.0,
-        "latency_mean_ms": 2343.0,
+        "latency_p50_ms": 2719.0,
+        "latency_p95_ms": 2725.0,
+        "latency_mean_ms": 2660.3,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,

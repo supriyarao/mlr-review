@@ -20,6 +20,8 @@ params:
     violation when the trial was placebo-controlled. A claim is still a violation when the comparator
     is vague - "leading therapies", "other treatments", "the alternatives" - because no head-to-head
     evidence exists for any comparator.
+  suggested_fix: >-
+    Name the comparator and cite the head-to-head trial, or remove the comparison.
 examples:
   - text: Nexapril works better than the leading therapies for cardiovascular risk.
     expected: fail

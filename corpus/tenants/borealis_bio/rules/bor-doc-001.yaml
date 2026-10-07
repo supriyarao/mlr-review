@@ -22,6 +22,8 @@ params:
       Use "adults with type 2 diabetes and established atherosclerotic cardiovascular disease", not
       "diabetics" or "at-risk patients".
     - Expand every abbreviation on first use. Do not use an abbreviation in a headline.
+  suggested_fix: >-
+    Reword the claim so it complies with the clause cited, or remove it.
 examples:
   - text: "MACE cut by 22% in diabetics [1]."
     expected: fail

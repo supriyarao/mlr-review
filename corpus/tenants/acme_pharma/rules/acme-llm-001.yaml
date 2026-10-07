@@ -19,6 +19,9 @@ params:
     qualification. A response rate stated with its population, comparator and timepoint is not a
     violation. Absence of a direction to speak to a healthcare professional is a violation only when
     the piece also implies a personal expectation of benefit.
+  suggested_fix: >-
+    State the measured response rate with its patient group and timepoint instead of describing a
+    typical result.
 examples:
   - text: Most people see clear skin within weeks. You can expect the same.
     expected: fail

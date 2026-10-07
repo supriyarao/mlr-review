@@ -39,6 +39,11 @@ promo: |
 expected_findings:
   - check_type: substantiation
     claim_contains: works better than the leading therapies
+    explanation: >-
+      A claim that this works better than other therapies needs a trial comparing them directly. No
+      cardiovascular outcomes trial has done that for Nexapril.
+    suggested_fix: >-
+      Drop the comparison, or state the placebo-controlled result instead.
     severity: blocker
     note: No head-to-head cardiovascular outcomes trial exists.
 expected_rule_ids:

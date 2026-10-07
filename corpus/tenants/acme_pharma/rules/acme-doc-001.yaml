@@ -26,6 +26,8 @@ params:
     - >-
       Every claim of efficacy or safety must carry a reference to the specific study supporting it.
       The cited study must report the endpoint, population and timepoint stated in the claim.
+  suggested_fix: >-
+    Reword the claim so it complies with the clause cited, or remove it.
 examples:
   - text: >-
       Nearly 6 in 10 adults achieved PASI-90 with Zelvoran at Week 16. Please see full Prescribing

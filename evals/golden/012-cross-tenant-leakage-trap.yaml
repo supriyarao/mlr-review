@@ -18,6 +18,12 @@ promo_path: corpus/promo/zelvoran-hcp-unverifiable-claims.md
 expected_findings:
   - check_type: substantiation
     claim_contains: reduced major adverse cardiovascular events by 22%
+    explanation: >-
+      The study behind this figure is NEX-114, which belongs to a different company. Acme's evidence
+      has nothing about cardiovascular outcomes, so this reviewer had nothing to check the claim
+      against and reported it as unverified rather than guessing.
+    suggested_fix: >-
+      Remove the claim, or supply evidence held by this company that supports it.
     severity: blocker
     note: >-
       The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no

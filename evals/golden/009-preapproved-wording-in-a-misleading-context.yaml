@@ -43,6 +43,12 @@ promo: |
 expected_findings:
   - check_type: off_label
     claim_contains: Whatever your age
+    explanation: >-
+      The claim above this line is pre-approved wording and is fine on its own. "Whatever your age"
+      is the problem: it widens the medicine to people it is not approved for. Approving a sentence
+      does not approve the page it later sits on.
+    suggested_fix: >-
+      Remove the line, or replace it with "for adults".
     severity: blocker
     note: >-
       Widens the approved adults-only population. The claim above it is pre-approved and correct; the

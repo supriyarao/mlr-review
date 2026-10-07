@@ -18,14 +18,32 @@ promo_path: corpus/promo/zelvoran-patient-brochure.md
 expected_findings:
   - check_type: off_label
     claim_contains: whole family
+    explanation: >-
+      The label reviewer checks the piece against what the medicine is approved for. Zelvoran is
+      approved for adults only, and no studies were done in children. "The whole family" invites a
+      reader to include them.
+    suggested_fix: >-
+      Say who the medicine is for: "for adults with moderate-to-severe plaque psoriasis".
     severity: blocker
     note: The label covers adults only and has no paediatric data.
   - check_type: off_label
     claim_contains: nine-year-old
+    explanation: >-
+      A caption naming a nine-year-old puts a child in a piece for a medicine approved only in
+      adults. A reader takes the picture as seriously as the words.
+    suggested_fix: >-
+      Use an adult in the image and caption, or remove the age.
     severity: blocker
     note: A named child in the caption implies paediatric use.
   - check_type: substantiation
     claim_contains: Most people see clear skin
+    explanation: >-
+      The evidence reviewer looks for claims the studies do not support as written. "Most people"
+      and "within weeks" are both claims about how well and how fast the medicine works, and neither
+      has a number, a patient group or a timepoint behind it.
+    suggested_fix: >-
+      Give the measured figure with its group and timepoint, for example "68.4% of adults achieved
+      PASI-75 at Week 16".
     severity: blocker
     note: Implies a typical result with no response rate, population or timepoint.
 expected_rule_ids:

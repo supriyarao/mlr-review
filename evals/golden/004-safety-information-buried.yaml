@@ -16,6 +16,12 @@ promo_path: corpus/promo/zelvoran-hcp-isi-buried.md
 expected_findings:
   - check_type: safety_prominence
     claim_contains: Contraindicated in active serious infection
+    explanation: >-
+      The safety reviewer checks that risk information is present and somewhere a reader will meet
+      it. Here it is one line, placed after the footnotes, far from the benefit claims it is meant
+      to balance.
+    suggested_fix: >-
+      Move the safety information up beside the efficacy claims and give it comparable space.
     severity: blocker
     note: >-
       Safety information is one line placed after the footnotes, far shorter than the efficacy content

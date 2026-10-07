@@ -100,7 +100,8 @@
         "markets": []
       },
       "params": {
-        "guidance": "Look for language suggesting a reader should expect the described outcome themselves, such as \"you will\", \"most people see\", \"typical results\", or a testimonial presented without qualification. A response rate stated with its population, comparator and timepoint is not a violation. Absence of a direction to speak to a healthcare professional is a violation only when the piece also implies a personal expectation of benefit."
+        "guidance": "Look for language suggesting a reader should expect the described outcome themselves, such as \"you will\", \"most people see\", \"typical results\", or a testimonial presented without qualification. A response rate stated with its population, comparator and timepoint is not a violation. Absence of a direction to speak to a healthcare professional is a violation only when the piece also implies a personal expectation of benefit.",
+        "suggested_fix": "State the measured response rate with its patient group and timepoint instead of describing a typical result."
       },
       "examples": [
         {
@@ -153,7 +154,8 @@
           "A claim that an Acme product is better than, more effective than, or preferable to another therapy requires a head-to-head clinical trial against that named therapy.",
           "Claims about how long an effect lasts must not extend beyond the longest timepoint for which data exist.",
           "Every claim of efficacy or safety must carry a reference to the specific study supporting it. The cited study must report the endpoint, population and timepoint stated in the claim."
-        ]
+        ],
+        "suggested_fix": "Reword the claim so it complies with the clause cited, or remove it."
       },
       "examples": [
         {

@@ -31,7 +31,14 @@ class ExpectedFinding(BaseModel):
     check_type: str
     claim_contains: str
     severity: str = ""
+    # Written for a reviewer: why this is wrong, in the vocabulary of someone who has it.
     note: str = ""
+    # The plain-English half, and the correction. Stated by the case rather than composed by the
+    # oracle, because a composed one can only ever rephrase the note -- and the offline demo runs
+    # on the fake backend, so this is the text a reader actually sees there. Optional: a case that
+    # omits them still matches, it just shows a weaker explanation.
+    explanation: str = ""
+    suggested_fix: str = ""
 
 
 class GoldenCase(BaseModel):

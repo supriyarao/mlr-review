@@ -17,6 +17,12 @@ promo_path: corpus/promo/zelvoran-hcp-unverifiable-claims.md
 expected_findings:
   - check_type: substantiation
     claim_contains: 92% of adults maintained completely clear skin at two years
+    explanation: >-
+      There is no data past Week 52 for this medicine, so nothing in the evidence supports a
+      two-year figure. The reviewer could not verify it at all, which is different from finding it
+      wrong.
+    suggested_fix: >-
+      Remove the claim, or replace it with a figure from a timepoint that was actually measured.
     severity: blocker
     note: >-
       No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented

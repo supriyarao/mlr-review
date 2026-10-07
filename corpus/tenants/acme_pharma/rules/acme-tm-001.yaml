@@ -15,6 +15,8 @@ params:
   type: trademark_first_mention
   brand: Zelvoran
   window: 3
+  suggested_fix: >-
+    Add the registered trademark symbol to the first mention of the brand name: Zelvoran®.
 examples:
   - text: Zelvoran is indicated for moderate-to-severe plaque psoriasis in adults.
     expected: fail

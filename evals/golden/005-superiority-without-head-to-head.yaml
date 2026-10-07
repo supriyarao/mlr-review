@@ -40,6 +40,11 @@ promo: |
 expected_findings:
   - check_type: substantiation
     claim_contains: works better than the leading biologics
+    explanation: >-
+      Saying one medicine works better than another is a comparison, and a comparison needs a trial
+      that tested them against each other. No such trial exists for Zelvoran -- the label says so.
+    suggested_fix: >-
+      Remove the comparison, or replace it with what was measured against placebo.
     severity: blocker
     note: No head-to-head trial exists; the label states none was conducted.
 expected_route: senior_regulatory

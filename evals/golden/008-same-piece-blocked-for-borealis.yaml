@@ -17,6 +17,12 @@ promo_path: corpus/promo/zelvoran-hcp-isi-placement.md
 expected_findings:
   - check_type: fair_balance
     claim_contains: beyond the 600 allowed
+    explanation: >-
+      This is one of Borealis's own rules. It requires safety information to sit within 600
+      characters of the first efficacy claim, so a reader meets the risk alongside the benefit. Here
+      it is further away than that. Acme allows the same layout; Borealis does not.
+    suggested_fix: >-
+      Move the safety information next to the first efficacy claim.
     severity: blocker
     note: >-
       BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full

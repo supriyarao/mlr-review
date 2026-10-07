@@ -79,6 +79,16 @@ _PLAIN_CHECK_NAME: dict[str, str] = {
 }
 
 
+def _as_phrase(text: str) -> str:
+    """Quote a span inside a sentence without doubling its punctuation.
+
+    A claim that ends in a full stop -- which most do, and ones ending "[2]." especially -- used to
+    render as ``'... [2].'.`` once the sentence added its own.
+    """
+    cleaned = " ".join(text.split()).rstrip(" .")
+    return f"the wording {cleaned!r}." if cleaned else "this piece."
+
+
 def find_measurement(
     check_type: str, document: str, doc_meta: dict[str, Any]
 ) -> dict[str, str] | None:
@@ -213,19 +223,15 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
                     expected.note
                     or f"{expected.check_type.replace('_', ' ').capitalize()} problem with this claim."
                 ),
-                # The oracle has to emit the shape a model would, including the plain-English
-                # half, or the goldens stop exercising the field at all. It cannot write a real
-                # one -- the case note is a reviewer's sentence and the oracle has nothing else to
-                # work from -- but it can at least do what a plain explanation is supposed to do:
-                # name the reviewer in ordinary words and say what the piece actually says, before
-                # repeating why that is a problem. The fake backend is what the offline demo runs
-                # on, so this text is what a reader sees there.
-                "explanation": (
-                    f"{_PLAIN_CHECK_NAME.get(expected.check_type, 'A reviewer')} flagged this. "
-                    f"The piece says: {(quote or expected.claim_contains).strip()!r}. "
-                    f"{expected.note or 'That does not hold up as written.'}"
+                # Taken from the case where it says so. The fallback deliberately does not append
+                # the note: the note is already the issue, and repeating it verbatim shows the
+                # reader the same sentence twice under two headings.
+                "explanation": expected.explanation
+                or (
+                    f"{_PLAIN_CHECK_NAME.get(expected.check_type, 'A reviewer')} flagged "
+                    f"{_as_phrase(quote or expected.claim_contains)} See the issue for why."
                 ),
-                "suggested_fix": "",
+                "suggested_fix": expected.suggested_fix,
                 "severity": expected.severity or "advisory",
                 # High but not perfect, and above both tenants' thresholds, so the confidence gate is
                 # exercised without every case tripping it.
@@ -339,7 +345,7 @@ def _rule_findings(case: GoldenCase, document: str, *, kind: str) -> list[dict[s
                 f"This is {rule.label()}, one of the company's own rules. "
                 f"It says: {rule.description.strip().rstrip('.')}."
             ),
-            "suggested_fix": "",
+            "suggested_fix": str(rule.params.get("suggested_fix", "") or ""),
             "confidence": 88,
             "claim_id": "",
         }

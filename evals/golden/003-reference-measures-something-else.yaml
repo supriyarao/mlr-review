@@ -44,6 +44,13 @@ promo: |
 expected_findings:
   - check_type: substantiation
     claim_contains: maintained at 12 weeks
+    explanation: >-
+      The footnote points at ZEL-303. That study measured PASI-75 at Week 16 and Week 52 -- not
+      PASI-90, and nothing at 12 weeks. The study is real and about the right medicine, which is
+      what makes this easy to miss.
+    suggested_fix: >-
+      Cite a study that measured PASI-90 at 12 weeks, or change the claim to match what ZEL-303
+      reports.
     severity: blocker
     note: ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.
 expected_route: senior_regulatory
