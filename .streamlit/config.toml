@@ -1,0 +1,10 @@
+# The app's look, set once. Streamlit's own accent is red, and red here means "blocker" and
+# nothing else, so the accent is the same ink the buttons use.
+[theme]
+primaryColor = "#1F3A5F"
+linkColor = "#1F3A5F"
+codeTextColor = "#1F3A5F"
+
+# Hide the Deploy button and developer menu: this is shown to people, not deployed from here.
+[client]
+toolbarMode = "minimal"

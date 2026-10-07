@@ -62,11 +62,21 @@ _CSS = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap');
 
-h1, h2, h3 {{
+/* One rule for the two typefaces: serif is for titles and for the document under review.
+   Everything else on the page is the sans. */
+h1, h2, h3, h4 {{
   font-family: 'Source Serif 4', Georgia, serif !important; letter-spacing: -0.01em;
 }}
 [data-testid="stMainBlockContainer"] {{ padding-top: 3rem; max-width: 1240px; }}
-[data-testid="stMainBlockContainer"] p {{ max-width: 78ch; }}
+[data-testid="stMainBlockContainer"] p,
+[data-testid="stMainBlockContainer"] li {{ max-width: 78ch; }}
+
+/* The product's name above the page list, so the sidebar says where you are. */
+[data-testid="stSidebarNav"]::before {{
+  content: "MLR Review"; display: block; padding: 0.4rem 1.6rem 1rem 1.6rem;
+  font-family: 'Source Serif 4', Georgia, serif; font-size: 1.35rem; font-weight: 650;
+  color: {INK};
+}}
 
 /* Streamlit's default accent is red. Red is reserved for blockers here, so the accent on primary
    buttons and selected filter tags is restated as a neutral ink. */
