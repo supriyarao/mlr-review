@@ -23,7 +23,12 @@ dependencies = [
     # Chroma's default embedder runs on onnxruntime. onnxruntime stopped shipping
     # Intel-macOS wheels after 1.23.x, so pin only on that platform and leave Linux
     # (including CI) and Apple Silicon free to take the current release.
-    "onnxruntime>=1.23,<1.31 ; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    #
+    # Dependabot has widened this once already (PR #6, to <1.31) and broke `uv sync` on an Intel
+    # Mac the same day: 1.30.0 ships manylinux, macosx_14_0_arm64 and win wheels, and nothing for
+    # macosx x86_64. The upper bound is the point of the line, not staleness -- see the ignore in
+    # .github/dependabot.yml.
+    "onnxruntime>=1.23,<1.24 ; sys_platform == 'darwin' and platform_machine == 'x86_64'",
     # Input parsing
     "pymupdf>=1.25.1",
     # Service + UI

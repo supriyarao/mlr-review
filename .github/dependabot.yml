@@ -8,6 +8,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: chore(deps)
+    ignore:
+      # The upper bound on onnxruntime is a platform constraint, not staleness. Chroma's default
+      # embedder needs it, and onnxruntime stopped shipping Intel-macOS wheels after 1.23.x, so a
+      # bump breaks `uv sync` outright on an Intel Mac. Dependabot widened it once (PR #6) and did
+      # exactly that. Linux and Apple Silicon are unpinned and take the current release; only the
+      # darwin-x86_64 marker holds it back, and it has to stay held.
+      - dependency-name: onnxruntime
     groups:
       # The orchestration and model-client packages release together and are tested together.
       langchain:
