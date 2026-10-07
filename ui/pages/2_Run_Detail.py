@@ -345,7 +345,8 @@ def findings_section(report: dict[str, Any], document: str, key: str) -> None:
                 "Severity": view.severity_of(f).capitalize(),
                 "Raised by": view.CHECK_LABELS.get(f["check_type"], f["check_type"]),
                 "The words in question": f.get("quote") or "(something required is missing)",
-                "What's wrong": f["issue"],
+                "What this means": f.get("explanation") or f["issue"],
+                "Suggested fix": f.get("suggested_fix") or "",
                 "How sure": f["confidence"],
                 "Backed by": view.GROUNDING_SHORT.get(f["grounded_by"], "Nothing"),
                 "Rule": f"{f['rule_id']} v{f['rule_version']}" if f.get("rule_id") else "",
@@ -356,7 +357,8 @@ def findings_section(report: dict[str, Any], document: str, key: str) -> None:
         width="stretch",
         column_config={
             "How sure": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%d"),
-            "What's wrong": st.column_config.TextColumn(width="large"),
+            "What this means": st.column_config.TextColumn(width="large"),
+            "Suggested fix": st.column_config.TextColumn(width="medium"),
         },
     )
     st.caption(f"Showing {len(shown)} of {len(findings)}. Open one to see the evidence.")

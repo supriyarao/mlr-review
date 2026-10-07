@@ -383,7 +383,17 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
     if not finding.get("grounded"):
         chips.append(chip("Not grounded", "blocker"))
     st.markdown(" ".join(chips), unsafe_allow_html=True)
-    st.markdown(f"**{finding['issue']}**")
+    # Lead with the two things a non-specialist acts on. The reviewer's wording stays, as the
+    # detail underneath. A finding from before explanations existed leads with the issue instead.
+    if finding.get("explanation"):
+        st.markdown(f"**What this means.** {finding['explanation']}")
+        if finding.get("suggested_fix"):
+            st.markdown(f"**Suggested fix.** {finding['suggested_fix']}")
+        st.caption(f"In a reviewer's words: {finding['issue']}")
+    else:
+        st.markdown(f"**{finding['issue']}**")
+        if finding.get("suggested_fix"):
+            st.markdown(f"**Suggested fix.** {finding['suggested_fix']}")
 
     left, right = st.columns(2)
     with left:
@@ -414,9 +424,6 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
             if citation["kind"] == "measurement":
                 source = f"the company's {source.replace('_', ' ')}"
             st.caption(f"{kind}: {source}")
-
-    if finding.get("suggested_fix"):
-        st.markdown(f"**Suggested fix.** {finding['suggested_fix']}")
 
     confidence, sev_col, ground, origin = st.columns(4)
     confidence.metric("Confidence", f"{finding['confidence']} / 100")
