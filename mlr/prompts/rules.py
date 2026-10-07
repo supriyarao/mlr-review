@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from platform_core.gates import GateResult
 
-PROMPT_VERSION = "rule-response-v1"
+PROMPT_VERSION = "rule-response-v2"
 
 
 class ReportedRuleFinding(BaseModel):
@@ -25,7 +25,17 @@ class ReportedRuleFinding(BaseModel):
         "violation is that something required is absent."
     )
     issue: str = Field(description="Why that text violates that rule, in one sentence.")
-    suggested_fix: str = Field(default="")
+    explanation: str = Field(
+        default="",
+        description="The same thing in plain English, for someone who is not a regulatory "
+        "specialist. Two or three sentences: which rule this is and what it asks for, what the "
+        "piece actually says, and why that breaks the rule. No jargon.",
+    )
+    suggested_fix: str = Field(
+        default="",
+        description="What to change, concretely enough to act on. Where you can, give the wording "
+        "that would be acceptable rather than describing it.",
+    )
     confidence: int = Field(ge=0, le=100, default=0)
     claim_id: str = Field(
         default="",

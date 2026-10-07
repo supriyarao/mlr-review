@@ -158,8 +158,16 @@ class Finding(BaseModel):
     # absence -- a missing disclaimer has nothing to quote.
     quote: str = ""
     char_span: tuple[int, int] = (0, 0)
-    # Written for a reviewer: what is wrong, in one or two sentences.
+    # Written for a reviewer: what is wrong, in one or two sentences. Assumes the vocabulary --
+    # "subgroup", "fair balance", "substantiation" -- because a reviewer has it.
     issue: str
+    # The same finding for someone who does not have that vocabulary: what triggered it, what the
+    # piece actually says, and why it matters. Separate from ``issue`` rather than replacing it,
+    # because the two readers are different and collapsing them would short-change both -- a
+    # reviewer skimming forty findings does not want three sentences of context, and a brand
+    # manager reading one does not want "unsubstantiated at the stated strength".
+    explanation: str = ""
+    # How to correct it. Shown to both readers; this is the only field either one can act on.
     suggested_fix: str = ""
     citations: list[Citation] = Field(default_factory=list)
 

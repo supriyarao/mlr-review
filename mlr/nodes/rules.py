@@ -52,6 +52,25 @@ from platform_core.tenancy import tenant_reference_docs_dir
 LLM_RULE_BATCH_SIZE = 4
 
 
+def _plain_explanation(v: RuleViolation) -> str:
+    """A deterministic rule's finding, in plain English.
+
+    Composed rather than generated. These rules make no model call -- that is the whole point of
+    them -- so asking one to narrate the result afterwards would spend a call and a round of
+    nondeterminism on a sentence whose content is already fully determined by the rule and the
+    match. The rule's own description is the tenant's wording, which is also the right thing to
+    quote back: a reader asking "why was this flagged" is owed the policy as its author wrote it.
+    """
+    parts = [f"This is {v.citation_source_id}, one of the company's own rules."]
+    if v.citation_text:
+        parts.append(f"It says: {v.citation_text.strip().rstrip('.')}.")
+    if v.message:
+        parts.append(v.message.strip())
+    if v.quote:
+        parts.append(f"The wording that triggered it is {v.quote.strip()!r}.")
+    return " ".join(parts)
+
+
 def _rule_findings(violations: list[RuleViolation], *, prefix: str) -> list[Finding]:
     """Convert platform rule violations into MLR findings.
 
@@ -70,6 +89,7 @@ def _rule_findings(violations: list[RuleViolation], *, prefix: str) -> list[Find
                 quote=v.quote,
                 char_span=v.char_span,
                 issue=v.message,
+                explanation=_plain_explanation(v),
                 suggested_fix=v.suggested_fix,
                 citations=[
                     Citation(
@@ -229,6 +249,9 @@ def _llm_part(
                     claim_id=reported.claim_id,
                     quote=reported.quote,
                     issue=reported.issue,
+                    explanation=reported.explanation
+                    or f"This is {rule.label()}, one of the company's own rules. "
+                    f"It says: {rule.description.strip().rstrip('.')}.",
                     suggested_fix=reported.suggested_fix,
                     citations=[
                         Citation(
@@ -347,6 +370,8 @@ def _reference_doc_part(
                 claim_id=reported.claim_id,
                 quote=reported.quote,
                 issue=reported.issue,
+                explanation=reported.explanation
+                or f"This comes from {rule.title}, one of the company's reference documents.",
                 suggested_fix=reported.suggested_fix,
                 citations=[citation],
                 severity_proposed=rule.severity,

@@ -1,22 +1,22 @@
 {
-  "eval_run_id": "d03ee1c3152f",
-  "started_at": "2026-10-07T00:53:16.735526+00:00",
-  "finished_at": "2026-10-07T00:53:50.025071+00:00",
+  "eval_run_id": "0443be23120a",
+  "started_at": "2026-10-07T05:05:05.286881+00:00",
+  "finished_at": "2026-10-07T05:05:31.287664+00:00",
   "mode": "offline",
-  "git_sha": "5070484",
+  "git_sha": "21a535b",
   "backend": "fake",
   "model_strong": "fake-strong",
   "model_fast": "fake-fast",
   "prompt_versions": {
-    "substantiation": "substantiation-v2",
-    "off_label": "off_label-v1",
-    "presentation": "presentation-v1",
+    "substantiation": "substantiation-v3",
+    "off_label": "off_label-v2",
+    "presentation": "presentation-v2",
     "extract_claims": "extract_claims-v1",
     "preapproved_filter": "preapproved-v1"
   },
   "tenant_config_hashes": {
     "acme_pharma": "d0bbcd14ee44b5c5",
-    "borealis_bio": "084b7b6475840231"
+    "borealis_bio": "6a7eaefa4ec8bbd5"
   },
   "repeats": 1,
   "cases": [
@@ -67,7 +67,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3504,
+      "latency_ms": 3353,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -83,6 +83,7 @@
             0
           ],
           "issue": "58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Nearly 6 in 10 adults reached PASI-90'. 58.1% is the prior-biologic subgroup rate in ZEL-302; the overall population achieved 44.2%.",
           "suggested_fix": "",
           "citations": [
             {
@@ -120,7 +121,7 @@
           "rule_id": "ACME-DOC-001",
           "rule_version": 1,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": [
             "rd-ACME-DOC-001-1"
           ]
@@ -135,6 +136,7 @@
             0
           ],
           "issue": "Quotes the subgroup rate without naming the subgroup.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran delivered PASI-90 in 58.1% of adults at Week 16 [2].'. Quotes the subgroup rate without naming the subgroup.",
           "suggested_fix": "",
           "citations": [
             {
@@ -160,7 +162,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         },
         {
@@ -173,6 +175,7 @@
             0
           ],
           "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Sustained response: PASI-90 was maintained at 12 weeks in the extension study [3].'. ZEL-303 reports PASI-75 at Week 16 and Week 52. It did not assess PASI-90 and made no Week 12 assessment, so the citation does not support the claim on either axis.",
           "suggested_fix": "",
           "citations": [
             {
@@ -198,7 +201,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         }
       ],
@@ -290,7 +293,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3579,
+      "latency_ms": 3194,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -306,6 +309,7 @@
             493
           ],
           "issue": "Uses the prohibited term 'cure'.",
+          "explanation": "This is ACME-BAN-001 v1, one of the company's own rules. It says: Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk. Uses the prohibited term 'cure'. The wording that triggered it is 'cure'.",
           "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead.",
           "citations": [
             {
@@ -344,6 +348,7 @@
             0
           ],
           "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
           "suggested_fix": "Add: Please see full Prescribing Information.",
           "citations": [
             {
@@ -382,6 +387,7 @@
             0
           ],
           "issue": "The label covers adults only and has no paediatric data.",
+          "explanation": "The label reviewer flagged this. The piece says: 'Clearer skin, for the whole family'. The label covers adults only and has no paediatric data.",
           "suggested_fix": "",
           "citations": [
             {
@@ -407,7 +413,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "off_label-v1",
+          "prompt_version": "off_label-v2",
           "merged_from": []
         },
         {
@@ -420,6 +426,7 @@
             0
           ],
           "issue": "A named child in the caption implies paediatric use.",
+          "explanation": "The label reviewer flagged this. The piece says: 'Photo caption: the Hartley family on holiday \u2014 including nine-year-old Mia, back at the beach\\n> after years of covering up.*'. A named child in the caption implies paediatric use.",
           "suggested_fix": "",
           "citations": [
             {
@@ -445,7 +452,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "off_label-v1",
+          "prompt_version": "off_label-v2",
           "merged_from": []
         },
         {
@@ -458,6 +465,7 @@
             0
           ],
           "issue": "Implies a typical result with no response rate, population or timepoint.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Most people see clear skin within weeks.'. Implies a typical result with no response rate, population or timepoint.",
           "suggested_fix": "",
           "citations": [
             {
@@ -483,7 +491,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         },
         {
@@ -496,6 +504,7 @@
             54
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
@@ -567,7 +576,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2457,
+      "latency_ms": 2649,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -583,6 +592,7 @@
             0
           ],
           "issue": "ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'PASI-90 was achieved and maintained at 12 weeks in the extension study [3].'. ZEL-303 reports PASI-75 at Week 16 and Week 52; it assessed neither PASI-90 nor Week 12.",
           "suggested_fix": "",
           "citations": [
             {
@@ -608,7 +618,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         }
       ],
@@ -654,7 +664,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2620,
+      "latency_ms": 2421,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -670,6 +680,7 @@
             0
           ],
           "issue": "Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
+          "explanation": "The safety reviewer flagged this. The piece says: 'Contraindicated in active serious infection.'. Safety information is one line placed after the footnotes, far shorter than the efficacy content it is meant to balance.",
           "suggested_fix": "",
           "citations": [
             {
@@ -695,7 +706,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-fast",
-          "prompt_version": "presentation-v1",
+          "prompt_version": "presentation-v2",
           "merged_from": []
         }
       ],
@@ -741,7 +752,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2746,
+      "latency_ms": 2220,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -757,6 +768,7 @@
             0
           ],
           "issue": "No head-to-head trial exists; the label states none was conducted.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran works better than the leading biologics for plaque psoriasis.'. No head-to-head trial exists; the label states none was conducted.",
           "suggested_fix": "",
           "citations": [],
           "severity_proposed": "blocker",
@@ -769,7 +781,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         }
       ],
@@ -819,7 +831,7 @@
       "expected_route": "legal",
       "actual_route": "legal",
       "route_correct": true,
-      "latency_ms": 2181,
+      "latency_ms": 2344,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -835,6 +847,7 @@
             0
           ],
           "issue": "No head-to-head cardiovascular outcomes trial exists.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Nexapril works better than the leading therapies for cardiovascular risk reduction [1].'. No head-to-head cardiovascular outcomes trial exists.",
           "suggested_fix": "",
           "citations": [
             {
@@ -860,7 +873,7 @@
           "rule_id": "BOR-LLM-001",
           "rule_version": 1,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": [
             "lr-1"
           ]
@@ -899,7 +912,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2611,
+      "latency_ms": 2174,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -962,7 +975,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2941,
+      "latency_ms": 2238,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -978,6 +991,7 @@
             0
           ],
           "issue": "Section 'important_safety_information' is 1747 characters from 'efficacy', beyond the 600 allowed, so it does not read as part of the same message.",
+          "explanation": "This is BOR-ISI-001 v1, one of the company's own rules. It says: Important Safety Information must appear in the same section as the first efficacy claim, so that a reader meets the risk alongside the benefit rather than after it. Section 'important_safety_information' is 1747 characters from 'efficacy', beyond the 600 allowed, so it does not read as part of the same message.",
           "suggested_fix": "",
           "citations": [
             {
@@ -1016,19 +1030,20 @@
             20
           ],
           "issue": "Claim carries no reference marker.",
+          "explanation": "This is BOR-REF-001 v1, one of the company's own rules. It says: Every efficacy claim must carry a numbered reference marker identifying the study that supports it, so a reader can verify the claim against its source. Claim carries no reference marker. The wording that triggered it is 'PASI-75 at Week 16'.",
           "suggested_fix": "Add a reference citation supporting this claim.",
           "citations": [
             {
-              "source_id": "BOR-REF-001 v2",
+              "source_id": "BOR-REF-001 v1",
               "passage": "Every efficacy claim must carry a numbered reference marker identifying the study that supports it, so a reader can verify the claim against its source.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "BOR-REF-001 v2",
+              "title": "BOR-REF-001 v1",
               "rule_id": "BOR-REF-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "blocker",
@@ -1039,7 +1054,7 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "BOR-REF-001",
-          "rule_version": 2,
+          "rule_version": 1,
           "model": "",
           "prompt_version": "",
           "merged_from": []
@@ -1054,6 +1069,7 @@
             0
           ],
           "issue": "BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
+          "explanation": "The balance reviewer flagged this. The piece says: 'beyond the 600 allowed'. BOR-ISI-001. Deterministic, so this finding should appear with no model call and with full confidence.",
           "suggested_fix": "",
           "citations": [
             {
@@ -1079,7 +1095,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-fast",
-          "prompt_version": "presentation-v1",
+          "prompt_version": "presentation-v2",
           "merged_from": []
         }
       ],
@@ -1133,7 +1149,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 1230,
+      "latency_ms": 878,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1149,6 +1165,7 @@
             0
           ],
           "issue": "Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
+          "explanation": "The label reviewer flagged this. The piece says: 'Whatever your age, whatever your stage, Zelvoran may be the answer your family has been waiting for.'. Widens the approved adults-only population. The claim above it is pre-approved and correct; the surrounding copy is what misleads.",
           "suggested_fix": "",
           "citations": [
             {
@@ -1174,7 +1191,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "off_label-v1",
+          "prompt_version": "off_label-v2",
           "merged_from": []
         },
         {
@@ -1187,6 +1204,7 @@
             44
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
@@ -1245,7 +1263,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2497,
+      "latency_ms": 2484,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1293,7 +1311,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3070,
+      "latency_ms": 2743,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1309,6 +1327,7 @@
             0
           ],
           "issue": "No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
+          "explanation": "The evidence reviewer flagged this. The piece says: '92% of adults maintained completely clear skin at two years.'. No data beyond Week 52 exist. Must be reported as unverifiable, not supported by an invented citation.",
           "suggested_fix": "",
           "citations": [],
           "severity_proposed": "blocker",
@@ -1321,7 +1340,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         }
       ],
@@ -1371,7 +1390,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2844,
+      "latency_ms": 2691,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1387,6 +1406,7 @@
             0
           ],
           "issue": "The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
+          "explanation": "The evidence reviewer flagged this. The piece says: 'Zelvoran reduced major adverse cardiovascular events by 22% over 36 months.'. The supporting study is NEX-114, which belongs to borealis_bio. Acme's corpus has no cardiovascular evidence, so this must be unverifiable rather than supported.",
           "suggested_fix": "",
           "citations": [],
           "severity_proposed": "blocker",
@@ -1399,7 +1419,7 @@
           "rule_id": "",
           "rule_version": 0,
           "model": "fake-strong",
-          "prompt_version": "substantiation-v2",
+          "prompt_version": "substantiation-v3",
           "merged_from": []
         }
       ],
@@ -1449,7 +1469,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2989,
+      "latency_ms": 2485,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1465,6 +1485,7 @@
             439
           ],
           "issue": "Uses the prohibited term 'cure'.",
+          "explanation": "This is ACME-BAN-001 v1, one of the company's own rules. It says: Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk. Uses the prohibited term 'cure'. The wording that triggered it is 'cure'.",
           "suggested_fix": "Describe the observed effect using the labelled endpoint and timepoint instead.",
           "citations": [
             {
@@ -1544,7 +1565,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 4907,
+      "latency_ms": 2447,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1560,6 +1581,7 @@
             0
           ],
           "issue": "Required text is missing.",
+          "explanation": "This is BOR-DISC-001 v1, one of the company's own rules. It says: Patient-directed material must carry the approved patient disclaimer verbatim, so a reader is directed to a clinician rather than left to apply a clinical result to themselves. Required text is missing.",
           "suggested_fix": "Add: Talk to your doctor about whether this treatment is right for you.",
           "citations": [
             {
@@ -1598,6 +1620,7 @@
             24
           ],
           "issue": "First mention of Nexapril does not carry a trademark symbol.",
+          "explanation": "This is BOR-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Nexapril does not carry a trademark symbol. The wording that triggered it is 'Nexapril'.",
           "suggested_fix": "Write Nexapril\u00ae on first mention.",
           "citations": [
             {
@@ -1664,7 +1687,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 3992,
+      "latency_ms": 2307,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1680,6 +1703,7 @@
             24
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
@@ -1751,7 +1775,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 5892,
+      "latency_ms": 3236,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1767,6 +1791,7 @@
             0
           ],
           "issue": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document.",
+          "explanation": "This is ACME-DOC-001 v1, one of the company's own rules. It says: Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
           "suggested_fix": "",
           "citations": [
             {
@@ -1848,9 +1873,9 @@
     },
     "cost_and_latency": {
       "runs": 16,
-      "latency_p50_ms": 2941.0,
-      "latency_p95_ms": 4907.0,
-      "latency_mean_ms": 3128.8,
+      "latency_p50_ms": 2484.0,
+      "latency_p95_ms": 3236.0,
+      "latency_mean_ms": 2491.5,
       "tokens_in_total": 0,
       "tokens_out_total": 0,
       "cost_usd_total": 0.0,
@@ -1984,9 +2009,9 @@
       },
       "cost_and_latency": {
         "runs": 13,
-        "latency_p50_ms": 2844.0,
-        "latency_p95_ms": 3992.0,
-        "latency_mean_ms": 3079.3,
+        "latency_p50_ms": 2485.0,
+        "latency_p95_ms": 3236.0,
+        "latency_mean_ms": 2525.8,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
@@ -2025,9 +2050,9 @@
       },
       "cost_and_latency": {
         "runs": 3,
-        "latency_p50_ms": 2941.0,
-        "latency_p95_ms": 4907.0,
-        "latency_mean_ms": 3343.0,
+        "latency_p50_ms": 2344.0,
+        "latency_p95_ms": 2447.0,
+        "latency_mean_ms": 2343.0,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,

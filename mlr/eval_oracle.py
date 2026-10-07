@@ -68,6 +68,17 @@ def find_quote(document: str, needle: str) -> str:
     return ""
 
 
+# How to name each check to someone who is not a regulatory specialist. Mirrors the friendly names
+# the UI uses, because a reader meeting both should not have to work out that they are the same.
+_PLAIN_CHECK_NAME: dict[str, str] = {
+    "substantiation": "The evidence reviewer",
+    "off_label": "The label reviewer",
+    "fair_balance": "The balance reviewer",
+    "safety_prominence": "The safety reviewer",
+    "business_rule": "A company rule",
+}
+
+
 def find_measurement(
     check_type: str, document: str, doc_meta: dict[str, Any]
 ) -> dict[str, str] | None:
@@ -202,6 +213,18 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
                     expected.note
                     or f"{expected.check_type.replace('_', ' ').capitalize()} problem with this claim."
                 ),
+                # The oracle has to emit the shape a model would, including the plain-English
+                # half, or the goldens stop exercising the field at all. It cannot write a real
+                # one -- the case note is a reviewer's sentence and the oracle has nothing else to
+                # work from -- but it can at least do what a plain explanation is supposed to do:
+                # name the reviewer in ordinary words and say what the piece actually says, before
+                # repeating why that is a problem. The fake backend is what the offline demo runs
+                # on, so this text is what a reader sees there.
+                "explanation": (
+                    f"{_PLAIN_CHECK_NAME.get(expected.check_type, 'A reviewer')} flagged this. "
+                    f"The piece says: {(quote or expected.claim_contains).strip()!r}. "
+                    f"{expected.note or 'That does not hold up as written.'}"
+                ),
                 "suggested_fix": "",
                 "severity": expected.severity or "advisory",
                 # High but not perfect, and above both tenants' thresholds, so the confidence gate is
@@ -312,6 +335,10 @@ def _rule_findings(case: GoldenCase, document: str, *, kind: str) -> list[dict[s
             "rule_id": rule_id,
             "quote": quote,
             "issue": (expected.note if expected else rule.description)[:300],
+            "explanation": (
+                f"This is {rule.label()}, one of the company's own rules. "
+                f"It says: {rule.description.strip().rstrip('.')}."
+            ),
             "suggested_fix": "",
             "confidence": 88,
             "claim_id": "",

@@ -60,11 +60,15 @@ def finding(
     confidence: int = 90,
     citations: list[dict[str, str]] | None = None,
     fix: str = "",
+    explanation: str = "",
 ) -> dict[str, Any]:
     return {
         "claim_id": claim_id,
         "quote": quote,
         "issue": issue,
+        # Required of a real model, so required here: a scripted response that omits it would
+        # stop these tests exercising the shape the graph actually receives.
+        "explanation": explanation or f"In plain terms: {issue}",
         "suggested_fix": fix,
         "severity": severity,
         "confidence": confidence,
@@ -89,6 +93,7 @@ def rule_finding(
         "rule_id": rule_id,
         "quote": quote,
         "issue": issue,
+        "explanation": f"In plain terms: {issue}",
         "suggested_fix": "",
         "confidence": confidence,
         "claim_id": claim_id,

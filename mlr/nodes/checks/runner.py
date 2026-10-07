@@ -353,6 +353,7 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
                     claim_id=reported.claim_id if reported.claim_id in known_claims else "",
                     quote=reported.quote,
                     issue=reported.issue,
+                    explanation=reported.explanation,
                     suggested_fix=reported.suggested_fix,
                     citations=[
                         Citation(

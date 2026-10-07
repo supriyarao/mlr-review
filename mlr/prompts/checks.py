@@ -38,9 +38,21 @@ class ReportedFinding(BaseModel):
         "finding is that something required is missing."
     )
     issue: str = Field(
-        description="What is wrong, in one or two sentences, written for a reviewer."
+        description="What is wrong, in one or two sentences, written for a reviewer who already "
+        "knows the vocabulary."
     )
-    suggested_fix: str = Field(default="", description="How to correct it.")
+    explanation: str = Field(
+        description="The same finding in plain English, for someone who is not a regulatory "
+        "specialist -- a brand manager or an agency writer. Two or three sentences covering: what "
+        "triggered this, what the piece actually says, and why that is a problem. Name the rule or "
+        "the check in ordinary words. No jargon: not 'unsubstantiated at the stated strength' but "
+        "'the study does not show this'. Do not repeat the issue sentence verbatim."
+    )
+    suggested_fix: str = Field(
+        default="",
+        description="What to change, concretely enough to act on. Where you can, give the wording "
+        "that would be acceptable rather than describing it.",
+    )
     severity: str = Field(default="advisory", description="blocker or advisory.")
     concern: str = Field(
         default="",
@@ -91,6 +103,10 @@ _SHARED_MEASUREMENT = """
     they have to take on trust."""
 
 _SHARED_CLOSE = """
+  - Every finding needs all three of issue, explanation and suggested_fix. They are read by
+    different people: the issue by a regulatory reviewer, the explanation by whoever has to change
+    the copy, and the fix by both. An explanation that just restates the issue in the same
+    vocabulary has not done its job.
   - Do not report a problem you are not seeing. An empty findings list is the right answer for
     compliant copy, and a false alarm costs a reviewer's trust in every other finding.
   - Judge only your assigned question. Another reviewer is checking the others."""
@@ -176,7 +192,7 @@ class CheckPrompt:
 
 SUBSTANTIATION = CheckPrompt(
     name="substantiation",
-    version="substantiation-v2",
+    version="substantiation-v3",
     tier="strong",
     system=(
         "You are a regulatory reviewer checking whether promotional claims are supported by the "
@@ -232,7 +248,7 @@ under B.""",
 
 OFF_LABEL = CheckPrompt(
     name="off_label",
-    version="off_label-v1",
+    version="off_label-v2",
     tier="strong",
     system=(
         "You are a regulatory reviewer checking for promotion outside the approved label, including "
@@ -256,7 +272,7 @@ what was not reviewed when the claim was approved.""",
 
 PRESENTATION = CheckPrompt(
     name="presentation",
-    version="presentation-v1",
+    version="presentation-v2",
     tier="fast",
     system=(
         "You are a regulatory reviewer checking how a promotional piece presents risk: whether the "
