@@ -49,7 +49,22 @@ COST_PER_MTOK: dict[str, tuple[float, float]] = {
 
 DEFAULT_MODELS: dict[str, dict[Tier, str]] = {
     "anthropic": {"strong": "claude-sonnet-5", "fast": "claude-haiku-4-5"},
-    "ollama": {"strong": "qwen2.5:7b", "fast": "qwen2.5:7b"},
+    # Both tiers are the small model here, and the tier distinction is deliberately a fiction on
+    # this backend. "Strong" on a local CPU does not mean better, it means slower: measured on this
+    # corpus, the same 8.7k-character check prompt takes 192s on qwen2.5:7b and 55s on qwen2.5:1.5b,
+    # and the 1.5b held the response schema without a retry.
+    #
+    # What makes that decisive is not the per-call number but the fan-out. Four branches run
+    # concurrently, which is right against a hosted API -- four simultaneous requests -- and exactly
+    # wrong against one local process: they queue on the same model and gain nothing. At 7b a review
+    # had not finished after half an hour, with the fan-out still going. A review that never
+    # finishes teaches a reader nothing, so the default is the one that completes.
+    #
+    # Trade-off: a 1.5b model finds less and quotes evidence worse, so expect more findings that
+    # fail the grounding gate. That fails safe -- an ungrounded finding escalates -- so the cost
+    # lands as extra human review rather than as a missed problem. Someone who wants the larger
+    # model can set MLR_MODEL_STRONG=qwen2.5:7b and should expect roughly four times the wall clock.
+    "ollama": {"strong": "qwen2.5:1.5b", "fast": "qwen2.5:1.5b"},
     "fake": {"strong": "fake-strong", "fast": "fake-fast"},
 }
 
@@ -292,6 +307,10 @@ def get_chat_model(tier: Tier) -> Any:
             # retrieved evidence, and silent truncation would look like a model mistake.
             num_ctx=32768,
             temperature=0,
+            # A local model has no server-side deadline, so without this a wedged call blocks the
+            # review forever and the run sits at "running" with nothing to show. Generous, because
+            # three minutes for a check prompt on CPU is normal here, not a fault.
+            timeout=float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "600")),
         )
 
     if name == "anthropic":
