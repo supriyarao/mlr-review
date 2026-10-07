@@ -155,18 +155,68 @@ def matcher_panel(given: dict[str, Any], produced: dict[str, Any], summary: Any)
     )
 
 
+def tool_calls(tools: list[dict[str, Any]], step: dict[str, Any]) -> None:
+    """The company's own checkers this step ran, in order, before it asked the model anything."""
+    st.markdown("**First, the company's own checkers**")
+    st.caption(
+        "Code the company already uses and trusts. It ran before the model was asked anything, "
+        "and it only measures. It doesn't judge."
+    )
+    for column, tool in zip(st.columns(len(tools)), tools, strict=True):
+        with column.container(border=True):
+            name = tool["tool"].replace("_", " ").capitalize()
+            version = view.chip(f"v{tool['version']}", "quiet")
+            st.markdown(f"**{view.escape(name)}** &nbsp;{version}", unsafe_allow_html=True)
+            if not tool.get("ok", True):
+                st.markdown(view.chip("Didn't run", "blocker"), unsafe_allow_html=True)
+                st.caption(tool.get("summary") or "No reason was recorded.")
+                continue
+            failed, unknown = tool.get("failed") or [], tool.get("inconclusive") or []
+            # Three different answers, three different looks. "Couldn't measure" is not a pass.
+            chips = [view.chip(f"Outside the limit: {m.replace('_', ' ')}") for m in failed]
+            chips += [
+                view.chip(f"Couldn't measure: {m.replace('_', ' ')}", "unknown") for m in unknown
+            ]
+            if not chips:
+                chips = [view.chip("Everything within limits", "pass")]
+            st.markdown(" ".join(chips), unsafe_allow_html=True)
+            st.caption(
+                f"{tool.get('summary', '')}. Took {view.duration(tool.get('latency_ms', 0))}."
+            )
+
+    st.markdown("**Then, the model**")
+    asked = f"`{step['model']}` was" if step.get("model") else "A model was"
+    st.caption(
+        f"{asked} given those measurements and asked what they mean for this piece. A finding "
+        "that quotes a number no checker reported gets marked as unverified."
+    )
+
+
 def generic_panel(step: dict[str, Any], document: str) -> None:
     """For steps without a purpose-built view yet: the step's own summary, and any findings."""
-    st.markdown("**What it produced**")
     summary = step.get("summary")
+    tools = summary.get("tools") if isinstance(summary, dict) else None
+    if tools:
+        tool_calls(tools, step)
+    st.markdown("**What it produced**")
     if isinstance(summary, dict) and summary:
         st.dataframe(
             [
                 {"": k.replace("_", " ").capitalize(), "Value": view.plain(v)}
                 for k, v in summary.items()
+                if k != "tools" and not (k == "by_concern" and tools)
             ],
             hide_index=True,
         )
+        if tools and summary.get("by_concern"):
+            st.caption(
+                "Findings by type: "
+                + ", ".join(
+                    f"{view.CHECK_LABELS.get(concern, concern)} {count}"
+                    for concern, count in summary["by_concern"].items()
+                )
+                + "."
+            )
     findings = (step.get("produced") or {}).get("findings") or []
     for finding in findings:
         with st.expander(view.finding_title(finding)):

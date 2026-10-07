@@ -42,10 +42,21 @@ GROUNDING_LABELS = {
     "evidence": "Retrieved evidence",
     "rule": "The rule's own wording",
     "doc_clause": "A clause of a tenant reference document",
+    "measurement": "A number the company's own checker measured",
     "none": "Not grounded",
 }
-GROUNDING_SHORT = {"evidence": "Evidence", "rule": "Rule text", "doc_clause": "Document clause"}
-CITATION_LABELS = {"evidence": "Evidence", "rule": "Tenant rule", "doc_clause": "Document clause"}
+GROUNDING_SHORT = {
+    "evidence": "Evidence",
+    "rule": "Rule text",
+    "doc_clause": "Document clause",
+    "measurement": "Measurement",
+}
+CITATION_LABELS = {
+    "evidence": "Evidence",
+    "rule": "Tenant rule",
+    "doc_clause": "Document clause",
+    "measurement": "Measured by",
+}
 
 _CSS = f"""
 <style>
@@ -76,6 +87,11 @@ span[data-baseweb="tag"] {{ background-color: {NEUTRAL} !important; }}
 .mlr-chip.quiet {{
   background: transparent; color: inherit; border: 1px solid rgba(128,128,128,.45);
   font-weight: 500;
+}}
+/* Neither pass nor fail: something that could not be measured. Dashed so it reads as a gap. */
+.mlr-chip.unknown {{
+  background: transparent; color: inherit; border: 1px dashed rgba(128,128,128,.8);
+  font-weight: 500; font-style: italic;
 }}
 
 .mlr-human {{
@@ -394,7 +410,10 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
                 unsafe_allow_html=True,
             )
             kind = CITATION_LABELS.get(citation["kind"], citation["kind"])
-            st.caption(f"{kind}: {citation.get('title') or citation['source_id']}")
+            source = citation.get("title") or citation["source_id"]
+            if citation["kind"] == "measurement":
+                source = f"the company's {source.replace('_', ' ')}"
+            st.caption(f"{kind}: {source}")
 
     if finding.get("suggested_fix"):
         st.markdown(f"**Suggested fix.** {finding['suggested_fix']}")

@@ -105,9 +105,10 @@ with st.container(border=True):
 - **What leaves your machine.** Only the model calls. With Ollama the model runs locally. With
   Claude the text is sent to Anthropic. Evidence search runs locally, over an index built from the
   files in `corpus/`.
-- **Tools and MCP.** No step calls a tool or an MCP server. Each model step is one prompt in and
-  one structured answer out. Looking up evidence is ordinary code that runs before the prompt is
-  built.
+- **Tools and MCP.** There is no MCP server, and a model never picks a tool to call. One step,
+  the balance and safety reviewer, runs the company's own checkers as plain code and hands the
+  model what they measured. Each model step is still one prompt in and one structured answer
+  out. Looking up evidence is ordinary code that runs before the prompt is built.
 """
     )
 
