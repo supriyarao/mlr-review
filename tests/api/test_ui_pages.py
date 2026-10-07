@@ -142,19 +142,18 @@ def test_run_detail_shows_a_finished_review(ui, submitted):
     assert [s.value for s in at.subheader][:2] == ["Steps", "What it found"]
 
 
-def test_run_detail_opens_a_step_to_show_what_it_was_given_and_produced(ui, submitted):
-    """The strip echoes the Home page; clicking a step shows its input and output."""
+def test_run_detail_lists_every_step_folded_with_what_it_was_given_and_produced(ui, submitted):
+    """Every step is on the page in run order, folded, each with its input and output inside."""
     at = ui("pages/2_Run_Detail.py", run_id=submitted)
-    labels = [b.label for b in at.button]
-    assert "✓ The reader" in labels and "✓ The claim spotter" in labels
-    assert "⏸ The pause" in labels
+    folds = [e.label for e in at.expander]
+    steps = [f for f in folds if f[:1] in "✓⏸·"]
+    assert steps[0].startswith("✓ The reader:") and steps[1].startswith("✓ The claim spotter:")
+    assert steps[1].endswith("claims") and any(f.startswith("⏸ The pause") for f in steps)
 
-    # The reader is open by default: submitted text in, clean text and a section map out.
+    # Nothing has to be clicked for a step's output to be there: the reader's text and section
+    # map, and the claim spotter's claims, are both already in the page.
     shown = " ".join(m.value for m in at.markdown)
     assert "What it was given" in shown and "The section map" in shown
-
-    next(b for b in at.button if b.label == "✓ The claim spotter").click().run()
-    assert not at.exception, [e.value for e in at.exception]
     assert any("claim(s)." in c.value for c in at.caption)
 
 

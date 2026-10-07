@@ -30,21 +30,6 @@ STEP_WORDS = {
     "pending": "Not reached yet",
 }
 
-# The step buttons echo the picture on the Home page: rounded asks a model, square is plain code.
-# Streamlit adds a class named after each widget's key, which is what these selectors match.
-STRIP_CSS = f"""
-<style>
-div[class*="-kind-model-"] button {{ border-radius: 999px; }}
-div[class*="-kind-code-"] button {{ border-radius: 3px; }}
-div[class*="-is-done-"] button {{ border-color: {view.PASS}; }}
-div[class*="-is-failed-"] button {{ border-color: {view.BLOCKER}; color: {view.BLOCKER}; }}
-div[class*="-is-running-"] button, div[class*="-is-waiting-"] button {{
-  border-color: {view.ADVISORY};
-}}
-div[class*="-kind-"] button p {{ font-size: 0.84rem; }}
-</style>
-"""
-
 
 # --- A step's panel ------------------------------------------------------------------------------
 
@@ -227,8 +212,7 @@ def generic_panel(step: dict[str, Any], document: str) -> None:
 
 def step_panel(step: dict[str, Any], document: str) -> None:
     node = nodes.ALL_NODES.get(step["node"])
-    name = node.name if node else step["node"]
-    with st.container(border=True):
+    with st.container():
         if step.get("model"):
             how = view.chip(f"Asked {step['model']}")
         elif node and node.model:
@@ -236,8 +220,7 @@ def step_panel(step: dict[str, Any], document: str) -> None:
         else:
             how = view.chip("Plain code, no model", "quiet")
         st.markdown(
-            f"#### {name} &nbsp;{how} {view.chip(STEP_WORDS[step['status']], 'quiet')}",
-            unsafe_allow_html=True,
+            f"{how} {view.chip(STEP_WORDS[step['status']], 'quiet')}", unsafe_allow_html=True
         )
         if node:
             st.markdown(node.does)
@@ -270,47 +253,52 @@ def step_panel(step: dict[str, Any], document: str) -> None:
             )
 
 
-# --- The strip -----------------------------------------------------------------------------------
+# --- The steps -----------------------------------------------------------------------------------
 
 
-def step_strip(run_id: str, key: str, document: str) -> None:
-    """The four stages from the Home page, for this run. Click a step to open it."""
+def step_headline(step: dict[str, Any]) -> str:
+    """One short phrase for a folded step: what it came back with."""
+    if step["status"] != "done":
+        return STEP_WORDS[step["status"]].split(":")[0].lower()
+    summary = step.get("summary")
+    if not isinstance(summary, dict):
+        return "done"
+
+    def count(n: int, word: str) -> str:
+        return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+    if summary.get("route"):
+        return f"suggests {view.tier_label(summary['route']).lower()}"
+    if "matched" in summary:
+        return f"{summary['matched']} already cleared"
+    if "claims" in summary:
+        return count(summary["claims"], "claim")
+    if "document_chars" in summary:
+        return f"{summary['document_chars']:,} characters of clean text"
+    findings = (step.get("produced") or {}).get("findings")
+    if findings is not None:
+        return count(len(findings), "finding")
+    return "done"
+
+
+def step_list(run_id: str, key: str, document: str) -> None:
+    """Every step of this run in the order it ran, folded. Open one to see what it did."""
     try:
         steps = {s["node"]: s for s in api.get_json(f"/reviews/{run_id}/steps")["steps"]}
     except api.ApiError as exc:
         view.show_error(exc)
         return
 
-    chosen_key = f"{key}-step-{run_id}"
-    chosen = st.session_state.get(chosen_key, "ingest")
-    st.markdown(STRIP_CSS, unsafe_allow_html=True)
-
-    for column, (title, stage, in_sequence) in zip(
-        st.columns([1, 1.9, 1, 1]), nodes.STAGES, strict=True
-    ):
-        with column.container(border=True):
-            st.markdown(f"**{title}**")
-            slots = None if in_sequence else st.columns(2)
-            for index, node in enumerate(stage):
-                step = steps.get(node.key, {"status": "pending"})
-                kind = "model" if node.model else "code"
-                holder = slots[index % 2] if slots else st
-                clicked = holder.button(
-                    f"{STEP_ICONS[step['status']]} {node.name}",
-                    key=f"{key}-kind-{kind}-is-{step['status']}-{node.key}",
-                    type="primary" if node.key == chosen else "secondary",
-                    width="stretch",
-                    help=STEP_WORDS[step["status"]],
-                )
-                if clicked:
-                    st.session_state[chosen_key] = node.key
-                    st.rerun()
     st.caption(
-        "Same steps as on the Home page. Rounded asks a model, square is plain code. "
-        "Click a step to see what it was given and what it produced."
+        "Every step, in the order it ran. Open one to see what it was given and what it produced."
     )
-    if chosen in steps:
-        step_panel(steps[chosen], document)
+    for title, stage, _ in nodes.STAGES:
+        st.markdown(f"**{title}**")
+        for node in stage:
+            step = steps.get(node.key, {"node": node.key, "status": "pending"})
+            label = f"{STEP_ICONS[step['status']]} {node.name}: {step_headline(step)}"
+            with st.expander(label):
+                step_panel(step, document)
 
 
 @st.fragment(run_every=1)
@@ -320,7 +308,7 @@ def live_steps(run_id: str, key: str) -> None:
     if report["status"] not in LIVE:
         st.rerun()
     st.caption("Still running. This updates every second.")
-    step_strip(run_id, key, "")
+    step_list(run_id, key, "")
 
 
 # --- What it found -------------------------------------------------------------------------------
@@ -408,9 +396,9 @@ def render_run(run_id: str, *, key: str, compact: bool = False) -> None:
         st.success("Closed. A reviewer has made the call on this one.")
 
     if not compact:
-        # Side by side there isn't room for the strip; the full view of either run has it.
+        # Side by side there isn't room for the steps; the full view of either run has them.
         st.subheader("Steps")
-        step_strip(run_id, key, document)
+        step_list(run_id, key, document)
 
     st.subheader("What it found")
     findings_section(report, document, key)
@@ -441,20 +429,27 @@ def render_run(run_id: str, *, key: str, compact: bool = False) -> None:
         )
 
     st.subheader("Download")
-    xlsx_col, json_col, _ = st.columns([1, 1, 3])
-    xlsx_col.download_button(
-        "Findings as a spreadsheet",
-        api.get(f"/reviews/{run_id}/report.xlsx").content,
-        file_name=f"mlr-review-{run_id}.xlsx",
-        key=f"{key}-xlsx",
-    )
-    json_col.download_button(
-        "Findings as JSON",
-        api.get(f"/reviews/{run_id}/report.json").content,
-        file_name=f"mlr-review-{run_id}.json",
-        mime="application/json",
-        key=f"{key}-json",
-    )
+    # The files are fetched as the page draws, so a failed export must not take the page with it.
+    try:
+        xlsx = api.get(f"/reviews/{run_id}/report.xlsx").content
+        as_json = api.get(f"/reviews/{run_id}/report.json").content
+    except api.ApiError as exc:
+        st.caption(f"The download isn't available for this run right now. ({exc.message})")
+    else:
+        xlsx_col, json_col, _ = st.columns([1, 1, 3])
+        xlsx_col.download_button(
+            "Findings as a spreadsheet",
+            xlsx,
+            file_name=f"mlr-review-{run_id}.xlsx",
+            key=f"{key}-xlsx",
+        )
+        json_col.download_button(
+            "Findings as JSON",
+            as_json,
+            file_name=f"mlr-review-{run_id}.json",
+            mime="application/json",
+            key=f"{key}-json",
+        )
     with st.expander("Raw data for the whole run"):
         st.json(report, expanded=False)
 
