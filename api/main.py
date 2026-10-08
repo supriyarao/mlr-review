@@ -20,7 +20,7 @@ from pydantic import ValidationError
 from api import evals
 from api.export import DISCLAIMER
 from api.routes import evals as eval_routes
-from api.routes import prompts, reviews, rules, samples, tenants
+from api.routes import markets, prompts, reviews, rules, samples, tenants
 from mlr import service
 from platform_core.env import load_env
 from platform_core.rules.registry import RuleStorageError
@@ -47,6 +47,7 @@ app.include_router(tenants.router)
 app.include_router(rules.router)
 app.include_router(eval_routes.router)
 app.include_router(samples.router)
+app.include_router(markets.router)
 app.include_router(prompts.router)
 
 

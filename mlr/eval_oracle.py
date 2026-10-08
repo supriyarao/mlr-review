@@ -46,8 +46,16 @@ from platform_core.retrieval import TenantRetriever
 CITATION_CHARS = 220
 
 
+# Sentence end, a blank line, or the start of a markdown list item. The list item matters: a bulleted
+# list has no full stops in it, so the whole block was coming back as one "sentence" and a finding
+# about the third bullet quoted all three. That is a worse finding -- a reviewer is shown two lines
+# that are fine alongside the one that is not, and the UI highlights the lot -- and it made
+# ``must_not_flag`` unusable on any piece whose bullets are not uniformly good or uniformly bad.
+_SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+|\n{2,}|\n(?=\s*(?:[-*+]|\d+\.)\s)")
+
+
 def _sentences(text: str) -> list[str]:
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n{2,}", text) if s.strip()]
+    return [s.strip() for s in _SENTENCE_BREAK.split(text) if s and s.strip()]
 
 
 def find_quote(document: str, needle: str) -> str:

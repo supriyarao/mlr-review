@@ -66,6 +66,22 @@ SOURCE = "acme-rim (placeholder)"
 AS_OF = "2026-10-01"
 
 
+def markets_for(product_id: str) -> list[dict[str, str]]:
+    """Every market this product has an approval record for, with its status.
+
+    Markets with no record are left out entirely rather than reported as unapproved. A missing
+    record means nobody has told us, and showing that as "not approved" in a picker would state a
+    regulatory fact the system does not know -- the same distinction :func:`lookup_approval_status`
+    draws between ``not_approved`` and ``unknown``.
+    """
+    product = (product_id or "").strip().lower()
+    return [
+        {"market": market, "status": str(record["status"])}
+        for (candidate, market), record in sorted(_APPROVALS.items())
+        if candidate == product
+    ]
+
+
 def lookup_approval_status(
     *,
     product_id: str = "",

@@ -1,22 +1,22 @@
 {
-  "eval_run_id": "2217b794d381",
-  "started_at": "2026-10-07T06:03:56.287688+00:00",
-  "finished_at": "2026-10-07T06:04:22.405366+00:00",
+  "eval_run_id": "058d3a47321a",
+  "started_at": "2026-10-08T15:22:06.855541+00:00",
+  "finished_at": "2026-10-08T15:22:48.859478+00:00",
   "mode": "offline",
-  "git_sha": "0d29ca2",
+  "git_sha": "6a41153",
   "backend": "fake",
-  "model_strong": "fake-strong",
-  "model_fast": "fake-fast",
+  "model_strong": "claude-sonnet-5",
+  "model_fast": "claude-haiku-4-5",
   "prompt_versions": {
-    "substantiation": "substantiation-v3",
-    "off_label": "off_label-v2",
-    "presentation": "presentation-v2",
+    "substantiation": "substantiation-v4",
+    "off_label": "off_label-v3",
+    "presentation": "presentation-v3",
     "extract_claims": "extract_claims-v1",
     "preapproved_filter": "preapproved-v1"
   },
   "tenant_config_hashes": {
-    "acme_pharma": "5e3065cc56a644ca",
-    "borealis_bio": "5198e15619adfc77"
+    "acme_pharma": "cbfdf76c576db650",
+    "borealis_bio": "8c54a1105b4b091a"
   },
   "repeats": 1,
   "cases": [
@@ -73,7 +73,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3758,
+      "latency_ms": 3702,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -112,9 +112,9 @@
                 0
               ],
               "kind": "doc_clause",
-              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v2)",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
               "rule_id": "ACME-DOC-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "blocker",
@@ -125,12 +125,13 @@
           "grounded": true,
           "grounded_by": "evidence",
           "rule_id": "ACME-DOC-001",
-          "rule_version": 2,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
+          "rule_version": 1,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
           "merged_from": [
             "rd-ACME-DOC-001-1"
-          ]
+          ],
+          "tags": []
         },
         {
           "id": "sub-2",
@@ -167,9 +168,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "sub-3",
@@ -206,9 +208,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -305,7 +308,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 3217,
+      "latency_ms": 3507,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -348,7 +351,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "dr-2",
@@ -387,7 +391,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "off-1",
@@ -424,9 +429,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "off_label-v2",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "off_label-v3",
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "off-2",
@@ -463,9 +469,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "off_label-v2",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "off_label-v3",
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "sub-1",
@@ -502,9 +509,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "dr-3",
@@ -516,20 +524,20 @@
             54
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v2",
+              "source_id": "ACME-TM-001 v1",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v2",
+              "title": "ACME-TM-001 v1",
               "rule_id": "ACME-TM-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "advisory",
@@ -540,10 +548,11 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 2,
+          "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -590,7 +599,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2269,
+      "latency_ms": 2634,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -631,9 +640,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -680,7 +690,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2711,
+      "latency_ms": 2834,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -721,9 +731,10 @@
           "grounded_by": "measurement",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-fast",
-          "prompt_version": "presentation-v2",
-          "merged_from": []
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -770,7 +781,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2410,
+      "latency_ms": 2613,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -798,9 +809,10 @@
           "grounded_by": "none",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -851,7 +863,7 @@
       "expected_route": "legal",
       "actual_route": "legal",
       "route_correct": true,
-      "latency_ms": 2967,
+      "latency_ms": 4190,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -871,7 +883,7 @@
           "suggested_fix": "Drop the comparison, or state the placebo-controlled result instead.",
           "citations": [
             {
-              "source_id": "BOR-LLM-001 v2",
+              "source_id": "BOR-LLM-001 v1",
               "passage": "Comparative or superlative language about a Borealis product - better, superior, more effective, leading, best - requires a named comparator and a head-to-head clinical trial against that comparator. No head-to-head trial exists for any Borealis product.",
               "char_span": [
                 0,
@@ -880,7 +892,7 @@
               "kind": "rule",
               "title": "Comparative language requires a named comparator and head-to-head evidence",
               "rule_id": "BOR-LLM-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "blocker",
@@ -891,12 +903,13 @@
           "grounded": false,
           "grounded_by": "none",
           "rule_id": "BOR-LLM-001",
-          "rule_version": 2,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
+          "rule_version": 1,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
           "merged_from": [
             "lr-1"
-          ]
+          ],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -932,7 +945,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2687,
+      "latency_ms": 5420,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -997,7 +1010,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2940,
+      "latency_ms": 3905,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1040,7 +1053,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "dr-2",
@@ -1079,7 +1093,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "pre-1",
@@ -1116,9 +1131,10 @@
           "grounded_by": "measurement",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-fast",
-          "prompt_version": "presentation-v2",
-          "merged_from": []
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1173,7 +1189,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 981,
+      "latency_ms": 1057,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1214,9 +1230,10 @@
           "grounded_by": "evidence",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "off_label-v2",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "off_label-v3",
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "dr-1",
@@ -1228,20 +1245,20 @@
             44
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v2",
+              "source_id": "ACME-TM-001 v1",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v2",
+              "title": "ACME-TM-001 v1",
               "rule_id": "ACME-TM-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "advisory",
@@ -1252,10 +1269,11 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 2,
+          "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1287,7 +1305,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2475,
+      "latency_ms": 3109,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1337,7 +1355,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2800,
+      "latency_ms": 2983,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1365,9 +1383,10 @@
           "grounded_by": "none",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1418,7 +1437,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2626,
+      "latency_ms": 2762,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1446,9 +1465,10 @@
           "grounded_by": "none",
           "rule_id": "",
           "rule_version": 0,
-          "model": "fake-strong",
-          "prompt_version": "substantiation-v3",
-          "merged_from": []
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1499,7 +1519,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2781,
+      "latency_ms": 3314,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1542,7 +1562,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1597,7 +1618,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2327,
+      "latency_ms": 3777,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1640,7 +1661,8 @@
           "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         },
         {
           "id": "dr-2",
@@ -1652,20 +1674,20 @@
             24
           ],
           "issue": "First mention of Nexapril does not carry a trademark symbol.",
-          "explanation": "This is BOR-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Nexapril does not carry a trademark symbol. The wording that triggered it is 'Nexapril'.",
+          "explanation": "This is BOR-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Nexapril does not carry a trademark symbol. The wording that triggered it is 'Nexapril'.",
           "suggested_fix": "Write Nexapril\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "BOR-TM-001 v2",
+              "source_id": "BOR-TM-001 v1",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "BOR-TM-001 v2",
+              "title": "BOR-TM-001 v1",
               "rule_id": "BOR-TM-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "advisory",
@@ -1676,10 +1698,11 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "BOR-TM-001",
-          "rule_version": 2,
+          "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1719,7 +1742,7 @@
       "expected_route": "standard_reviewer",
       "actual_route": "standard_reviewer",
       "route_correct": true,
-      "latency_ms": 2768,
+      "latency_ms": 3431,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1735,20 +1758,20 @@
             24
           ],
           "issue": "First mention of Zelvoran does not carry a trademark symbol.",
-          "explanation": "This is ACME-TM-001 v2, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
+          "explanation": "This is ACME-TM-001 v1, one of the company's own rules. It says: The product name must carry the registered trademark symbol on its first mention in every promotional piece. First mention of Zelvoran does not carry a trademark symbol. The wording that triggered it is 'Zelvoran'.",
           "suggested_fix": "Write Zelvoran\u00ae on first mention.",
           "citations": [
             {
-              "source_id": "ACME-TM-001 v2",
+              "source_id": "ACME-TM-001 v1",
               "passage": "The product name must carry the registered trademark symbol on its first mention in every promotional piece.",
               "char_span": [
                 0,
                 0
               ],
               "kind": "rule",
-              "title": "ACME-TM-001 v2",
+              "title": "ACME-TM-001 v1",
               "rule_id": "ACME-TM-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "advisory",
@@ -1759,10 +1782,11 @@
           "grounded": true,
           "grounded_by": "rule",
           "rule_id": "ACME-TM-001",
-          "rule_version": 2,
+          "rule_version": 1,
           "model": "",
           "prompt_version": "",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1809,7 +1833,7 @@
       "expected_route": "senior_regulatory",
       "actual_route": "senior_regulatory",
       "route_correct": true,
-      "latency_ms": 2607,
+      "latency_ms": 3151,
       "tokens_in": 0,
       "tokens_out": 0,
       "cost_usd": 0.0,
@@ -1825,7 +1849,7 @@
             0
           ],
           "issue": "Breaches the durability clause of the Acme Brand and Promotional Code. The finding must cite that clause verbatim from the document.",
-          "explanation": "This is ACME-DOC-001 v2, one of the company's own rules. It says: Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
+          "explanation": "This is ACME-DOC-001 v1, one of the company's own rules. It says: Promotional material must comply with the Acme Brand and Promotional Code. A finding under this rule must quote the exact clause of the Code that the material breaches.",
           "suggested_fix": "Reword the claim so it complies with the clause cited, or remove it.",
           "citations": [
             {
@@ -1836,9 +1860,9 @@
                 0
               ],
               "kind": "doc_clause",
-              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v2)",
+              "title": "Compliance with the Acme Brand and Promotional Code (ACME-DOC-001 v1)",
               "rule_id": "ACME-DOC-001",
-              "rule_version": 2
+              "rule_version": 1
             }
           ],
           "severity_proposed": "blocker",
@@ -1849,10 +1873,11 @@
           "grounded": true,
           "grounded_by": "doc_clause",
           "rule_id": "ACME-DOC-001",
-          "rule_version": 2,
-          "model": "fake-strong",
+          "rule_version": 1,
+          "model": "claude-sonnet-5",
           "prompt_version": "rule-check-v1",
-          "merged_from": []
+          "merged_from": [],
+          "tags": []
         }
       ],
       "gate_results": [
@@ -1873,28 +1898,1283 @@
           "reason_code": "low_confidence"
         }
       ]
+    },
+    {
+      "case_id": "017-serious-risks-omitted",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "safety_prominence",
+            "claim_contains": "The most common adverse reactions seen with Zelvoran",
+            "severity": "blocker",
+            "note": "Safety information omits the contraindications and the warnings and precautions; only common adverse reactions are stated.",
+            "explanation": "The safety reviewer checks that the risk information covers what a prescriber needs, not just that a safety section exists. This one lists only the common, mild reactions. It says nothing about who must not be given the medicine, or about the serious warnings on the label: serious infections, tuberculosis screening, liver enzyme monitoring and serious allergic reactions.",
+            "suggested_fix": "Add the contraindications and the warnings and precautions from the label to the safety section, alongside the common reactions already listed."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "pre-1"
+        }
+      ],
+      "unexpected_findings": [],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 2905,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "pre-1",
+          "check_type": "safety_prominence",
+          "claim_id": "c1",
+          "quote": "The most common adverse reactions seen with Zelvoran in the 16-week placebo-controlled trials were\nnasopharyngitis (14.1% compared with 11.3% receiving placebo), injection-site reaction (9.4%\ncompared with 2.0%) and headache (7.2% compared with 5.9%).",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Safety information omits the contraindications and the warnings and precautions; only common adverse reactions are stated.",
+          "explanation": "The safety reviewer checks that the risk information covers what a prescriber needs, not just that a safety section exists. This one lists only the common, mild reactions. It says nothing about who must not be given the medicine, or about the serious warnings on the label: serious infections, tuberculosis screening, liver enzyme monitoring and serious allergic reactions.",
+          "suggested_fix": "Add the contraindications and the warnings and precautions from the label to the safety section, alongside the common reactions already listed.",
+          "citations": [
+            {
+              "source_id": "safety_prominence_validator",
+              "passage": "safety_block_present.chars: 449",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "measurement",
+              "title": "",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SAFETY",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "measurement",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 1 finding(s) verified (0 by evidence, 0 by rule, 0 by document clause, 1 by measurement)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 1 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "018-no-safety-information-at-all",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "safety_completeness",
+            "claim_contains": "Powerful antibiotic relief for complicated skin infections",
+            "severity": "blocker",
+            "note": "Required topics are derived from Declasal's label sections, which include a Boxed Warning.",
+            "explanation": "The piece carries no safety information at all. Declasal's label has a Boxed Warning for tendon rupture, nerve damage and effects on the nervous system, and none of it appears here, along with who must not take the medicine and what the common side effects are.",
+            "suggested_fix": "Add the Boxed Warning, the contraindications, the warnings and precautions and the common adverse reactions from the label, and a line directing the reader to the full Prescribing Information."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "pre-1"
+        },
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Trusted by doctors nationwide",
+            "severity": "blocker",
+            "note": "No source in the corpus supports a popularity or preference claim.",
+            "explanation": "Nothing in the evidence measures how widely doctors trust or prescribe Declasal, so this cannot be checked at all. A claim nobody can verify has to come out.",
+            "suggested_fix": "Remove the claim, or replace it with a labelled result that can be cited."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "severity": null,
+          "quote": "",
+          "issue": "Required section 'important_safety_information' is missing."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 2658,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required section 'important_safety_information' is missing.",
+          "explanation": "This is ACME-ISI-001 v1, one of the company's own rules. It says: Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk. Required section 'important_safety_information' is missing.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "ACME-ISI-001 v1",
+              "passage": "Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-ISI-001 v1",
+              "rule_id": "ACME-ISI-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c2",
+          "quote": "Trusted by doctors nationwide",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No source in the corpus supports a popularity or preference claim.",
+          "explanation": "Nothing in the evidence measures how widely doctors trust or prescribe Declasal, so this cannot be checked at all. A claim nobody can verify has to come out.",
+          "suggested_fix": "Remove the claim, or replace it with a labelled result that can be cited.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:dcl-301:2",
+              "passage": "## Notes\n\nNo assessment of clinical response was made before the Day 17 to Day 24 test-of-cure visit.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "DCL-301 \u2014 Notes",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 91,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "pre-1",
+          "check_type": "safety_completeness",
+          "claim_id": "c1",
+          "quote": "Powerful antibiotic relief for complicated skin infections \u2014 so you can feel like yourself again.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required topics are derived from Declasal's label sections, which include a Boxed Warning.",
+          "explanation": "The piece carries no safety information at all. Declasal's label has a Boxed Warning for tendon rupture, nerve damage and effects on the nervous system, and none of it appears here, along with who must not take the medicine and what the common side effects are.",
+          "suggested_fix": "Add the Boxed Warning, the contraindications, the warnings and precautions and the common adverse reactions from the label, and a line directing the reader to the full Prescribing Information.",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-COMPLETENESS",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 4 finding(s) could not be verified: pre-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 4 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "019-speed-claim-its-own-footnote-refutes",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Works in as little as 3 days",
+            "severity": "blocker",
+            "note": "DCL-301 made no assessment before the Day 17 to Day 24 test-of-cure visit, and the label says time to clinical response has not been established.",
+            "explanation": "The trial never looked at patients before Day 17, so there is no measurement of how quickly Declasal works. The piece's own footnote says the course is 10 days and that cure was checked at the test-of-cure visit, which contradicts the headline above it.",
+            "suggested_fix": "Remove the speed claim. State the labelled result instead: clinical cure at the test-of-cure visit after a 10-day course."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        },
+        {
+          "expected": {
+            "check_type": "safety_completeness",
+            "claim_contains": "Fast-acting antibiotic power",
+            "severity": "blocker",
+            "note": "No safety section at all in a piece for a boxed-warning product.",
+            "explanation": "The ad carries no safety information. Declasal's label has a Boxed Warning, and none of it appears here.",
+            "suggested_fix": "Add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions, with a line pointing to the full Prescribing Information."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "pre-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "severity": null,
+          "quote": "",
+          "issue": "Required section 'important_safety_information' is missing."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 3405,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required section 'important_safety_information' is missing.",
+          "explanation": "This is ACME-ISI-001 v1, one of the company's own rules. It says: Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk. Required section 'important_safety_information' is missing.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "ACME-ISI-001 v1",
+              "passage": "Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-ISI-001 v1",
+              "rule_id": "ACME-ISI-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Works in as little as 3 days.*",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "DCL-301 made no assessment before the Day 17 to Day 24 test-of-cure visit, and the label says time to clinical response has not been established.",
+          "explanation": "The trial never looked at patients before Day 17, so there is no measurement of how quickly Declasal works. The piece's own footnote says the course is 10 days and that cure was checked at the test-of-cure visit, which contradicts the headline above it.",
+          "suggested_fix": "Remove the speed claim. State the labelled result instead: clinical cure at the test-of-cure visit after a 10-day course.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:ztm-07:2",
+              "passage": "## Why this cannot be compared with DCL-301\n\nZTM-07 and DCL-301 differ on every axis that determines a cure rate, so the two percentages do not\nmeasure the same thing:\n\n| | DCL-301 (Declasal) | ZTM-07 (Zentrimycin) |\n|--",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "ZTM-07 \u2014 Why this cannot be compared with DCL-301",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "pre-1",
+          "check_type": "safety_completeness",
+          "claim_id": "c2",
+          "quote": "Fast-acting antibiotic power that knocks out skin infections \u2014 so patients feel better sooner.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No safety section at all in a piece for a boxed-warning product.",
+          "explanation": "The ad carries no safety information. Declasal's label has a Boxed Warning, and none of it appears here.",
+          "suggested_fix": "Add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions, with a line pointing to the full Prescribing Information.",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-COMPLETENESS",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 4 finding(s) could not be verified: pre-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 4 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "020-superiority-from-two-unrelated-studies",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Declasal delivered a higher clinical cure rate than Zentrimycin",
+            "severity": "blocker",
+            "note": "Cross-study comparison. Populations, severity, course length, timepoint and analysis population all differ, and 92.4% is clinically evaluable against a 68% intent-to-treat figure.",
+            "explanation": "The two numbers come from different trials in different patients. Declasal's was measured in people with mild infection treated for 10 days; Zentrimycin's in hospitalised patients with complicated infection treated for 7. Sicker patients do worse on any antibiotic, so the gap says more about who was studied than about which medicine is better. The two drugs have never been compared head to head.",
+            "suggested_fix": "Remove the comparison and the chart. A superiority claim needs a head-to-head trial; without one, state Declasal's own result and the population it was measured in."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        },
+        {
+          "expected": {
+            "check_type": "safety_completeness",
+            "claim_contains": "Outperforms the competition",
+            "severity": "blocker",
+            "note": "No safety section at all in a piece for a boxed-warning product.",
+            "explanation": "The ad carries no safety information, and Declasal's label has a Boxed Warning.",
+            "suggested_fix": "Add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions, with a pointer to the full Prescribing Information."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "pre-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "severity": null,
+          "quote": "",
+          "issue": "Required section 'important_safety_information' is missing."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 2520,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required section 'important_safety_information' is missing.",
+          "explanation": "This is ACME-ISI-001 v1, one of the company's own rules. It says: Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk. Required section 'important_safety_information' is missing.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "ACME-ISI-001 v1",
+              "passage": "Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-ISI-001 v1",
+              "rule_id": "ACME-ISI-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c1",
+          "quote": "Declasal delivered a higher clinical cure rate than Zentrimycin in skin-infection studies.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Cross-study comparison. Populations, severity, course length, timepoint and analysis population all differ, and 92.4% is clinically evaluable against a 68% intent-to-treat figure.",
+          "explanation": "The two numbers come from different trials in different patients. Declasal's was measured in people with mild infection treated for 10 days; Zentrimycin's in hospitalised patients with complicated infection treated for 7. Sicker patients do worse on any antibiotic, so the gap says more about who was studied than about which medicine is better. The two drugs have never been compared head to head.",
+          "suggested_fix": "Remove the comparison and the chart. A superiority claim needs a head-to-head trial; without one, state Declasal's own result and the population it was measured in.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:ztm-07:2",
+              "passage": "## Why this cannot be compared with DCL-301\n\nZTM-07 and DCL-301 differ on every axis that determines a cure rate, so the two percentages do not\nmeasure the same thing:\n\n| | DCL-301 (Declasal) | ZTM-07 (Zentrimycin) |\n|--",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "ZTM-07 \u2014 Why this cannot be compared with DCL-301",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "pre-1",
+          "check_type": "safety_completeness",
+          "claim_id": "c2",
+          "quote": "Outperforms the competition.",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "No safety section at all in a piece for a boxed-warning product.",
+          "explanation": "The ad carries no safety information, and Declasal's label has a Boxed Warning.",
+          "suggested_fix": "Add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions, with a pointer to the full Prescribing Information.",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-COMPLETENESS",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 4 finding(s) could not be verified: pre-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 4 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "021-off-label-indication-under-us",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "off_label",
+            "claim_contains": "uncomplicated UTI",
+            "severity": "blocker",
+            "note": "Approved in us for skin and skin-structure infections only. The tag unapproved_market must NOT be set here - the product is approved in this market, just not for this indication.",
+            "explanation": "Declasal is approved for skin and skin-structure infections. It is not approved for urinary tract infection, and the label states that effectiveness in UTI has not been established, so promoting it for UTI is promotion outside the licence.",
+            "suggested_fix": "Remove urinary tract infection from the piece entirely, including the \"Two indications\" panel."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "off-1"
+        },
+        {
+          "expected": {
+            "check_type": "substantiation",
+            "claim_contains": "Adults, elderly and patients with comorbidities",
+            "severity": "blocker",
+            "note": "DCL-301 enrolled 18 to 55 and excluded comorbid and hospitalised patients.",
+            "explanation": "The trial enrolled adults aged 18 to 55 and excluded patients with significant other illnesses, so there is no evidence about older patients or patients with comorbidities.",
+            "suggested_fix": "State the population actually studied: adults aged 18 to 55 with mild cellulitis."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "sub-1"
+        },
+        {
+          "expected": {
+            "check_type": "safety_completeness",
+            "claim_contains": "Well tolerated",
+            "severity": "blocker",
+            "note": "Minimisation plus total omission, in a piece for a boxed-warning product.",
+            "explanation": "The piece calls Declasal well tolerated and carries no safety information at all, while the label has a Boxed Warning for tendon rupture and nerve damage.",
+            "suggested_fix": "Remove the tolerability claim and add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "pre-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "severity": null,
+          "quote": "",
+          "issue": "Required section 'important_safety_information' is missing."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 2962,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required section 'important_safety_information' is missing.",
+          "explanation": "This is ACME-ISI-001 v1, one of the company's own rules. It says: Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk. Required section 'important_safety_information' is missing.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "ACME-ISI-001 v1",
+              "passage": "Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-ISI-001 v1",
+              "rule_id": "ACME-ISI-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "off-1",
+          "check_type": "off_label",
+          "claim_id": "c1",
+          "quote": "An innovative treatment for skin infections and uncomplicated UTI",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Approved in us for skin and skin-structure infections only. The tag unapproved_market must NOT be set here - the product is approved in this market, just not for this indication.",
+          "explanation": "Declasal is approved for skin and skin-structure infections. It is not approved for urinary tract infection, and the label states that effectiveness in UTI has not been established, so promoting it for UTI is promotion outside the licence.",
+          "suggested_fix": "Remove urinary tract infection from the piece entirely, including the \"Two indications\" panel.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:declasal:v1.0:2",
+              "passage": "## 1. Indications and Usage\n\nDECLASAL is indicated in adults for the treatment of skin and skin-structure infections caused by\ndesignated susceptible bacteria.\n\nLimitations of use.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Declasal label v1.0 \u2014 1. Indications and Usage",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-OFFLABEL",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "off_label-v3",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "sub-1",
+          "check_type": "substantiation",
+          "claim_id": "c2",
+          "quote": "Effective across patient types\nAdults, elderly and patients with comorbidities",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "DCL-301 enrolled 18 to 55 and excluded comorbid and hospitalised patients.",
+          "explanation": "The trial enrolled adults aged 18 to 55 and excluded patients with significant other illnesses, so there is no evidence about older patients or patients with comorbidities.",
+          "suggested_fix": "State the population actually studied: adults aged 18 to 55 with mild cellulitis.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:reference:dcl-301:0",
+              "passage": "# Reference \u2014 DCL-301 (fictional study summary)\n\n> Synthetic content for demonstration.\n\nStudy: DCL-301.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "DCL-301 \u2014 Reference \u2014 DCL-301 (fictional study summary)",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-SUBSTANTIATION",
+          "confidence": 91,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "substantiation-v4",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "pre-1",
+          "check_type": "safety_completeness",
+          "claim_id": "c3",
+          "quote": "Well tolerated\nLow rates of side effects observed",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Minimisation plus total omission, in a piece for a boxed-warning product.",
+          "explanation": "The piece calls Declasal well tolerated and carries no safety information at all, while the label has a Boxed Warning for tendon rupture and nerve damage.",
+          "suggested_fix": "Remove the tolerability claim and add the Boxed Warning, contraindications, warnings and precautions and common adverse reactions.",
+          "citations": [],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-COMPLETENESS",
+          "confidence": 45,
+          "low_confidence": true,
+          "grounded": false,
+          "grounded_by": "none",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-haiku-4-5",
+          "prompt_version": "presentation-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": false,
+          "details": "1 of 5 finding(s) could not be verified: pre-1 (no citation could be verified against a source belonging to this tenant)",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": false,
+          "details": "1 of 5 finding(s) fell below the tenant threshold of 70",
+          "failed_items": [
+            "pre-1"
+          ],
+          "on_fail_route": "escalate",
+          "reason_code": "low_confidence"
+        }
+      ]
+    },
+    {
+      "case_id": "022-unapproved-product-under-eu",
+      "tenant_id": "acme_pharma",
+      "passed": true,
+      "matches": [
+        {
+          "expected": {
+            "check_type": "off_label",
+            "claim_contains": "An innovative treatment for skin infections and uncomplicated UTI",
+            "severity": "blocker",
+            "note": "approval_status returns not_approved for declasal/eu. Expect the tag unapproved_market and grading by ACME-SEV-UNAPPROVED rather than ACME-SEV-OFFLABEL.",
+            "explanation": "Declasal has no marketing authorisation in the EU. Until it is approved there, no promotional material may claim it works or that it is safe, whatever the indication. This is not something a change of wording can fix.",
+            "suggested_fix": "Do not use this material in the EU. It can only run once Declasal is approved there."
+          },
+          "matched": true,
+          "severity_mismatch": false,
+          "actual_severity": "blocker",
+          "matched_finding_id": "off-1"
+        }
+      ],
+      "unexpected_findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "severity": null,
+          "quote": "",
+          "issue": "Required section 'important_safety_information' is missing."
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "severity": null,
+          "quote": "",
+          "issue": "Required text is missing."
+        }
+      ],
+      "false_alarms": [],
+      "expected_route": "senior_regulatory",
+      "actual_route": "senior_regulatory",
+      "route_correct": true,
+      "latency_ms": 2325,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "error": "",
+      "findings": [
+        {
+          "id": "dr-1",
+          "check_type": "safety_prominence",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required section 'important_safety_information' is missing.",
+          "explanation": "This is ACME-ISI-001 v1, one of the company's own rules. It says: Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk. Required section 'important_safety_information' is missing.",
+          "suggested_fix": "",
+          "citations": [
+            {
+              "source_id": "ACME-ISI-001 v1",
+              "passage": "Every promotional piece must carry the Important Safety Information for the product so a reader can weigh benefit against risk.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-ISI-001 v1",
+              "rule_id": "ACME-ISI-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-ISI-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-ISI-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "dr-2",
+          "check_type": "business_rule",
+          "claim_id": "",
+          "quote": "",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "Required text is missing.",
+          "explanation": "This is ACME-REQ-001 v1, one of the company's own rules. It says: Every promotional piece must direct the reader to the full Prescribing Information using the approved wording. Required text is missing.",
+          "suggested_fix": "Add: Please see full Prescribing Information.",
+          "citations": [
+            {
+              "source_id": "ACME-REQ-001 v1",
+              "passage": "Every promotional piece must direct the reader to the full Prescribing Information using the approved wording.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "rule",
+              "title": "ACME-REQ-001 v1",
+              "rule_id": "ACME-REQ-001",
+              "rule_version": 1
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "rule:ACME-REQ-001",
+          "confidence": 100,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "rule",
+          "rule_id": "ACME-REQ-001",
+          "rule_version": 1,
+          "model": "",
+          "prompt_version": "",
+          "merged_from": [],
+          "tags": []
+        },
+        {
+          "id": "off-1",
+          "check_type": "off_label",
+          "claim_id": "c1",
+          "quote": "An innovative treatment for skin infections and uncomplicated UTI",
+          "char_span": [
+            0,
+            0
+          ],
+          "issue": "approval_status returns not_approved for declasal/eu. Expect the tag unapproved_market and grading by ACME-SEV-UNAPPROVED rather than ACME-SEV-OFFLABEL.",
+          "explanation": "Declasal has no marketing authorisation in the EU. Until it is approved there, no promotional material may claim it works or that it is safe, whatever the indication. This is not something a change of wording can fix.",
+          "suggested_fix": "Do not use this material in the EU. It can only run once Declasal is approved there.",
+          "citations": [
+            {
+              "source_id": "acme_pharma:label:declasal:v1.0:2",
+              "passage": "## 1. Indications and Usage\n\nDECLASAL is indicated in adults for the treatment of skin and skin-structure infections caused by\ndesignated susceptible bacteria.\n\nLimitations of use.",
+              "char_span": [
+                0,
+                0
+              ],
+              "kind": "evidence",
+              "title": "Declasal label v1.0 \u2014 1. Indications and Usage",
+              "rule_id": "",
+              "rule_version": 0
+            }
+          ],
+          "severity_proposed": "blocker",
+          "severity_final": "blocker",
+          "severity_rule_id": "ACME-SEV-OFFLABEL",
+          "confidence": 92,
+          "low_confidence": false,
+          "grounded": true,
+          "grounded_by": "evidence",
+          "rule_id": "",
+          "rule_version": 0,
+          "model": "claude-sonnet-5",
+          "prompt_version": "off_label-v3",
+          "merged_from": [],
+          "tags": []
+        }
+      ],
+      "gate_results": [
+        {
+          "gate": "grounding",
+          "passed": true,
+          "details": "all 3 finding(s) verified (1 by evidence, 2 by rule, 0 by document clause, 0 by measurement)",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "ungrounded"
+        },
+        {
+          "gate": "confidence",
+          "passed": true,
+          "details": "all 3 finding(s) met the tenant threshold of 70",
+          "failed_items": [],
+          "on_fail_route": null,
+          "reason_code": "low_confidence"
+        }
+      ]
     }
   ],
   "metrics": {
     "pass_rate": {
-      "cases": 16,
-      "passed": 16,
+      "cases": 22,
+      "passed": 22,
       "pass_rate": 1.0
     },
     "recall_all": {
-      "expected": 17,
-      "matched": 17,
+      "expected": 28,
+      "matched": 28,
       "recall": 1.0
     },
     "finding_precision": {
-      "produced": 25,
-      "accounted_for": 17,
-      "unexpected": 8,
-      "precision": 0.68
+      "produced": 46,
+      "accounted_for": 28,
+      "unexpected": 18,
+      "precision": 0.6087
     },
     "routing": {
-      "scored": 16,
-      "correct": 16,
+      "scored": 22,
+      "correct": 22,
       "accuracy": 1.0
     },
     "severity_mismatches": {
@@ -1906,18 +3186,18 @@
       "rows": []
     },
     "cost_and_latency": {
-      "runs": 16,
-      "latency_p50_ms": 2711.0,
-      "latency_p95_ms": 3217.0,
-      "latency_mean_ms": 2645.2,
+      "runs": 22,
+      "latency_p50_ms": 2983.0,
+      "latency_p95_ms": 4190.0,
+      "latency_mean_ms": 3143.8,
       "tokens_in_total": 0,
       "tokens_out_total": 0,
       "cost_usd_total": 0.0,
       "cost_usd_per_run": 0.0
     },
     "blocker_recall": {
-      "expected": 17,
-      "matched": 17,
+      "expected": 28,
+      "matched": 28,
       "recall": 1.0,
       "missed": []
     },
@@ -1933,15 +3213,15 @@
       "recall": 1.0
     },
     "grounding_rate": {
-      "findings": 25,
-      "grounded": 21,
-      "rate": 0.84,
+      "findings": 46,
+      "grounded": 38,
+      "rate": 0.8261,
       "by_mode": {
         "doc_clause": 1,
-        "evidence": 8,
-        "measurement": 2,
-        "none": 4,
-        "rule": 10
+        "evidence": 14,
+        "measurement": 3,
+        "none": 8,
+        "rule": 20
       }
     },
     "severity_calibration": {
@@ -1949,12 +3229,13 @@
       "rows": []
     },
     "rule_findings": {
-      "rule_findings": 13,
-      "distinct_rules": 9,
+      "rule_findings": 23,
+      "distinct_rules": 10,
       "by_rule": {
         "ACME-BAN-001": 2,
         "ACME-DOC-001": 2,
-        "ACME-REQ-001": 1,
+        "ACME-ISI-001": 5,
+        "ACME-REQ-001": 6,
         "ACME-TM-001": 3,
         "BOR-DISC-001": 1,
         "BOR-ISI-001": 1,
@@ -1977,31 +3258,31 @@
           "threshold": 50,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 4
+          "low_confidence_findings": 8
         },
         {
           "threshold": 60,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 4
+          "low_confidence_findings": 8
         },
         {
           "threshold": 70,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 4
+          "low_confidence_findings": 8
         },
         {
           "threshold": 80,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 4
+          "low_confidence_findings": 8
         },
         {
           "threshold": 90,
           "blocker_recall": 1.0,
           "false_escalation_rate": 0.0,
-          "low_confidence_findings": 5
+          "low_confidence_findings": 9
         }
       ],
       "tenant_thresholds": {
@@ -2013,24 +3294,24 @@
   "per_tenant": {
     "acme_pharma": {
       "pass_rate": {
-        "cases": 13,
-        "passed": 13,
+        "cases": 19,
+        "passed": 19,
         "pass_rate": 1.0
       },
       "recall_all": {
-        "expected": 14,
-        "matched": 14,
+        "expected": 25,
+        "matched": 25,
         "recall": 1.0
       },
       "finding_precision": {
-        "produced": 19,
-        "accounted_for": 14,
-        "unexpected": 5,
-        "precision": 0.7368
+        "produced": 40,
+        "accounted_for": 25,
+        "unexpected": 15,
+        "precision": 0.625
       },
       "routing": {
-        "scored": 13,
-        "correct": 13,
+        "scored": 19,
+        "correct": 19,
         "accuracy": 1.0
       },
       "severity_mismatches": {
@@ -2042,10 +3323,10 @@
         "rows": []
       },
       "cost_and_latency": {
-        "runs": 13,
-        "latency_p50_ms": 2687.0,
-        "latency_p95_ms": 3217.0,
-        "latency_mean_ms": 2622.3,
+        "runs": 19,
+        "latency_p50_ms": 2962.0,
+        "latency_p95_ms": 3702.0,
+        "latency_mean_ms": 3015.4,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
@@ -2084,9 +3365,9 @@
       },
       "cost_and_latency": {
         "runs": 3,
-        "latency_p50_ms": 2940.0,
-        "latency_p95_ms": 2967.0,
-        "latency_mean_ms": 2744.7,
+        "latency_p50_ms": 3905.0,
+        "latency_p95_ms": 4190.0,
+        "latency_mean_ms": 3957.3,
         "tokens_in_total": 0,
         "tokens_out_total": 0,
         "cost_usd_total": 0.0,
