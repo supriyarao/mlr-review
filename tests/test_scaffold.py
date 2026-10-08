@@ -1,6 +1,10 @@
 """Scaffold sanity checks: the packages import, and the repo layout is what the docs claim."""
 
 import contextlib
+import os
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -62,12 +66,38 @@ def test_the_demo_entry_points_use_a_backend_that_actually_runs():
     default was ``ollama`` -- so the demo quietly ran against a local model at roughly two minutes per
     call. A review makes about nine, so it sat at "running" for a quarter of an hour, which looks
     exactly like a stuck run. The UI was polling correctly the whole time.
+
+    This asserted on the literal text ``MLR_LLM_BACKEND ?= fake`` until that line grew a lookup
+    into ``.env``. The behaviour stayed correct and the assertion did not, so the test failed for
+    six commits without anyone noticing -- it only shows up in a full run. It now asks make what
+    the value actually is, in a directory with no ``.env``, which is the thing worth guaranteeing.
     """
-    makefile = (REPO_ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "MLR_LLM_BACKEND ?= fake" in makefile, (
-        "the demo targets must default to a usable backend"
+    makefile = REPO_ROOT / "Makefile"
+    assert "export MLR_LLM_BACKEND" in makefile.read_text(encoding="utf-8"), (
+        "the setting has to reach the subprocesses"
     )
-    assert "export MLR_LLM_BACKEND" in makefile, "the setting has to reach the subprocesses"
+
+    # MLR_LLM_BACKEND has to come out of the environment, and that is the whole subtlety: the
+    # Makefile assigns it with `?=`, which defers to an already-set variable, and conftest.py sets
+    # it to "fake" for every test. Leave it in and make never consults the fallback, so this test
+    # passes whatever the Makefile says -- which is exactly what the first version of it did.
+    env = {k: v for k, v in os.environ.items() if k != "MLR_LLM_BACKEND"}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        shutil.copy(makefile, Path(tmp) / "Makefile")
+        printed = subprocess.run(
+            ["make", "-n", "demo"],
+            cwd=tmp,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    assert "backend: fake" in printed.stdout, (
+        "with no .env, the demo targets must fall back to a backend that runs without a key; "
+        f"make printed: {printed.stdout.strip()[:200]!r}"
+    )
 
     env_example = (REPO_ROOT / ".env.example").read_text(encoding="utf-8")
     assert "MLR_LLM_BACKEND=fake" in env_example, (
