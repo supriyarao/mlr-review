@@ -1,0 +1,38 @@
+id: 017-serious-risks-omitted
+title: Safety section present and well placed, but the serious risks are left out
+why_hard: >-
+  Every structural check passes. There is a safety heading, it sits beside the efficacy claims, it
+  is a reasonable length and it signposts the Prescribing Information. Each figure in it is true
+  and comes from the label. What is wrong is what is not there: the section lists only the common,
+  mild reactions and omits the contraindications and every warning on the label - serious
+  infections, tuberculosis screening, liver enzyme monitoring, serious hypersensitivity. Cases 004
+  and 007 test where the safety information sits and how much room it gets; this one tests what it
+  says. A check that measures presence, position or proportion passes this piece.
+tenant_id: acme_pharma
+product_id: zelvoran
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo_path: corpus/promo/zelvoran-hcp-risk-omitted.md
+expected_findings:
+  - check_type: safety_prominence
+    claim_contains: The most common adverse reactions seen with Zelvoran
+    explanation: >-
+      The safety reviewer checks that the risk information covers what a prescriber needs, not just
+      that a safety section exists. This one lists only the common, mild reactions. It says nothing
+      about who must not be given the medicine, or about the serious warnings on the label:
+      serious infections, tuberculosis screening, liver enzyme monitoring and serious allergic
+      reactions.
+    suggested_fix: >-
+      Add the contraindications and the warnings and precautions from the label to the safety
+      section, alongside the common reactions already listed.
+    severity: blocker
+    note: >-
+      Safety information omits the contraindications and the warnings and precautions; only common
+      adverse reactions are stated.
+expected_route: senior_regulatory
+must_not_flag:
+  - 68.4% of adults treated with Zelvoran achieved PASI-75 compared with 9.2% receiving placebo
+  - 44.2% of adults treated with Zelvoran achieved PASI-90 compared with 4.8% receiving placebo
+tags: [safety_prominence, omission, completeness]

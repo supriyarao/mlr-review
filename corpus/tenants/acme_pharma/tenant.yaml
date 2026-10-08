@@ -5,7 +5,7 @@
 
 tenant_id: acme_pharma
 name: Acme Pharma
-version: "2026.2"
+version: "2026.3"
 
 # Findings below this confidence are flagged low_confidence and escalate. Acme accepts more
 # machine judgement than Borealis does, trading a little safety for review throughput.
@@ -16,6 +16,17 @@ products:
     name: Zelvoran
     label_version: "1.0"
     indication: moderate-to-severe plaque psoriasis in adults
+
+  # Declasal carries a boxed warning, which Zelvoran does not. It is in the corpus so the demo has
+  # a product where leaving the safety information out is the most serious thing a piece can do.
+  - product_id: declasal
+    name: Declasal
+    label_version: "1.0"
+    indication: skin and skin-structure infections in adults caused by designated susceptible bacteria
+    # ztm-07 is a competitor's published study, held here because Declasal promotional material
+    # compares against it. A comparative claim can only be checked if the study it rests on is
+    # retrievable.
+    study_prefixes: [dcl, ztm]
 
 severity_rules:
   # Promotion outside the approved label is never acceptable, however it arises.

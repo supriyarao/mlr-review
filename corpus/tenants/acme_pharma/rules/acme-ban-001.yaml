@@ -25,6 +25,13 @@ params:
   allowed_contexts:
     - '"[^"]{0,200}"'
     - '“[^”]{0,200}”'
+    # "Clinical cure" and "test-of-cure" are the names of a registrational endpoint and the visit
+    # it is measured at, not curative claims -- they are the label's own words for Declasal, and
+    # banning them would make it impossible to state the approved result accurately. The narrow
+    # phrasings are exempted rather than the bare word, so "can cure your infection" still fails.
+    - '[Cc]linical cure'
+    - '[Cc]ure rate'
+    - '[Tt]est-of-cure'
   suggested_fix: >-
     Describe the observed effect using the labelled endpoint and timepoint instead.
 examples:
@@ -48,6 +55,12 @@ examples:
   - text: Patients should book a manicure before starting treatment.
     expected: pass
     note: Word-boundary check - "manicure" must not trip the "cure" term.
+  - text: Clinical cure was achieved in 89.1% of patients at the test-of-cure visit (Day 17-24).
+    expected: pass
+    note: The endpoint's own name and the visit it is measured at, as the label states them.
+  - text: Declasal can cure your skin infection in three days.
+    expected: fail
+    note: A curative claim is still a curative claim next to the endpoint language.
 owner: Regulatory Affairs
 effective_from: "2026-01-01"
 status: active
