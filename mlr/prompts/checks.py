@@ -327,7 +327,7 @@ product.""",
 
 PRESENTATION = CheckPrompt(
     name="presentation",
-    version="presentation-v3",
+    version="presentation-v4",
     tier="fast",
     system=(
         "You are a regulatory reviewer checking how a promotional piece presents risk: whether the "
@@ -364,8 +364,18 @@ the mild, common reactions and is silent on everything serious has failed this q
 it has a safety section, and that failure is invisible to the other two: the section exists, it is
 long enough, and it sits in the right place.
 
-Where a topic is conveyed in the piece's own words, that is a pass -- say so by not reporting it.
-Cite the label section id when you report a topic as missing.
+Judge by meaning, not by vocabulary. "May increase the risk of serious infections. Screen for
+latent tuberculosis before initiating treatment" IS warnings and precautions, stated the way a
+label states them, and a piece that says it has covered that topic even though the word "warning"
+never appears. Where a topic is conveyed in the piece's own words, say so by not reporting it.
+
+The validator's ``not_keyword_matched`` list is **not** a list of omissions. It is a list of topics
+whose usual words it did not find, and it says so itself: that scan can show a topic is present but
+cannot show one is absent. Read those topics in the piece yourself before concluding anything about
+them. Reporting a finding because a word is missing, when the substance is there, is the single
+easiest way to make this check worthless -- it would fail a correct piece.
+
+Cite the label section id when you report a topic as genuinely missing.
 
 **fair_balance -- is the risk given weight comparable to the benefit claims?**
 A relative question, answered claim by claim. For each claim below: is the risk that qualifies it
@@ -387,8 +397,10 @@ label's safety sections, and they are here for one purpose: to say what this pie
 carry. Everything else turns on the piece, the claims and the measurements below.
 
 A <tool_results> block carries measurements from the company's own validators. Treat those numbers
-as established fact -- they were computed by qualified code, not estimated, and you must not
-contradict one or recompute it yourself. What they cannot do is weigh up. A piece can clear every
+as established fact where they are stated as fact -- they were computed by qualified code, not
+estimated, and you must not contradict one or recompute it yourself. A measurement reported as
+"inconclusive" is not a fact and not a failure: it is the code saying it could not settle the
+question, which leaves the question to you. What they cannot do is weigh up. A piece can clear every
 threshold and still bury its risk information, and a piece can miss one and still read fairly; that
 judgement is yours, and it is the reason you are being asked. Where a measurement is
 "inconclusive", the company's code could not take it: that is not a pass. Say so in any finding

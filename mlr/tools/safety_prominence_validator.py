@@ -139,16 +139,38 @@ def validate_safety_prominence(
     # 2. Completeness. Scanned over the whole piece, not just the block: a contraindication stated
     # somewhere sensible but outside the ISI heading is still stated.
     required = required_topics(label_headings)
-    missing = [
+    unmatched = [
         topic
         for topic in required
         if not any(marker in lowered for marker in _TOPIC_MARKERS[topic])
     ]
+    # Never "fail" on a keyword miss. This scan can prove a topic is PRESENT -- the words are
+    # there -- but it cannot prove one is absent, because a piece may convey a warning perfectly
+    # without using the word "warning". The clean piece in the corpus does exactly that: "may
+    # increase the risk of serious infections. Screen for latent tuberculosis before initiating"
+    # is warnings and precautions, stated the way a label states them, and the scan called it
+    # missing. The model was told to treat measurements as established fact, so it reported a
+    # blocker on the one piece designed to have nothing wrong with it.
+    #
+    # So an unmatched topic is reported as inconclusive and handed to the model, which has the
+    # label's actual safety sections in <label_safety> and can read for meaning.
     checks["required_topics"] = {
         "expected": required,
-        "missing": missing,
+        "keyword_matched": [t for t in required if t not in unmatched],
+        "not_keyword_matched": unmatched,
         "source": "approved label" if label_headings else "default (no label supplied)",
-        "verdict": "fail" if missing else "pass",
+        "verdict": "inconclusive" if unmatched else "pass",
+        **(
+            {
+                "why": (
+                    "a keyword scan can show a topic is present but cannot show one is absent: "
+                    "these topics may be covered in the piece's own words. Judge coverage against "
+                    "the label sections you were given, not against this list."
+                )
+            }
+            if unmatched
+            else {}
+        ),
     }
 
     # 3. Signposting.
