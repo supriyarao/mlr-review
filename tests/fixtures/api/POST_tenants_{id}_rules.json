@@ -64,6 +64,20 @@
         "note": "Word-boundary check - \"manicure\" must not trip the \"cure\" term.",
         "doc_meta": {},
         "segments": []
+      },
+      {
+        "text": "Clinical cure was achieved in 89.1% of patients at the test-of-cure visit (Day 17-24).",
+        "expected": "pass",
+        "note": "The endpoint's own name and the visit it is measured at, as the label states them.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
+        "text": "Declasal can cure your skin infection in three days.",
+        "expected": "fail",
+        "note": "A curative claim is still a curative claim next to the endpoint language.",
+        "doc_meta": {},
+        "segments": []
       }
     ],
     "owner": "Regulatory Affairs",
