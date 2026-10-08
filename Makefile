@@ -77,14 +77,19 @@ fmt: ## Autoformat
 eval: ## Run the golden set against a live model (needs a key; records nothing)
 	uv run python -m scripts.run_evals --mode live --threshold-sweep default
 
+# The offline and replay targets pin the backend instead of inheriting it. These three are the
+# reproducibility contract -- a stranger with no API key must get the committed baseline back -- and
+# they stopped honouring it the moment `.env` started being read, because the ambient backend then
+# became whatever the last person configured for a live demo. An `anthropic` backend made
+# `make eval-offline` hang instead of failing, which is the worst way for a hermetic target to break.
 eval-offline: ## Run the golden set offline and compare against the committed baseline
-	uv run python -m scripts.run_evals --mode offline --compare baseline --threshold-sweep default
+	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --compare baseline --threshold-sweep default
 
 eval-replay: ## Replay recorded real-model cassettes (deterministic AND a real measurement)
-	uv run python -m scripts.run_evals --mode replay --compare baseline --threshold-sweep default
+	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode replay --compare baseline --threshold-sweep default
 
 eval-baseline: ## Re-record the committed baseline from the current code
-	uv run python -m scripts.run_evals --mode offline --threshold-sweep default --write-baseline
+	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --threshold-sweep default --write-baseline
 
 smoke: ## Run real promo pieces against a live model (local Ollama by default)
 	uv run python -m scripts.smoke

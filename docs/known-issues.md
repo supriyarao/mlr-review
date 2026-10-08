@@ -140,3 +140,54 @@ mapping on the claim. The check then **fetches those sources directly** and lets
 the remaining slots. A marker that resolves to nothing becomes an explicit "cited reference not
 found in this tenant's evidence" outcome that escalates — which is a finding a reviewer wants
 anyway, and which the system currently cannot produce.
+
+## 6. An injected `FakeLLM` is ignored unless `MLR_LLM_BACKEND` already says `fake`
+
+**Where.** `platform_core/llm.py:493` — `call_structured` chooses its path from the ambient
+backend, not from its own `fake=` argument:
+
+```python
+if backend_name == "fake":
+    if fake is None:
+        raise LLMConfigError(...)
+    text = fake.respond(...)
+else:
+    text, call_usage = _invoke_text(tier, ...)  # the injected fake is discarded
+```
+
+The `fake` instance is threaded correctly all the way from `scripts/run_evals.py` through
+`mlr/graph.py:137` into every LLM node. It is then dropped on the floor whenever the environment
+names a real backend.
+
+**Why it matters.** `mlr/graph.py:130` states the intent — *"passing the fake explicitly rather than
+reading it from a global keeps the graph a pure function of its inputs"* — and that is exactly what
+does not hold. `--mode offline` is offline only because the environment happens to agree. With a
+live backend configured it silently makes real API calls: it spends money, it is not reproducible,
+and the committed baseline it compares against was recorded under different conditions. With a
+backend configured but no working key it would fail instead, which is at least loud.
+
+It surfaced as a **hang**, not an error: `make eval-offline` sat at 0% CPU for minutes while sixteen
+cases fanned out into real requests. A hermetic target is only ever one `.env` edit away from this,
+and the failure mode gives you nothing to go on. Found while checking that an added config field
+had not moved the baseline.
+
+**Mitigated, not fixed.** `eval-offline`, `eval-replay` and `eval-baseline` now pin
+`MLR_LLM_BACKEND=fake` in the Makefile, so the reproducibility contract holds for the three targets
+that promise it. `make test` was never exposed: `tests/conftest.py` forces the backend.
+
+**Fix.** Make the argument authoritative — an explicitly passed `fake` wins over the environment,
+which keeps its job of choosing a backend when no fake is supplied:
+
+```python
+if fake is not None:
+    text = fake.respond(...)
+elif backend_name == "fake":
+    raise LLMConfigError(...)
+else:
+    ...
+```
+
+Then `--mode offline` is hermetic by construction rather than by configuration, and the guard
+against a missing fake stays where it belongs. Worth a test that asserts a scripted `FakeLLM` is
+honoured with `MLR_LLM_BACKEND=anthropic` set and no key present — the one condition under which
+this bug is the difference between a reproducible eval and a bill.
