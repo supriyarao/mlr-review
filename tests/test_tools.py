@@ -211,3 +211,26 @@ def test_a_failed_call_is_shown_to_the_model_rather_than_dropped():
 
 def test_no_tools_means_no_block_at_all():
     assert _format_tools([]) == ""
+
+
+def test_a_citation_is_typed_by_what_its_source_id_names():
+    """The gate verifies each kind in a different place, so a mislabelled kind fails a true finding.
+
+    This was one value for a whole check -- evidence if it had an evidence block, measurement
+    otherwise -- which held until the presentation check was given the label's safety sections as
+    well as its validators. It then stamped "measurement" on label citations, the gate looked for
+    them among tool outputs, and correct findings about an omitted Boxed Warning came back
+    unverifiable.
+    """
+    from mlr.nodes.checks.runner import _citation_kind
+
+    tools_seen = {"safety_prominence_validator", "safety_prominence_validator v1.0.0"}
+    sources = {"acme_pharma:label:zelvoran:v1.0:3"}
+
+    assert _citation_kind("safety_prominence_validator", tools_seen, sources, "x") == "measurement"
+    assert _citation_kind("acme_pharma:label:zelvoran:v1.0:3", tools_seen, sources, "x") == (
+        "evidence"
+    )
+    # A source nobody supplied keeps the check's usual kind, and the gate rejects it on its own
+    # terms rather than this function quietly inventing a classification for a hallucination.
+    assert _citation_kind("made:up:source", tools_seen, sources, "evidence") == "evidence"

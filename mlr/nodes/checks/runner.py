@@ -309,6 +309,23 @@ def _retrieve(
     return studies + others
 
 
+def _citation_kind(source_id: str, tool_names: set[str], source_ids: set[str], default: str) -> str:
+    """Which grounding mode a citation should be verified under.
+
+    Decided by what the id names, because the gate verifies each kind against a different place: a
+    measurement against the tool results for this run, evidence against the tenant's corpus. Get it
+    wrong and a true finding is reported as unverifiable.
+
+    Falls back to the check's usual kind for an id matching neither, which is the shape of a
+    hallucinated source -- and one the gate should then reject on its own terms rather than here.
+    """
+    if source_id in tool_names:
+        return "measurement"
+    if source_id in source_ids:
+        return "evidence"
+    return default
+
+
 def _run_tools(
     check: str,
     state: dict[str, Any],
@@ -422,7 +439,16 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
 
         run.record(result)
         known_claims = {c.id for c in claims}
-        citation_kind = "evidence" if check.needs_evidence else "measurement"
+        # Per citation, from what the source id actually names. This used to be one value for the
+        # whole check -- "evidence" if it had an evidence block, "measurement" if it had tools --
+        # on the assumption that a check has one or the other. That stopped being true when the
+        # presentation check was given the label's safety sections *and* its validators: it then
+        # stamped "measurement" on citations of label passages, which the gate looks for among
+        # tool outputs, does not find, and reports as unverifiable. Correct findings about an
+        # omitted Boxed Warning were escalating as ungrounded.
+        tool_names = {r.tool for r in tool_results} | {r.label() for r in tool_results}
+        source_ids = {p.source_id for p in (*passages, *label_safety)}
+        default_kind = "evidence" if check.needs_evidence else "measurement"
         findings: list[Finding] = []
 
         for i, reported in enumerate(result.parsed.findings, start=1):
@@ -450,11 +476,10 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
                         Citation(
                             source_id=c.source_id,
                             passage=c.passage,
-                            # Derived from what the check was given, not asked of the model: a
-                            # check either had an evidence block to cite or it had measurements,
-                            # and we already know which. Asking would add a field the model can
-                            # get wrong, and a mislabelled citation fails grounding silently.
-                            kind=citation_kind,
+                            # Derived from the source, never asked of the model: a field the model
+                            # sets is a field it can set wrong, and a mislabelled citation fails
+                            # grounding silently rather than loudly.
+                            kind=_citation_kind(c.source_id, tool_names, source_ids, default_kind),
                             title=next(
                                 (p.title for p in passages if p.source_id == c.source_id), ""
                             ),
