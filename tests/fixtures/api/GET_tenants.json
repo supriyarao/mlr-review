@@ -3,7 +3,7 @@
     {
       "tenant_id": "acme_pharma",
       "name": "Acme Pharma",
-      "version": "2026.2",
+      "version": "2026.3",
       "confidence_threshold": 70,
       "products": [
         {
@@ -11,10 +11,20 @@
           "name": "Zelvoran",
           "label_version": "1.0",
           "indication": "moderate-to-severe plaque psoriasis in adults",
-          "study_prefix": ""
+          "study_prefixes": []
+        },
+        {
+          "product_id": "declasal",
+          "name": "Declasal",
+          "label_version": "1.0",
+          "indication": "skin and skin-structure infections in adults caused by designated susceptible bacteria",
+          "study_prefixes": [
+            "dcl",
+            "ztm"
+          ]
         }
       ],
-      "config_hash": "8683bbaf9c31ec34"
+      "config_hash": "690fd47672e44b9c"
     },
     {
       "tenant_id": "borealis_bio",
@@ -27,17 +37,17 @@
           "name": "Nexapril",
           "label_version": "2.1",
           "indication": "adults with type 2 diabetes mellitus and established atherosclerotic cardiovascular disease",
-          "study_prefix": ""
+          "study_prefixes": []
         },
         {
           "product_id": "zelvoran",
           "name": "Zelvoran",
           "label_version": "1.0",
           "indication": "moderate-to-severe plaque psoriasis in adults",
-          "study_prefix": ""
+          "study_prefixes": []
         }
       ],
-      "config_hash": "d6271bbb0f6f9cae"
+      "config_hash": "9fc93dade203cadc"
     }
   ]
 }

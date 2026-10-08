@@ -62,9 +62,13 @@ def test_the_studies_are_named_so_seeding_will_find_them(scaffolded: Path) -> No
     and it reads as a model problem. This was a hardcoded dict in scripts/seed.py.
     """
     config = load_tenant_from_path(scaffolded / "corpus" / "tenants" / TENANT_ID / "tenant.yaml")
-    prefix = config.products[0].studies_prefix()
-    found = sorted(p.name for p in (scaffolded / "corpus" / "references").glob(f"{prefix}-*.md"))
-    assert len(found) == 2, f"expected two studies matching {prefix}-*.md, found {found}"
+    prefixes = config.products[0].reference_prefixes()
+    found = sorted(
+        p.name
+        for prefix in prefixes
+        for p in (scaffolded / "corpus" / "references").glob(f"{prefix}-*.md")
+    )
+    assert len(found) == 2, f"expected two studies matching {prefixes}, found {found}"
 
 
 def test_the_scaffold_does_not_overwrite_existing_files(scaffolded: Path) -> None:

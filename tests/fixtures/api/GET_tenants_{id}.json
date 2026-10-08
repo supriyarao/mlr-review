@@ -1,7 +1,7 @@
 {
   "tenant_id": "acme_pharma",
   "name": "Acme Pharma",
-  "version": "2026.2",
+  "version": "2026.3",
   "confidence_threshold": 70,
   "products": [
     {
@@ -9,10 +9,20 @@
       "name": "Zelvoran",
       "label_version": "1.0",
       "indication": "moderate-to-severe plaque psoriasis in adults",
-      "study_prefix": ""
+      "study_prefixes": []
+    },
+    {
+      "product_id": "declasal",
+      "name": "Declasal",
+      "label_version": "1.0",
+      "indication": "skin and skin-structure infections in adults caused by designated susceptible bacteria",
+      "study_prefixes": [
+        "dcl",
+        "ztm"
+      ]
     }
   ],
-  "config_hash": "8683bbaf9c31ec34",
+  "config_hash": "690fd47672e44b9c",
   "severity_rules": [
     {
       "check_type": "off_label",

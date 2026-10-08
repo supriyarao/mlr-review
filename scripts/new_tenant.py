@@ -49,9 +49,10 @@ products:
     name: {product_name}
     label_version: "1.0"
     indication: TODO - the approved indication, in the label's own words
-    # Filename prefix of this product's studies in corpus/references/.
-    # Defaults to the first three letters of product_id; set it if yours differ.
-    study_prefix: {product_id[:3]}
+    # Filename prefixes of this product's reference pack in corpus/references/. Defaults to the
+    # first three letters of product_id. Add a second entry to pull in a competitor study that
+    # this product's comparative claims rest on -- it has to be retrievable to be checkable.
+    study_prefixes: [{product_id[:3]}]
 
 severity_rules:
   # First match wins, top to bottom. "*" is the fallback and must stay last.

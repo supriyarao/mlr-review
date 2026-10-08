@@ -125,7 +125,7 @@ def _reference_documents(
 ) -> list[Document]:
     """Study summaries for a product, matched by the filename prefix the product declares."""
     product_id = product.product_id
-    prefixes = [product.studies_prefix()]
+    prefixes = product.reference_prefixes()
     docs: list[Document] = []
     for path in sorted(REFERENCES_DIR.glob("*.md")):
         if not any(path.stem.startswith(p) for p in prefixes):

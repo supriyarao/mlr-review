@@ -45,15 +45,19 @@ class Product(BaseModel):
     name: str
     label_version: str
     indication: str
-    # Filename prefix of this product's study summaries in corpus/references/, e.g. "zel" for
+    # Filename prefixes of this product's reference pack in corpus/references/, e.g. "zel" for
     # zel-301.md. Defaults to the first three letters of product_id, which is the convention the
     # corpus already follows -- stated here so adding a product is a config edit rather than a
     # code edit. It was a hardcoded dict in scripts/seed.py, which meant a new tenant's studies
     # were silently never indexed and every claim came back unverifiable days later.
-    study_prefix: str = ""
+    #
+    # A list rather than one prefix because a reference pack is not only the product's own trials:
+    # a comparative claim has to be checkable against the competitor study it rests on, and that
+    # study keeps its own name. Declasal's pack holds dcl-301 and ztm-07 for exactly that reason.
+    study_prefixes: list[str] = Field(default_factory=list)
 
-    def studies_prefix(self) -> str:
-        return (self.study_prefix or self.product_id[:3]).lower()
+    def reference_prefixes(self) -> list[str]:
+        return [p.lower() for p in (self.study_prefixes or [self.product_id[:3]])]
 
 
 class SeverityRule(BaseModel):

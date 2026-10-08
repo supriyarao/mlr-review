@@ -127,13 +127,18 @@ def check(tenant_id: str) -> int:
                     f"evidence every claim is checked against"
                 )
 
-        prefix = product.studies_prefix()
-        studies = sorted((REPO_ROOT / "corpus" / "references").glob(f"{prefix}-*.md"))
+        prefixes = product.reference_prefixes()
+        studies = sorted(
+            s
+            for prefix in prefixes
+            for s in (REPO_ROOT / "corpus" / "references").glob(f"{prefix}-*.md")
+        )
         if not studies:
+            looked = ", ".join(f"{p}-*.md" for p in prefixes)
             r.mislead(
-                f"no studies found for {product.product_id} (looked for "
-                f"corpus/references/{prefix}-*.md) - retrieval will return nothing and every "
-                f"claim will come back unverifiable, which reads as a model problem"
+                f"no studies found for {product.product_id} (looked for {looked} in "
+                f"corpus/references/) - retrieval will return nothing and every claim will come "
+                f"back unverifiable, which reads as a model problem"
             )
         else:
             stubbed = [s.name for s in studies if _todo_lines(s)]
