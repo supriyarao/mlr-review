@@ -4,7 +4,7 @@
 # Ollama model; the test suite forces the FakeLLM backend so it needs neither.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup seed api ui demo loop test lint fmt eval eval-offline eval-replay eval-baseline graph fixtures smoke clean
+.PHONY: help setup seed new-tenant check-tenant api ui demo loop test lint fmt eval eval-offline eval-replay eval-baseline graph fixtures smoke clean
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -15,6 +15,20 @@ setup: ## Create the venv and install all dependencies
 
 seed: ## Index the synthetic corpus into a per-tenant vector store
 	uv run python -m scripts.seed
+
+# Onboarding a tenant, in two halves. The scaffold writes every file the platform requires with a
+# valid-but-TODO body; the check says which of those bodies are still stubs. Split that way on
+# purpose: a half-finished tenant seeds and runs perfectly happily, and then answers "cannot
+# verify" to every claim, which reads as a model problem rather than as missing data.
+new-tenant: ## Scaffold a tenant: make new-tenant ID=acme_two PRODUCT=cardiva [NAME="..." PRODUCT_NAME="..."]
+	@test -n "$(ID)" || (echo 'usage: make new-tenant ID=<tenant_id> PRODUCT=<product_id>'; exit 1)
+	@test -n "$(PRODUCT)" || (echo 'usage: make new-tenant ID=<tenant_id> PRODUCT=<product_id>'; exit 1)
+	uv run python -m scripts.new_tenant --id $(ID) --product $(PRODUCT) \
+		$(if $(NAME),--name "$(NAME)",) $(if $(PRODUCT_NAME),--product-name "$(PRODUCT_NAME)",)
+
+check-tenant: ## Report what a tenant is still missing: make check-tenant ID=acme_two
+	@test -n "$(ID)" || (echo 'usage: make check-tenant ID=<tenant_id>'; exit 1)
+	uv run python -m scripts.check_tenant --id $(ID)
 
 # Backend for the demo processes. Overridable: `MLR_LLM_BACKEND=anthropic make demo`.
 #

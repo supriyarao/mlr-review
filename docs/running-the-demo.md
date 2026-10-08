@@ -65,6 +65,11 @@ demo.
 On `ollama` both tiers deliberately use the same small model: see the comment on `DEFAULT_MODELS`
 in `platform_core/llm.py` for why a larger local model makes a review not finish at all.
 
+## Adding a tenant
+
+`make new-tenant ID=... PRODUCT=...` scaffolds one and `make check-tenant ID=...` says what is
+still a stub. See [adding a tenant](adding-a-tenant.md).
+
 ## Tagging a new known-good version
 
 After testing by hand:
