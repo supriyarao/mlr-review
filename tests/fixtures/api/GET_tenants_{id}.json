@@ -8,10 +8,11 @@
       "product_id": "zelvoran",
       "name": "Zelvoran",
       "label_version": "1.0",
-      "indication": "moderate-to-severe plaque psoriasis in adults"
+      "indication": "moderate-to-severe plaque psoriasis in adults",
+      "study_prefix": ""
     }
   ],
-  "config_hash": "7670d97b144853d9",
+  "config_hash": "8683bbaf9c31ec34",
   "severity_rules": [
     {
       "check_type": "off_label",

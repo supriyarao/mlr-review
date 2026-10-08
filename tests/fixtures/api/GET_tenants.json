@@ -10,10 +10,11 @@
           "product_id": "zelvoran",
           "name": "Zelvoran",
           "label_version": "1.0",
-          "indication": "moderate-to-severe plaque psoriasis in adults"
+          "indication": "moderate-to-severe plaque psoriasis in adults",
+          "study_prefix": ""
         }
       ],
-      "config_hash": "7670d97b144853d9"
+      "config_hash": "8683bbaf9c31ec34"
     },
     {
       "tenant_id": "borealis_bio",
@@ -25,16 +26,18 @@
           "product_id": "nexapril",
           "name": "Nexapril",
           "label_version": "2.1",
-          "indication": "adults with type 2 diabetes mellitus and established atherosclerotic cardiovascular disease"
+          "indication": "adults with type 2 diabetes mellitus and established atherosclerotic cardiovascular disease",
+          "study_prefix": ""
         },
         {
           "product_id": "zelvoran",
           "name": "Zelvoran",
           "label_version": "1.0",
-          "indication": "moderate-to-severe plaque psoriasis in adults"
+          "indication": "moderate-to-severe plaque psoriasis in adults",
+          "study_prefix": ""
         }
       ],
-      "config_hash": "8a3e98adecc226b7"
+      "config_hash": "d6271bbb0f6f9cae"
     }
   ]
 }

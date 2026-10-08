@@ -33,10 +33,9 @@ LABELS_DIR = REPO_ROOT / "corpus" / "labels"
 REFERENCES_DIR = REPO_ROOT / "corpus" / "references"
 PREAPPROVED_DIR = REPO_ROOT / "corpus" / "preapproved_claims"
 
-# Which documents belong to which product. Taken from the filename so adding a label or a study is
-# a matter of dropping a file in, not editing this script.
+# Which documents belong to which product. Both come from the data rather than from this file, so
+# adding a product is a matter of dropping files in and naming them in the tenant config.
 _LABEL_NAME = re.compile(r"^(?P<product>[a-z0-9]+)-v(?P<version>[\d.]+)$")
-_STUDY_PREFIX = {"zel": "zelvoran", "nex": "nexapril"}
 
 # Chunking: split on markdown headings, so a retrieved passage is a section a human would
 # recognise -- "Indications and Usage", "ZEL-302 endpoints" -- rather than an arbitrary window.
@@ -121,9 +120,12 @@ def _label_documents(tenant_id: str, product_id: str, label_version: str) -> lis
     ]
 
 
-def _reference_documents(tenant_id: str, product_id: str, label_version: str) -> list[Document]:
-    """Study summaries for a product, matched by filename prefix."""
-    prefixes = [p for p, product in _STUDY_PREFIX.items() if product == product_id]
+def _reference_documents(
+    tenant_id: str, product: tenancy.Product, label_version: str
+) -> list[Document]:
+    """Study summaries for a product, matched by the filename prefix the product declares."""
+    product_id = product.product_id
+    prefixes = [product.studies_prefix()]
     docs: list[Document] = []
     for path in sorted(REFERENCES_DIR.glob("*.md")):
         if not any(path.stem.startswith(p) for p in prefixes):
@@ -183,7 +185,7 @@ def seed_evidence(tenant_id: str) -> dict[str, int]:
     documents: list[Document] = []
     for product in config.products:
         documents.extend(_label_documents(tenant_id, product.product_id, product.label_version))
-        documents.extend(_reference_documents(tenant_id, product.product_id, product.label_version))
+        documents.extend(_reference_documents(tenant_id, product, product.label_version))
     documents.extend(_preapproved_documents(tenant_id))
 
     index_documents(tenant_id, documents)

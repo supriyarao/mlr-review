@@ -45,6 +45,15 @@ class Product(BaseModel):
     name: str
     label_version: str
     indication: str
+    # Filename prefix of this product's study summaries in corpus/references/, e.g. "zel" for
+    # zel-301.md. Defaults to the first three letters of product_id, which is the convention the
+    # corpus already follows -- stated here so adding a product is a config edit rather than a
+    # code edit. It was a hardcoded dict in scripts/seed.py, which meant a new tenant's studies
+    # were silently never indexed and every claim came back unverifiable days later.
+    study_prefix: str = ""
+
+    def studies_prefix(self) -> str:
+        return (self.study_prefix or self.product_id[:3]).lower()
 
 
 class SeverityRule(BaseModel):
