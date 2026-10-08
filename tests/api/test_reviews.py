@@ -12,6 +12,7 @@ from io import BytesIO
 import pytest
 from openpyxl import load_workbook
 
+from api import evals
 from mlr import service
 from tests.api.conftest import SAMPLE, assert_same_shape, fixture
 
@@ -55,11 +56,16 @@ def test_every_documented_endpoint_is_routed(client):
 
 
 def test_health_says_which_components_are_stubbed(client):
-    """A demo serving example data has to be able to say so on screen."""
+    """A demo serving example data has to be able to say so on screen.
+
+    Both flags are read from the components themselves rather than asserted as constants: the
+    eval runner was hard-coded True here, so wiring it up broke this test instead of this test
+    confirming it. What matters is that /health reports the truth, not which truth it is.
+    """
     body = client.get("/health").json()
     assert body["status"] == "ok"
     assert body["stubs"]["review_service"] is service.IS_STUB
-    assert body["stubs"]["eval_runner"] is True
+    assert body["stubs"]["eval_runner"] is evals.is_stub()
     assert "not medical, legal or regulatory advice" in body["disclaimer"]
 
 

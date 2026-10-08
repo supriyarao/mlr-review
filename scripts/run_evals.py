@@ -138,8 +138,10 @@ def score(case: GoldenCase, raw: dict[str, Any]) -> CaseResult:
     )
 
 
-def sweep(results: list[CaseResult], thresholds: list[int]) -> dict[str, Any]:
+def sweep_report(results: list[CaseResult], thresholds: list[int]) -> dict[str, Any]:
     """Recompute routing at each confidence threshold, with no further model calls.
+
+    Returns the full report the CLI prints. :func:`sweep` is the thinner shape the API asks for.
 
     Only the threshold-dependent part is replayed: which findings count as low-confidence, and whether
     that forces an escalation. Everything else -- the findings themselves, their grounding, their
@@ -190,6 +192,55 @@ def sweep(results: list[CaseResult], thresholds: list[int]) -> dict[str, Any]:
         "points": points,
         "tenant_thresholds": {t.tenant_id: t.confidence_threshold for t in load_all_tenants()},
     }
+
+
+# --- The seam the API calls ----------------------------------------------------------------------
+#
+# api/evals.py treats this module as available only when BOTH `run` and `sweep` exist here with
+# these signatures, and serves committed contract examples otherwise -- which is why the Evals page
+# carried an "Example data" banner for as long as they did not. The names and shapes below are
+# fixed by that contract, stated in api/evals.py's docstring; do not change one without the other.
+
+
+def run(*, mode: str = "offline", tenant_id: str = "", repeats: int = 1) -> EvalResult:
+    """Run the golden set and return the result, unsaved.
+
+    Deliberately does not write a file: the API stores the result itself, under the run id it
+    already handed to the client, and a second copy written here would be an orphan with a
+    different id.
+    """
+    cases = load_cases(GOLDEN_DIR, tenant_id=tenant_id)
+    if not cases:
+        raise ValueError(f"no golden cases for tenant {tenant_id!r}")
+    _seed_rules_for_run()
+
+    result = harness.run_eval(
+        cases,
+        runner=make_runner(mode),
+        scorer=score,
+        metrics_hook=eval_metrics.mlr_metrics,
+        mode=mode,
+        repeats=repeats,
+        provenance=provenance(mode),
+    )
+    result.notes = offline_caveat(mode)
+    return result
+
+
+def sweep(result: EvalResult, thresholds: list[int]) -> list[dict[str, Any]]:
+    """One point per threshold, recomputed from the findings already in ``result``."""
+    return list(sweep_report(result.cases, sorted(thresholds))["points"])
+
+
+def _seed_rules_for_run() -> None:
+    """Rules have to be in the registry before a run can apply them."""
+    from platform_core import tenancy
+
+    for tenant in load_all_tenants():
+        RuleRegistry(tenant.tenant_id).seed_from_yaml(
+            tenancy.tenant_rules_dir(tenant.tenant_id),
+            reference_docs_dir=tenancy.tenant_reference_docs_dir(tenant.tenant_id),
+        )
 
 
 def provenance(mode: str) -> dict[str, Any]:
@@ -355,14 +406,7 @@ def main() -> int:
         print("No cases selected.", file=sys.stderr)
         return 1
 
-    # Rules must be in the registry before a run can apply them.
-    for tenant in load_all_tenants():
-        from platform_core import tenancy
-
-        RuleRegistry(tenant.tenant_id).seed_from_yaml(
-            tenancy.tenant_rules_dir(tenant.tenant_id),
-            reference_docs_dir=tenancy.tenant_reference_docs_dir(tenant.tenant_id),
-        )
+    _seed_rules_for_run()
 
     result = harness.run_eval(
         cases,
@@ -382,7 +426,7 @@ def main() -> int:
         if args.threshold_sweep
         else []
     )
-    sweep_data = sweep(result.cases, thresholds) if thresholds else None
+    sweep_data = sweep_report(result.cases, thresholds) if thresholds else None
     if sweep_data:
         result.metrics["threshold_sweep"] = sweep_data
 

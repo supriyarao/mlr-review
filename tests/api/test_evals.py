@@ -1,9 +1,13 @@
-"""Eval endpoints, in both of the states the API can be in.
+"""Eval endpoints.
 
-* **Stubbed** -- the eval runner has not been built, so run/list/detail/sweep answer with the
-  contract examples and flag themselves.
-* **Wired** -- a stand-in runner provides the two-function seam documented in ``api/evals.py``, and
-  the endpoints run it, store the result, and read it back.
+The API reaches the runner through a two-function seam documented in ``api/evals.py``: it serves
+real runs when ``scripts/run_evals.py`` exposes both ``run`` and ``sweep``, and committed contract
+examples when it does not. It exposed only ``sweep`` for a long time, so the Evals page showed an
+"Example data" banner over numbers nobody had produced.
+
+The first group checks the seam against the real runner. The rest use a stand-in, so the endpoints'
+own behaviour -- storing a result, surfacing a failure, comparing to the baseline -- is tested
+without paying for an eval.
 """
 
 from __future__ import annotations
@@ -62,30 +66,45 @@ def wired(monkeypatch):
     return calls
 
 
-# --- Stubbed -------------------------------------------------------------------------------------
+# --- The seam ------------------------------------------------------------------------------------
 
 
-def test_stubbed_endpoints_serve_the_contract_examples_and_say_so(client):
+def test_the_runner_is_connected_so_nothing_is_served_as_an_example(client):
+    """The runner seam is satisfied, so these endpoints answer with real runs.
+
+    api/evals.py treats the runner as available only when scripts/run_evals.py exposes BOTH
+    ``run`` and ``sweep`` at module level with the documented signatures. It exposed only ``sweep``
+    for a long time, so every eval endpoint served a committed contract example and the UI showed
+    an "Example data" banner over numbers nobody had produced. This asserts the seam holds; invert
+    it and the banner comes back.
+    """
+    assert evals.is_stub() is False
+
     started = client.post("/evals/run", json={})
     assert started.status_code == 202
-    assert started.json() == fixture("POST_evals_run.json")
+    assert stubs.STUB_HEADER not in started.headers
 
-    listed = client.get("/evals/runs")
-    assert listed.json() == fixture("GET_evals_runs.json")
-
-    detail = client.get(f"/evals/runs/{started.json()['eval_run_id']}")
-    assert_same_shape(detail.json(), fixture("GET_evals_runs_{id}.json"))
-    assert detail.json()["status"] == "complete"
-
-    swept = client.post("/evals/sweep", json={})
-    assert swept.json() == fixture("POST_evals_sweep.json")
-
-    for response in (started, listed, detail, swept):
-        assert response.headers[stubs.STUB_HEADER] == "eval_runner"
+    for response in (client.get("/evals/runs"), client.post("/evals/sweep", json={})):
+        assert stubs.STUB_HEADER not in response.headers
 
 
-def test_real_stored_results_are_served_even_while_the_runner_is_stubbed(client):
-    """Reading results does not need the runner, so a result on disk beats the example."""
+def test_the_runner_seam_is_exactly_what_the_api_documents(client):
+    """Both halves, by name and by shape, because one missing name silently stubs the page."""
+    import scripts.run_evals as runner
+
+    assert callable(runner.run)
+    assert callable(runner.sweep)
+
+    result = runner.run(mode="offline", tenant_id="acme_pharma", repeats=1)
+    assert result.cases, "run() must return an EvalResult carrying its cases"
+
+    points = runner.sweep(result, [50, 90])
+    assert isinstance(points, list) and len(points) == 2
+    assert {"threshold", "blocker_recall", "false_escalation_rate"} <= set(points[0])
+
+
+def test_reading_a_stored_result_never_depends_on_the_runner(client):
+    """Reading results is pure file IO, so it works whatever state the runner is in."""
     harness.save_result(make_result(), directory=evals.RESULTS_DIR)
     listed = client.get("/evals/runs")
     assert stubs.STUB_HEADER not in listed.headers
@@ -120,7 +139,7 @@ def test_a_sweep_with_impossible_thresholds_is_rejected(client, thresholds):
     assert client.post("/evals/sweep", json={"thresholds": thresholds}).status_code == 422
 
 
-# --- Wired ---------------------------------------------------------------------------------------
+# --- Endpoint behaviour, against a stand-in runner -----------------------------------------------
 
 
 def test_a_run_is_executed_stored_and_readable_under_the_id_that_was_returned(client, wired):
