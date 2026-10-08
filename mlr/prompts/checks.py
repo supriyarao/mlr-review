@@ -135,6 +135,11 @@ class CheckPrompt:
     needs_evidence: bool = True
     # Whether ingest's layout measurements are included.
     needs_layout: bool = False
+    # Whether the approved label's safety sections are included. Distinct from needs_evidence: this
+    # fetches one specific document by kind, with no ranking, because a completeness check asks
+    # what the label *contains* and relevance scoring would drop the section nobody mentioned --
+    # which is the one being looked for.
+    needs_label_safety: bool = False
     # Whether the check still runs on a piece that yielded no claims. A piece with nothing
     # extractable can still be missing its safety information.
     runs_without_claims: bool = False
@@ -192,7 +197,7 @@ class CheckPrompt:
 
 SUBSTANTIATION = CheckPrompt(
     name="substantiation",
-    version="substantiation-v3",
+    version="substantiation-v4",
     tier="strong",
     system=(
         "You are a regulatory reviewer checking whether promotional claims are supported by the "
@@ -213,7 +218,7 @@ SUBSTANTIATION = CheckPrompt(
     question="""For each claim, decide whether the evidence supports it AS STATED, and whether any
 reference the claim cites reports what the claim says.
 
-Two kinds of failure. Report either one; a claim can have both.
+Three kinds of failure. Report any that apply; a claim can have more than one.
 
 **A. The claim overstates the evidence.** In order of how often they matter:
 
@@ -227,7 +232,26 @@ Two kinds of failure. Report either one; a claim can have both.
   5. A claim with no support anywhere in the evidence. Report it with no citation and say you could
      not verify it. Do not treat absence of evidence as support.
 
-**B. The cited reference does not report the claim.** For a claim carrying a reference marker, check
+**B. The claim compares figures that were not measured the same way.** A comparison between two
+products is only meaningful if the numbers come from the same trial, or from trials that match on
+everything which moves the number. When a claim sets one product's figure against another's, check
+each of these against the evidence and report any that differ:
+
+  - **population** -- severity, setting, age band, comorbidity. A sicker or hospitalised population
+    records a worse result under any treatment, so a comparison across them measures the patients,
+    not the products.
+  - **treatment duration and the timepoint** the endpoint was assessed at.
+  - **the analysis population** the figure is drawn from. A per-protocol or clinically evaluable
+    figure is systematically higher than an intent-to-treat one from the same trial, so pairing one
+    product's per-protocol number with another's intent-to-treat number widens the gap twice over.
+  - **the endpoint definition** itself.
+
+Two separate trials are not a head-to-head trial, and a superiority claim needs one. A footnote
+disclosing the differences does not cure the comparison: the piece still draws the conclusion, and
+the headline is what a reader takes away. Report it even when the piece discloses the mismatch
+itself -- especially then, because the evidence that refutes the claim is already in the document.
+
+**C. The cited reference does not report the claim.** For a claim carrying a reference marker, check
 that the cited study reports the endpoint, the population and the timepoint the claim states. A
 citation fails if the study measured a different endpoint (PASI-90 where the study reports PASI-75),
 reported a different timepoint (Week 12 where the study assessed Week 16), studied a different
@@ -237,8 +261,9 @@ the specific thing claimed has to be the thing measured.
 Reference markers in the claims map to the numbered reference list in the piece, and from there to
 the sources in the evidence block by study id.
 
-These two failures need different corrections, so say which one you found. A claim the evidence
-cannot support at any strength has to be weakened or withdrawn; a claim whose footnote points at the
+These failures need different corrections, so say which one you found. A claim the evidence cannot
+support at any strength has to be weakened or withdrawn; a cross-study comparison has to drop the
+comparative framing or be replaced by a head-to-head trial; a claim whose footnote points at the
 wrong study may only need the right citation. Make ``suggested_fix`` say which.
 
 Some claims are marked ``cleared="yes"``. The company's review committee has already approved that
@@ -272,7 +297,7 @@ what was not reviewed when the claim was approved.""",
 
 PRESENTATION = CheckPrompt(
     name="presentation",
-    version="presentation-v2",
+    version="presentation-v3",
     tier="fast",
     system=(
         "You are a regulatory reviewer checking how a promotional piece presents risk: whether the "
@@ -297,22 +322,39 @@ burial: safety information reduced to a single line, placed after the footnotes 
 or separated from the efficacy content by several pages. Present-but-buried is still misleading, so
 report it. Also report content that is present but too thin to let a reader weigh the risk.
 
+**safety_completeness -- does the piece carry the risks the label obliges it to?**
+A question about coverage, answered against the <label_safety> block below, which lists the safety
+sections of the approved label. Report a finding for each required topic the piece does not convey
+-- a Boxed Warning the piece never mentions, contraindications it omits, warnings and precautions
+it leaves out, adverse reactions it does not state.
+
+This is not a test of reproduction. A piece need not quote the label, and need not be exhaustive at
+any given length; it has to let a reader meet the risk the label describes. A piece that lists only
+the mild, common reactions and is silent on everything serious has failed this question even though
+it has a safety section, and that failure is invisible to the other two: the section exists, it is
+long enough, and it sits in the right place.
+
+Where a topic is conveyed in the piece's own words, that is a pass -- say so by not reporting it.
+Cite the label section id when you report a topic as missing.
+
 **fair_balance -- is the risk given weight comparable to the benefit claims?**
 A relative question, answered claim by claim. For each claim below: is the risk that qualifies it
 close enough, prominent enough and plainly enough worded that a reader meets both? Consider how a
 reader actually encounters the piece, how much space risk gets beside the benefit content, and
 whether the language minimises it.
 
-A piece can fail one and pass the other, and they need different corrections, so **set ``concern``
-on every finding** to exactly ``safety_prominence`` or ``fair_balance``.
+A piece can fail one and pass the others, and they need different corrections, so **set
+``concern`` on every finding** to exactly ``safety_prominence``, ``safety_completeness`` or
+``fair_balance``.
 
 Attach each finding to the claim it concerns with claim_id. Leave claim_id empty only for a problem
 genuinely about the piece as a whole -- the safety block being too short, for instance, belongs to
 no single claim.
 
-Neither question is about whether the safety text is accurate, or whether the claims are supported.
-Another reviewer is checking those. You are given no source evidence here because these questions
-do not need any: everything they turn on is in the piece, the claims, and the measurements below.
+None of these questions is about whether the claims are supported, or whether the figures in the
+safety text are right. Another reviewer is checking those. The only source you are given is the
+label's safety sections, and they are here for one purpose: to say what this piece was obliged to
+carry. Everything else turns on the piece, the claims and the measurements below.
 
 A <tool_results> block carries measurements from the company's own validators. Treat those numbers
 as established fact -- they were computed by qualified code, not estimated, and you must not
@@ -324,8 +366,13 @@ that depends on it, and lower your confidence accordingly.""",
     shows_claims=True,
     needs_evidence=False,
     needs_layout=True,
+    needs_label_safety=True,
     runs_without_claims=True,
-    emits=("safety_prominence", "fair_balance"),
+    # safety_prominence stays first. It is the fallback for a finding the model did not tag, and
+    # moving it would silently relabel every untagged finding in golden cases 004, 007 and 008 --
+    # a change to three passing cases made as a side effect of adding a fourth concern. The two
+    # are comparable in seriousness anyway; fair_balance is the mild one and stays last.
+    emits=("safety_prominence", "safety_completeness", "fair_balance"),
 )
 
 CHECKS: dict[str, CheckPrompt] = {c.name: c for c in (SUBSTANTIATION, OFF_LABEL, PRESENTATION)}

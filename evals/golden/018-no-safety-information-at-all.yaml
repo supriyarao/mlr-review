@@ -1,0 +1,44 @@
+id: 018-no-safety-information-at-all
+title: A patient ad for a boxed-warning product with no safety information of any kind
+why_hard: >-
+  The simplest failure in the set, and worth a case precisely because it is simple: a system that
+  misses this misses everything. There is no safety section, no boxed warning, no contraindications,
+  no adverse reactions and no signpost to the Prescribing Information, in a patient-facing ad for a
+  product whose label carries a Boxed Warning. What makes it a real test is that the required topics
+  are not a constant - they are read off Declasal's label, which carries a Boxed Warning where
+  Zelvoran does not, so the same check has to ask more of this piece than of an equivalent Zelvoran
+  one. It also carries an unsupported popularity claim that no evidence check can confirm, because
+  nothing in the corpus measures what doctors trust.
+tenant_id: acme_pharma
+product_id: declasal
+label_version: "1.0"
+audience: patient
+channel: digital_ad
+market: us
+promo_path: corpus/promo/declasal-omission-of-risk.md
+expected_findings:
+  - check_type: safety_completeness
+    claim_contains: Powerful antibiotic relief for complicated skin infections
+    severity: blocker
+    explanation: >-
+      The piece carries no safety information at all. Declasal's label has a Boxed Warning for
+      tendon rupture, nerve damage and effects on the nervous system, and none of it appears here,
+      along with who must not take the medicine and what the common side effects are.
+    suggested_fix: >-
+      Add the Boxed Warning, the contraindications, the warnings and precautions and the common
+      adverse reactions from the label, and a line directing the reader to the full Prescribing
+      Information.
+    note: >-
+      Required topics are derived from Declasal's label sections, which include a Boxed Warning.
+  - check_type: substantiation
+    claim_contains: Trusted by doctors nationwide
+    severity: blocker
+    explanation: >-
+      Nothing in the evidence measures how widely doctors trust or prescribe Declasal, so this
+      cannot be checked at all. A claim nobody can verify has to come out.
+    suggested_fix: Remove the claim, or replace it with a labelled result that can be cited.
+    note: No source in the corpus supports a popularity or preference claim.
+expected_route: senior_regulatory
+must_not_flag:
+  - Convenient once-daily dosing
+tags: [safety_completeness, omission, bad_ad, patient_facing]

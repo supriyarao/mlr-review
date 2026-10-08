@@ -5,7 +5,7 @@
 
 tenant_id: acme_pharma
 name: Acme Pharma
-version: "2026.3"
+version: "2026.4"
 
 # Findings below this confidence are flagged low_confidence and escalate. Acme accepts more
 # machine judgement than Borealis does, trading a little safety for review throughput.
@@ -50,6 +50,16 @@ severity_rules:
     severity: blocker
     rule_id: ACME-SEV-SAFETY
     rationale: Required safety information must be present for a reader to weigh benefit and risk.
+
+  # Risk the label carries and the piece does not mention. Blocking for both tenants: unlike
+  # placement or emphasis, there is no wording change that makes an omitted Boxed Warning
+  # acceptable -- the content has to be added.
+  - check_type: safety_completeness
+    severity: blocker
+    rule_id: ACME-SEV-COMPLETENESS
+    rationale: >-
+      A piece that omits a risk the approved label carries leaves the reader unable to weigh it at
+      all, which no amount of layout correction fixes.
 
   # Acme treats balance of prominence as a correctable editorial matter.
   - check_type: fair_balance

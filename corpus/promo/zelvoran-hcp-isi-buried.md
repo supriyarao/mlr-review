@@ -5,6 +5,7 @@ label_version: "1.0"
 audience: hcp
 channel: leave_piece
 synthetic: true
+category: minimization_of_risk
 notes: >-
   Safety information exists but is reduced to a single line placed after the footnotes, far
   shorter than the efficacy content it is meant to balance.

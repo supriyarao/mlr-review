@@ -1,7 +1,7 @@
 {
   "tenant_id": "acme_pharma",
   "name": "Acme Pharma",
-  "version": "2026.3",
+  "version": "2026.4",
   "confidence_threshold": 70,
   "products": [
     {
@@ -22,7 +22,7 @@
       ]
     }
   ],
-  "config_hash": "690fd47672e44b9c",
+  "config_hash": "a3ed43dcfb87101f",
   "severity_rules": [
     {
       "check_type": "off_label",
@@ -44,6 +44,13 @@
       "severity": "blocker",
       "rule_id": "ACME-SEV-SAFETY",
       "rationale": "Required safety information must be present for a reader to weigh benefit and risk."
+    },
+    {
+      "check_type": "safety_completeness",
+      "when_tag": null,
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-COMPLETENESS",
+      "rationale": "A piece that omits a risk the approved label carries leaves the reader unable to weigh it at all, which no amount of layout correction fixes."
     },
     {
       "check_type": "fair_balance",

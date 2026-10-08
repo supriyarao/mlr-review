@@ -26,13 +26,50 @@ from platform_core.tools import ToolSpec, register
 
 VERSION = "1.0.0"
 
-# Content an ISI block is expected to carry. A real deployment would read this from the tenant's
-# own configuration rather than from code, and would differ by market.
-_REQUIRED_TOPICS: dict[str, tuple[str, ...]] = {
+# Safety content an ISI block may be expected to carry, and the words that count as mentioning it.
+#
+# Which of these are *required* is not decided here. It is read off the approved label for the
+# product in hand, because the answer differs by product: Declasal carries a Boxed Warning and
+# Zelvoran does not, so requiring every piece to mention one would mark every correct Zelvoran
+# piece incomplete. The label is the thing that knows.
+_TOPIC_MARKERS: dict[str, tuple[str, ...]] = {
+    "boxed_warning": ("boxed warning", "black box", "warning:"),
     "contraindications": ("contraindicat",),
     "warnings_and_precautions": ("warning", "precaution"),
     "adverse_reactions": ("adverse reaction", "adverse event", "side effect"),
 }
+
+# How a label section announces each topic. Matched against section headings, not body text, so a
+# label that merely mentions the phrase in passing does not make the topic required.
+_LABEL_HEADINGS: dict[str, tuple[str, ...]] = {
+    "boxed_warning": ("boxed warning",),
+    "contraindications": ("contraindication",),
+    "warnings_and_precautions": ("warnings and precautions",),
+    "adverse_reactions": ("adverse reactions",),
+}
+
+# What to require when no label was supplied. The three that essentially every label carries --
+# deliberately not boxed_warning, which is the one that varies.
+_DEFAULT_REQUIRED = ("contraindications", "warnings_and_precautions", "adverse_reactions")
+
+
+def required_topics(label_headings: list[str] | None) -> list[str]:
+    """Which safety topics this product's label obliges a piece to carry.
+
+    Falls back to the common three when no label is available, rather than requiring nothing: a
+    missing label must not quietly turn the completeness check into a pass.
+    """
+    if not label_headings:
+        return list(_DEFAULT_REQUIRED)
+
+    lowered = [h.lower() for h in label_headings]
+    found = [
+        topic
+        for topic, markers in _LABEL_HEADINGS.items()
+        if any(marker in heading for heading in lowered for marker in markers)
+    ]
+    return found or list(_DEFAULT_REQUIRED)
+
 
 # Signposting a reader needs in order to go and find the rest.
 _SIGNPOSTS: dict[str, tuple[str, ...]] = {
@@ -60,8 +97,13 @@ def validate_safety_prominence(
     document: str,
     doc_meta: dict[str, Any] | None = None,
     claims: list[dict[str, Any]] | None = None,
+    label_headings: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Run the company's safety-information measurements over one piece."""
+    """Run the company's safety-information measurements over one piece.
+
+    ``label_headings`` are the section headings of the approved label, which decide what this
+    piece is obliged to carry. Omitting them is allowed and falls back to the common three.
+    """
     meta = doc_meta or {}
     sections = meta.get("sections") or {}
     safety = _block(document, sections, "important_safety_information")
@@ -96,14 +138,16 @@ def validate_safety_prominence(
 
     # 2. Completeness. Scanned over the whole piece, not just the block: a contraindication stated
     # somewhere sensible but outside the ISI heading is still stated.
+    required = required_topics(label_headings)
     missing = [
         topic
-        for topic, markers in _REQUIRED_TOPICS.items()
-        if not any(marker in lowered for marker in markers)
+        for topic in required
+        if not any(marker in lowered for marker in _TOPIC_MARKERS[topic])
     ]
     checks["required_topics"] = {
-        "expected": sorted(_REQUIRED_TOPICS),
+        "expected": required,
         "missing": missing,
+        "source": "approved label" if label_headings else "default (no label supplied)",
         "verdict": "fail" if missing else "pass",
     }
 

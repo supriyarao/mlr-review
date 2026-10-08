@@ -29,8 +29,10 @@ params:
     # it is measured at, not curative claims -- they are the label's own words for Declasal, and
     # banning them would make it impossible to state the approved result accurately. The narrow
     # phrasings are exempted rather than the bare word, so "can cure your infection" still fails.
-    - '[Cc]linical cure'
-    - '[Cc]ure rate'
+    # \s+ rather than a literal space: promotional copy wraps, and "clinical\ncure" split across
+    # two lines defeated the first version of this exemption on a real piece.
+    - '[Cc]linical\s+cure'
+    - '[Cc]ure\s+rate'
     - '[Tt]est-of-cure'
   suggested_fix: >-
     Describe the observed effect using the labelled endpoint and timepoint instead.
@@ -58,6 +60,9 @@ examples:
   - text: Clinical cure was achieved in 89.1% of patients at the test-of-cure visit (Day 17-24).
     expected: pass
     note: The endpoint's own name and the visit it is measured at, as the label states them.
+  - text: "Clinical\ncure was assessed at the test-of-cure visit (Day 17-24)."
+    expected: pass
+    note: The endpoint name wrapped across a line break still has to be exempt.
   - text: Declasal can cure your skin infection in three days.
     expected: fail
     note: A curative claim is still a curative claim next to the endpoint language.

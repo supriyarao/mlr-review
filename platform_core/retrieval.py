@@ -257,6 +257,24 @@ class TenantRetriever:
             self._passage(i, d or "", m or {}) for i, d, m in zip(ids, docs, metas, strict=False)
         ]
 
+    def passages_of_type(
+        self,
+        doc_type: str,
+        *,
+        product_id: str = "",
+        label_version: str = "",
+    ) -> list[Passage]:
+        """Every passage of one kind, in corpus order, with no ranking.
+
+        Distinct from :meth:`search` on purpose. Search answers "what is most relevant to this
+        question", which is the right shape when a model is weighing a claim. Some checks instead
+        need *all* of something -- every section of the approved label, say -- because the question
+        is what the document contains, and a relevance score would silently drop the section nobody
+        asked about. That is exactly the section an omission check is looking for.
+        """
+        passages = self._candidates(product_id, label_version, doc_type)
+        return sorted(passages, key=lambda p: p.char_span)
+
     def search(
         self,
         query: str,

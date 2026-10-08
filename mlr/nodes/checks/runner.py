@@ -206,6 +206,64 @@ def _layout_block(state: dict[str, Any]) -> str:
     return f"<layout>\n{body}\n</layout>"
 
 
+# Label sections that carry safety content. Used to decide what a piece is obliged to mention, so
+# it is matched against headings rather than body text.
+_SAFETY_HEADING_MARKERS = (
+    "boxed warning",
+    "contraindication",
+    "warnings and precautions",
+    "adverse reactions",
+)
+
+
+def _label_safety_sections(retriever: TenantRetriever, state: dict[str, Any]) -> list[Passage]:
+    """The safety sections of the approved label, fetched whole rather than searched.
+
+    A completeness check asks what the label *contains*, so ranking is the wrong tool: the section
+    a piece forgot to mention is precisely the one a relevance score would drop. See
+    ``TenantRetriever.passages_of_type``.
+    """
+    passages = retriever.passages_of_type(
+        "label",
+        product_id=str(state.get("product_id") or ""),
+        label_version=str(state.get("label_version") or ""),
+    )
+    return [
+        p for p in passages if any(marker in p.title.lower() for marker in _SAFETY_HEADING_MARKERS)
+    ]
+
+
+def _label_safety_block(sections: list[Passage]) -> str:
+    """What the label obliges this piece to carry, shown to the presentation check.
+
+    Empty when no label section could be found, and it says so rather than rendering nothing --
+    the same rule the layout block follows. "The label carries no safety sections" and "nobody
+    could look" lead to opposite findings, and silence reads as the first.
+    """
+    if not sections:
+        return (
+            "<label_safety>\n"
+            "  The approved label's safety sections could not be retrieved, so there is nothing to\n"
+            "  compare this piece against. Do not report a completeness failure on this run; say\n"
+            "  the comparison could not be made and report low confidence.\n"
+            "</label_safety>"
+        )
+
+    parts = []
+    for section in sections:
+        heading = section.title.split("\u2014")[-1].strip() or section.title
+        parts.append(f"  [{section.source_id}] {heading}\n    {section.text.strip()}")
+    body = "\n\n".join(parts)
+    return (
+        "<label_safety>\n"
+        "  The safety sections the approved label carries. A piece is expected to convey each of\n"
+        "  these, in its own words and at whatever length suits the format -- not to reproduce\n"
+        "  them. Cite the section id when you report one as missing.\n\n"
+        f"{body}\n"
+        "</label_safety>"
+    )
+
+
 def _retrieve(
     check: str, retriever: TenantRetriever, query: str, state: dict[str, Any], k: int
 ) -> list[Passage]:
@@ -248,12 +306,21 @@ def _retrieve(
     return studies + others
 
 
-def _run_tools(check: str, state: dict[str, Any], claims: list[Claim]) -> list[tools.ToolResult]:
+def _run_tools(
+    check: str,
+    state: dict[str, Any],
+    claims: list[Claim],
+    label_safety: list[Passage] | None = None,
+) -> list[tools.ToolResult]:
     """Call the tools this check depends on. Failures come back as results, not exceptions."""
     payload = {
         "document": str(state.get("document") or ""),
         "doc_meta": dict(state.get("doc_meta") or {}),
         "claims": [c.model_dump(mode="json") for c in claims],
+        # Headings only. The validator decides which topics are *required* from what the label
+        # carries; it does not need the label's text, and sending it would be a lot of context for
+        # a keyword scan.
+        "label_headings": [p.title for p in (label_safety or [])],
     }
     return [tools.call(name, payload) for name in TOOLS_BY_CHECK.get(check, ())]
 
@@ -304,12 +371,26 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
         cleared = (
             set(state.get("preapproved_matches") or {}) if check_name == "substantiation" else set()
         )
-        tool_results = _run_tools(check_name, state, claims)
+
+        # The label's safety sections, for the checks that ask what a piece left out. Fetched by
+        # kind rather than by relevance, and separate from `passages` above: this check still does
+        # no semantic retrieval, it reads one specific document.
+        label_safety: list[Passage] = []
+        if check.needs_label_safety:
+            label_safety = _label_safety_sections(TenantRetriever(str(state["tenant_id"])), state)
+
+        tool_results = _run_tools(check_name, state, claims, label_safety)
+        extra = ""
+        if check.needs_layout:
+            extra = _layout_block(state)
+        if check.needs_label_safety:
+            extra = f"{extra}\n\n{_label_safety_block(label_safety)}".strip()
+
         prompt_text = check.build(
             document=str(state.get("document") or ""),
             claims_block=_format_claims(claims, cleared),
             evidence_block=_format_evidence(passages),
-            extra=_layout_block(state) if check.needs_layout else "",
+            extra=extra,
             tools_block=_format_tools(tool_results),
         )
 

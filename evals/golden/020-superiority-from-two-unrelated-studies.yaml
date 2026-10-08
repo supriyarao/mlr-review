@@ -1,0 +1,48 @@
+id: 020-superiority-from-two-unrelated-studies
+title: A superiority claim built from two trials that measured different things
+why_hard: >-
+  92% beside 68% reads as a like-for-like comparison and is nothing of the kind. The two trials
+  differ on every axis that moves a cure rate - mild outpatient cellulitis against hospitalised
+  complicated infection including diabetic foot, 10 days against 7, cure at Day 17 to 24 against
+  end of therapy - and a sicker population records a worse result under any antibiotic. There is a
+  second flaw beneath the first: 92.4% is Declasal's clinically evaluable figure and 68% is
+  Zentrimycin's intent-to-treat figure, so the gap is widened twice. The piece discloses all of it
+  in a footnote and then draws the superiority conclusion anyway, which is the point of the case:
+  disclosure does not cure a comparison, and a check that accepts a correct footnote as a defence
+  passes this piece. No head-to-head trial exists.
+tenant_id: acme_pharma
+product_id: declasal
+label_version: "1.0"
+audience: hcp
+channel: digital_ad
+market: us
+promo_path: corpus/promo/declasal-misleading-comparison.md
+expected_findings:
+  - check_type: substantiation
+    claim_contains: Declasal delivered a higher clinical cure rate than Zentrimycin
+    severity: blocker
+    explanation: >-
+      The two numbers come from different trials in different patients. Declasal's was measured in
+      people with mild infection treated for 10 days; Zentrimycin's in hospitalised patients with
+      complicated infection treated for 7. Sicker patients do worse on any antibiotic, so the gap
+      says more about who was studied than about which medicine is better. The two drugs have never
+      been compared head to head.
+    suggested_fix: >-
+      Remove the comparison and the chart. A superiority claim needs a head-to-head trial; without
+      one, state Declasal's own result and the population it was measured in.
+    note: >-
+      Cross-study comparison. Populations, severity, course length, timepoint and analysis
+      population all differ, and 92.4% is clinically evaluable against a 68% intent-to-treat figure.
+  - check_type: safety_completeness
+    claim_contains: Outperforms the competition
+    severity: blocker
+    explanation: >-
+      The ad carries no safety information, and Declasal's label has a Boxed Warning.
+    suggested_fix: >-
+      Add the Boxed Warning, contraindications, warnings and precautions and common adverse
+      reactions, with a pointer to the full Prescribing Information.
+    note: No safety section at all in a piece for a boxed-warning product.
+expected_route: senior_regulatory
+must_not_flag:
+  - Separate studies; not head-to-head
+tags: [substantiation, misleading_comparison, cross_study, bad_ad]

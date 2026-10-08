@@ -13,7 +13,9 @@ Two conditions, both required:
    ``evidence``     the passage appears verbatim in a retrieved source **belonging to this tenant**
    ``rule``         the rule id and version were in this run's applied set
    ``doc_clause``   the clause appears verbatim in a reference document owned by this tenant
-   ``measurement``  the named tool ran on this piece, and the cited figure is in what it reported
+   ``measurement``  the named tool ran on this piece, and the citation either quotes a figure it
+                    reported or quotes its output verbatim (categorical measurements carry no
+                    figures -- "missing: contraindications" is a measurement with no number in it)
 
 The fourth mode exists because some questions have no source to cite. "Is the risk given comparable
 weight to the benefit" is answered from the piece and from measurements, not from the label -- so
@@ -81,11 +83,25 @@ def _verify_citations(
             # and the figure must be one it genuinely reported. A model cannot cite a measurement
             # into existence any more than it can cite a rule that was never applied.
             reported = measurements.get(citation.source_id)
+            if reported is None:
+                continue
             cited = _figures_in(citation.passage)
-            # A figure is required, and every figure cited must be one the tool reported. Without
-            # the first condition an empty set is a subset of anything, so "the ratio was too low"
-            # with no number in it would verify against a tool that merely ran.
-            if reported is not None and cited and cited <= _figures_in(reported):
+            # A figure cited must be one the tool reported. The `cited` test matters because an
+            # empty set is a subset of anything, so "the ratio was too low" with no number in it
+            # would otherwise verify against a tool that merely ran.
+            if cited and cited <= _figures_in(reported):
+                return "measurement"
+            # Not every measurement is a number. A completeness check reports which topics are
+            # missing -- `missing: ["contraindications", "warnings_and_precautions"]` -- and that
+            # is as much a measurement as a ratio is, but it has no figures in it at all. Requiring
+            # one sent every correctly-identified omission to the reviewer marked "could not be
+            # verified", which reads as the system being unsure of a thing it measured exactly.
+            #
+            # The anti-fabrication property is kept by a different route: the quote has to appear
+            # verbatim in what the tool actually emitted, so a model still cannot cite a
+            # measurement into existence. The length floor stops a quote so short it would appear
+            # in any tool's output from grounding a finding by coincidence.
+            if _quotes_measurement(citation.passage, reported):
                 return "measurement"
 
         elif citation.kind == "doc_clause":
@@ -94,6 +110,36 @@ def _verify_citations(
                 return "doc_clause"
 
     return ""
+
+
+# Words short enough to appear in any tool's output carry no evidence that this tool reported
+# anything in particular, so they are not counted. Two distinct long tokens is the floor.
+_TERM = re.compile(r"[A-Za-z][A-Za-z_]{4,}")
+_MIN_MEASUREMENT_TERMS = 2
+
+
+def _terms_in(text: str) -> set[str]:
+    """The substantive words in a string, lowercased. Underscores are kept, so
+    ``warnings_and_precautions`` stays one token rather than three."""
+    return {m.group(0).lower() for m in _TERM.finditer(text or "")}
+
+
+def _quotes_measurement(passage: str, reported: str) -> bool:
+    """Whether a citation names things the tool genuinely reported.
+
+    Deliberately not a verbatim substring test. The tool's output is serialised with sorted keys,
+    so quoting two fields that read as adjacent -- ``"missing": [...], "verdict": "fail"`` -- is
+    not a contiguous substring of it, and asking a model to reproduce JSON byte for byte is a
+    fragile thing to hang grounding on.
+
+    What is checked instead is the same shape as the figures rule above: every substantive term in
+    the citation has to be one the tool actually emitted. A model can reorder and re-punctuate; it
+    cannot introduce a topic the tool never named, which is the property that matters.
+    """
+    cited = _terms_in(passage)
+    if len(cited) < _MIN_MEASUREMENT_TERMS:
+        return False
+    return cited <= _terms_in(reported)
 
 
 _FIGURE = re.compile(r"-?\d+(?:\.\d+)?")

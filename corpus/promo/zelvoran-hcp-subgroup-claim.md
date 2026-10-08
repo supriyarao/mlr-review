@@ -5,6 +5,7 @@ label_version: "1.0"
 audience: hcp
 channel: sales_aid
 synthetic: true
+category: overstating_efficacy
 notes: >-
   Presents the ZEL-302 prior-biologic subgroup figure (58.1%) as a general result; the overall
   population achieved 44.2%. Also cites Reference 3 for PASI-90 at 12 weeks, which ZEL-303 does

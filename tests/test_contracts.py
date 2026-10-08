@@ -123,6 +123,29 @@ def test_every_state_key_is_classified_as_accumulated_or_replaceable():
     assert not unclassified, f"unclassified state keys: {sorted(unclassified)}"
 
 
+def test_every_concern_a_check_emits_is_a_valid_check_type():
+    """A check's ``emits`` values become ``Finding.check_type``, so the two have to stay in step.
+
+    They went out of step once: ``safety_completeness`` was added to presentation's ``emits`` and
+    not to the CheckType literal. Nothing caught it at import, at seed, or in any offline test --
+    the node simply raised ValidationError on its first real finding and the whole run failed, with
+    the error buried in the audit log. The failure arrives as late as it possibly can, which is why
+    this guard is cheap at any price.
+    """
+    from typing import get_args
+
+    from mlr.prompts.checks import CHECKS
+    from mlr.schemas import CheckType
+
+    allowed = set(get_args(CheckType))
+    for check in CHECKS.values():
+        for concern in check.emits or (check.name,):
+            assert concern in allowed, (
+                f"{check.name} emits {concern!r}, which is not a CheckType. "
+                f"Add it to the literal in mlr/schemas.py."
+            )
+
+
 def test_every_citation_kind_is_also_a_grounding_mode():
     """The two literals have to move together, and once they did not.
 

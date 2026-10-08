@@ -5,6 +5,7 @@ label_version: "1.0"
 audience: hcp
 channel: sales_aid
 synthetic: true
+category: omission_of_risk
 notes: >-
   Omission of risk. A safety section is present, sits beside the efficacy claims and is a
   reasonable length, so every "is it there and can you find it" check passes. What it says is the

@@ -1,0 +1,46 @@
+id: 019-speed-claim-its-own-footnote-refutes
+title: A speed claim contradicted by the footnote printed beneath it
+why_hard: >-
+  The headline claims onset in three days. The footnote on the same page states a 10-day course with
+  clinical cure assessed at the test-of-cure visit on Day 17 to 24, so the piece refutes itself in
+  plain sight - and the reader who stops at the headline never reaches the correction. The evidence
+  that settles it is in the corpus too: DCL-301 took no assessment before the test-of-cure visit, so
+  no onset claim is supportable at any speed, not merely at three days. A check that treats a
+  footnote as curing the headline passes this piece. Everything else in the ad reinforces the same
+  claim at a different volume - "Rapid results", "Short course", a standalone "3 DAYS" graphic -
+  which is what makes it a test of whether findings attach to claims rather than to sentences.
+tenant_id: acme_pharma
+product_id: declasal
+label_version: "1.0"
+audience: hcp
+channel: digital_ad
+market: us
+promo_path: corpus/promo/declasal-overstating-efficacy.md
+expected_findings:
+  - check_type: substantiation
+    claim_contains: Works in as little as 3 days
+    severity: blocker
+    explanation: >-
+      The trial never looked at patients before Day 17, so there is no measurement of how quickly
+      Declasal works. The piece's own footnote says the course is 10 days and that cure was checked
+      at the test-of-cure visit, which contradicts the headline above it.
+    suggested_fix: >-
+      Remove the speed claim. State the labelled result instead: clinical cure at the test-of-cure
+      visit after a 10-day course.
+    note: >-
+      DCL-301 made no assessment before the Day 17 to Day 24 test-of-cure visit, and the label says
+      time to clinical response has not been established.
+  - check_type: safety_completeness
+    claim_contains: Fast-acting antibiotic power
+    severity: blocker
+    explanation: >-
+      The ad carries no safety information. Declasal's label has a Boxed Warning, and none of it
+      appears here.
+    suggested_fix: >-
+      Add the Boxed Warning, contraindications, warnings and precautions and common adverse
+      reactions, with a line pointing to the full Prescribing Information.
+    note: No safety section at all in a piece for a boxed-warning product.
+expected_route: senior_regulatory
+must_not_flag:
+  - clinical cure was assessed at the test-of-cure visit
+tags: [substantiation, overstating_efficacy, self_contradicting, bad_ad]

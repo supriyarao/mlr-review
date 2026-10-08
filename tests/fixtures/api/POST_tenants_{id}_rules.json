@@ -73,6 +73,13 @@
         "segments": []
       },
       {
+        "text": "Clinical\ncure was assessed at the test-of-cure visit (Day 17-24).",
+        "expected": "pass",
+        "note": "The endpoint name wrapped across a line break still has to be exempt.",
+        "doc_meta": {},
+        "segments": []
+      },
+      {
         "text": "Declasal can cure your skin infection in three days.",
         "expected": "fail",
         "note": "A curative claim is still a curative claim next to the endpoint language.",

@@ -3,7 +3,7 @@
     {
       "tenant_id": "acme_pharma",
       "name": "Acme Pharma",
-      "version": "2026.3",
+      "version": "2026.4",
       "confidence_threshold": 70,
       "products": [
         {
@@ -24,12 +24,12 @@
           ]
         }
       ],
-      "config_hash": "690fd47672e44b9c"
+      "config_hash": "a3ed43dcfb87101f"
     },
     {
       "tenant_id": "borealis_bio",
       "name": "Borealis Bio",
-      "version": "2026.4",
+      "version": "2026.5",
       "confidence_threshold": 80,
       "products": [
         {
@@ -47,7 +47,7 @@
           "study_prefixes": []
         }
       ],
-      "config_hash": "9fc93dade203cadc"
+      "config_hash": "7a994cdf66d2509c"
     }
   ]
 }

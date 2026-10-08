@@ -61,6 +61,7 @@ CheckType = Literal[
     "off_label",
     "fair_balance",
     "safety_prominence",
+    "safety_completeness",
     "business_rule",
 ]
 

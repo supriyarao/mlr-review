@@ -6,7 +6,7 @@
 
 tenant_id: borealis_bio
 name: Borealis Bio
-version: "2026.4"
+version: "2026.5"
 
 # Higher bar than Acme: Borealis wants a human to look at anything the system is less than
 # confident about. Costs review throughput, buys fewer missed problems.
@@ -44,6 +44,13 @@ severity_rules:
     severity: blocker
     rule_id: BOR-SEV-SAFETY
     rationale: Required safety information must be present and readable where the claim is made.
+
+  - check_type: safety_completeness
+    severity: blocker
+    rule_id: BOR-SEV-COMPLETENESS
+    rationale: >-
+      A risk carried by the approved label and absent from the piece cannot be corrected by
+      placement or wording; the content itself is missing.
 
   # The key divergence from Acme. Borealis treats prominence as substantive, not editorial: a
   # benefit a reader meets pages before the risk is a benefit presented without its risk.

@@ -23,6 +23,7 @@ The registry holds no MLR concepts. A tool that knows what a claim is belongs in
 
 from __future__ import annotations
 
+import inspect
 import time
 from collections.abc import Callable
 from typing import Any
@@ -97,6 +98,21 @@ def registered() -> list[ToolSpec]:
     return [_REGISTRY[name] for name in sorted(_REGISTRY)]
 
 
+def _acceptable(fn: Any, payload: dict[str, Any]) -> dict[str, Any]:
+    """Narrow a payload to the keyword parameters ``fn`` declares.
+
+    A tool that declares ``**kwargs`` gets the payload untouched.
+    """
+    try:
+        parameters = inspect.signature(fn).parameters
+    except (TypeError, ValueError):  # pragma: no cover - builtins and C functions
+        return dict(payload)
+
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in parameters.values()):
+        return dict(payload)
+    return {k: v for k, v in payload.items() if k in parameters}
+
+
 def call(name: str, payload: dict[str, Any]) -> ToolResult:
     """Run a tool and return its result. **Never raises** for anything the tool did.
 
@@ -125,8 +141,13 @@ def call(name: str, payload: dict[str, Any]) -> ToolResult:
             latency_ms=int((time.perf_counter() - started) * 1000),
         )
 
+    # Only the keys this tool can actually accept. The payload is a shared bag built once for every
+    # tool a check calls, so without this, adding an input for one tool raises TypeError inside an
+    # unrelated one -- and because this function never re-raises, that would surface as a silently
+    # unavailable measurement rather than as the programming error it is. A tool taking **kwargs
+    # still receives everything.
     try:
-        data = spec.fn(**payload)
+        data = spec.fn(**_acceptable(spec.fn, payload))
     except Exception as exc:
         return ToolResult(
             tool=spec.name,
