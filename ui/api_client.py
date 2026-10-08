@@ -101,6 +101,12 @@ def tenant_rules(tenant_id: str) -> list[dict[str, Any]]:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
+def markets(product_id: str) -> list[str]:
+    """The markets the approval records know for a product. Empty when there are none."""
+    return [m["market"] for m in get_json("/markets", product_id=product_id)["markets"]]
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def samples() -> list[dict[str, Any]]:
     return get_json("/samples")["samples"]
 
@@ -108,6 +114,13 @@ def samples() -> list[dict[str, Any]]:
 @st.cache_data(ttl=300, show_spinner=False)
 def sample(name: str) -> dict[str, Any]:
     return get_json(f"/samples/{name}")
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def sample_image(name: str) -> bytes:
+    """The artwork for a sample that is an image. Fetched here because the browser can't reach
+    the API directly; only this process can."""
+    return get(f"/samples/{name}/image").content
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -152,9 +165,11 @@ def submit_review(
     market: str,
     text: str = "",
     upload: tuple[str, bytes] | None = None,
+    sample_name: str = "",
 ) -> str:
     """Submit a piece; returns the run id."""
     data = {
+        "sample_name": sample_name,
         "tenant_id": tenant_id,
         "product_id": product_id,
         "audience": audience,

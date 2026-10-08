@@ -89,15 +89,17 @@ REVIEWERS = [
     Node(
         "presentation",
         "The balance and safety reviewer",
-        "Asks two things. Is the safety information there and easy to find? And do the risks get "
-        "a fair share of the page next to the benefits?",
+        "Asks three things. Is the safety information easy to find? Does it cover everything the "
+        "product's label says it must, such as a boxed warning? And do the risks get a fair "
+        "share of the page next to the benefits?",
         "Runs the company's own two checkers first, the ones it already trusts. They measure "
         "the page: where the safety section sits, how long it is, what it leaves out. Then a "
         "small model reads those numbers and says what they mean. It runs even when no claims "
         "were found, since a piece can still be missing its safety text.",
-        "The claims, the section map from the reader, the company's two checkers, and the model.",
-        "Findings tagged as either safety or balance, each backed by a number a checker measured. "
-        "The two tags stay separate because the companies grade them differently.",
+        "The claims, the section map from the reader, the product's label, the company's two "
+        "checkers, and the model.",
+        "Findings tagged as prominence, completeness or balance, each backed by something a "
+        "checker measured. The tags stay separate because the companies grade them differently.",
         model=True,
     ),
     Node(

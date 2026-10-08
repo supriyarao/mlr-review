@@ -31,13 +31,55 @@ INK = "#1F3A5F"
 CHECK_LABELS = {
     "substantiation": "Substantiation",
     "off_label": "Off-label",
-    # Two concerns, one step. The labels stay separate because a finding still carries one or the
-    # other, and the tenants grade them differently.
+    # Three concerns, one step. The labels stay separate because a finding still carries one of
+    # them, and the tenants grade them differently.
     "fair_balance": "Fair balance",
     "safety_prominence": "Safety prominence",
+    "safety_completeness": "Safety completeness",
     "presentation": "Balance and safety",
     "business_rule": "Business rule",
 }
+# The five kinds of problem a regulator's own training on misleading drug ads teaches people to
+# spot. In the order that training gives them: name, what it means, and which step catches it.
+PROBLEM_KINDS = {
+    "omission_of_risk": (
+        "Omission of risk",
+        "The piece says what the drug does and leaves out what can go wrong: the boxed warning, "
+        "who must not take it, the warnings and precautions.",
+        "the balance and safety reviewer",
+    ),
+    "minimization_of_risk": (
+        "Minimization of risk",
+        "The risks are there, but in small pale print, at the very end, or in far fewer words "
+        "than the benefits.",
+        "the balance and safety reviewer",
+    ),
+    "overstating_efficacy": (
+        "Overstating effectiveness",
+        "A claim goes further than the study behind it. “Works in 3 days” when the study "
+        "ran for 10.",
+        "the evidence reviewer",
+    ),
+    "investigational_promotion": (
+        "Promoting an unapproved use",
+        "The piece sells the drug for something it has not been approved for.",
+        "the label reviewer",
+    ),
+    "misleading_comparison": (
+        "Misleading comparison",
+        "“Better than the other drug”, from two separate studies in different patients.",
+        "the evidence reviewer and the house-rule reviewer",
+    ),
+}
+
+
+def problem_kind(category: str) -> str:
+    return PROBLEM_KINDS[category][0] if category in PROBLEM_KINDS else ""
+
+
+# A tag says something more specific about a finding than its check does.
+TAG_LABELS = {"unapproved_market": "Not approved in this market"}
+
 GROUNDING_LABELS = {
     "evidence": "Retrieved evidence",
     "rule": "The rule's own wording",
@@ -376,6 +418,8 @@ def finding_title(finding: dict[str, Any]) -> str:
     severity = severity_of(finding)
     icon = "🔴" if severity == "blocker" else "🟠"
     check = CHECK_LABELS.get(finding["check_type"], finding["check_type"])
+    # A tagged finding is named by its tag: "not approved here" says more than "off-label".
+    check = next((TAG_LABELS[t] for t in finding.get("tags", []) if t in TAG_LABELS), check)
     quote = finding.get("quote") or "Something required is missing"
     if len(quote) > 70:
         quote = quote[:67] + "…"
@@ -388,6 +432,7 @@ def finding_body(finding: dict[str, Any], document: str) -> None:
     chips = [severity_chip(severity), chip(CHECK_LABELS.get(finding["check_type"], ""), "quiet")]
     if finding.get("rule_id"):
         chips.append(chip(f"{finding['rule_id']} v{finding['rule_version']}", "quiet"))
+    chips += [chip(TAG_LABELS[t], "blocker") for t in finding.get("tags", []) if t in TAG_LABELS]
     if finding.get("low_confidence"):
         chips.append(chip("Low confidence", "advisory"))
     if not finding.get("grounded"):

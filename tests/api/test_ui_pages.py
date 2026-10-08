@@ -38,8 +38,10 @@ def ui(monkeypatch, seeded):
         api_client.tenants,
         api_client.tenant,
         api_client.tenant_rules,
+        api_client.markets,
         api_client.samples,
         api_client.sample,
+        api_client.sample_image,
         api_client.graph_source,
         api_client.prompts,
     ):

@@ -28,6 +28,18 @@ different result.
 """
 )
 
+st.subheader("What it looks for")
+st.markdown(
+    "Regulators teach people to spot five kinds of problem in a drug ad. There is a sample for "
+    "each one on the Submit page, under the product Declasal."
+)
+st.markdown(
+    "\n".join(
+        f"- **{name}.** {meaning} Caught by {catcher}."
+        for name, meaning, catcher in view.PROBLEM_KINDS.values()
+    )
+)
+
 st.subheader("Where to go")
 links = [
     ("pages/1_Submit_Review.py", "Submit a review", "Upload a piece or pick a sample, and run it."),

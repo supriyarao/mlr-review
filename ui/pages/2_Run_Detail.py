@@ -444,6 +444,12 @@ def render_run(run_id: str, *, key: str, compact: bool = False) -> None:
 
     document = api.document(run_id)
 
+    picture = report.get("sample_name", "")
+    if picture and api.sample(picture).get("image_url"):
+        with st.expander("The piece as it was made", expanded=not compact):
+            st.image(api.sample_image(picture), width="stretch")
+            st.caption("The review read the words copied off this picture, not the picture itself.")
+
     view.summary_metrics(report)
     if report["status"] == "awaiting_human":
         st.info("All done. These are recommendations: have a read and make the call.")

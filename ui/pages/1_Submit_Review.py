@@ -33,6 +33,11 @@ def channel_label(channel: str) -> str:
     return channel.replace("_", " ").capitalize() if channel else "Not specified"
 
 
+def sample_label(sample: dict) -> str:
+    kind = view.problem_kind(sample.get("category", ""))
+    return f"{kind}: {sample['title']}" if kind else sample["title"]
+
+
 def preview(text: str, label: str) -> None:
     with st.expander(label):
         st.markdown(
@@ -74,6 +79,7 @@ text = ""
 upload: tuple[str, bytes] | None = None
 suggested: dict[str, str] = {}
 sample_name = ""
+sample_image = False
 
 # The sample picker sits outside the form because choosing one changes what the form shows.
 if source == "Pick a sample":
@@ -81,13 +87,25 @@ if source == "Pick a sample":
     if not samples:
         st.info(f"No samples for {product['name']} yet. Upload or paste one instead.")
     else:
-        chosen = st.selectbox("Sample", samples, format_func=lambda s: s["title"])
+        # Samples that show one of the five kinds of problem come first, in that order.
+        kinds = list(view.PROBLEM_KINDS)
+        samples.sort(key=lambda s: kinds.index(s["category"]) if s["category"] in kinds else 99)
+        chosen = st.selectbox("Sample", samples, format_func=sample_label)
         loaded = api.sample(chosen["name"])
         sample_name = chosen["name"]
         text = loaded["text"]
-        suggested = {"audience": loaded["audience"], "channel": loaded["channel"]}
+        suggested = {k: loaded.get(k, "") for k in ("audience", "channel", "market")}
+        if loaded.get("image_url"):
+            picture, about = st.columns([3, 2])
+            picture.image(api.sample_image(sample_name), width="stretch")
+            sample_image = True
+        else:
+            about = st.container()
+        if loaded.get("category") in view.PROBLEM_KINDS:
+            name, meaning, _ = view.PROBLEM_KINDS[loaded["category"]]
+            about.markdown(f"**{name}.** {meaning}")
         if loaded["notes"]:
-            st.caption(f"What it's for: {loaded['notes']}")
+            about.caption(f"What it's for: {loaded['notes']}")
 
 submitting = st.session_state.get("submitting", False)
 
@@ -95,7 +113,11 @@ submitting = st.session_state.get("submitting", False)
 # clicked. Outside a form, a text box only reports what was typed once you click away from it.
 with st.form("submit", border=False):
     if source == "Pick a sample" and text:
-        preview(text, "Read the sample")
+        if sample_image:
+            # The picture is what a person sees. The review reads the words copied off it.
+            preview(text, "Read the words on it, which is what gets reviewed")
+        else:
+            preview(text, "Read the sample")
     elif source == "Upload a file":
         uploaded = st.file_uploader("File", type=["pdf", "md", "txt"])
         if uploaded is not None:
@@ -126,7 +148,20 @@ with st.form("submit", border=False):
         format_func=channel_label,
         key=f"channel-{sample_name}",
     )
-    market = market_col.text_input("Market", value="us")
+    # The list comes from the same approval records the label reviewer checks against. A product
+    # with no records gets a box to type in, since nothing is known either way.
+    markets = api.markets(product["product_id"])
+    wanted = suggested.get("market") or "us"
+    if markets:
+        market = market_col.selectbox(
+            "Market",
+            markets,
+            index=markets.index(wanted) if wanted in markets else 0,
+            format_func=str.upper,
+            key=f"market-{product['product_id']}-{sample_name}",
+        )
+    else:
+        market = market_col.text_input("Market", value=wanted, key=f"market-{sample_name}")
 
     st.form_submit_button(
         "Starting…" if submitting else "Run review",
@@ -151,6 +186,7 @@ if submitting:
                 market=market.strip(),
                 text="" if upload else text,
                 upload=upload,
+                sample_name=sample_name,
             )
         except api.ApiError as exc:
             st.session_state["submit_problem"] = f"{exc.message} (HTTP {exc.status_code})"
