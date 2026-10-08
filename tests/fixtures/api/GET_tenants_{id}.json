@@ -1,7 +1,7 @@
 {
   "tenant_id": "acme_pharma",
   "name": "Acme Pharma",
-  "version": "2026.4",
+  "version": "2026.5",
   "confidence_threshold": 70,
   "products": [
     {
@@ -22,8 +22,15 @@
       ]
     }
   ],
-  "config_hash": "a3ed43dcfb87101f",
+  "config_hash": "c080d82403fb1398",
   "severity_rules": [
+    {
+      "check_type": "off_label",
+      "when_tag": "unapproved_market",
+      "severity": "blocker",
+      "rule_id": "ACME-SEV-UNAPPROVED",
+      "rationale": "Promotion of a product with no marketing authorisation in the market concerned cannot be corrected by rewording, so it escalates as a blocker on its own rule."
+    },
     {
       "check_type": "off_label",
       "when_tag": null,

@@ -1,0 +1,34 @@
+id: 022-unapproved-product-under-eu
+title: The same sales aid in a market where the product has no approval at all
+why_hard: >-
+  Byte for byte the same file as case 021. Only the market differs, and that changes the finding
+  from "this indication is outside the licence" to "there is no licence". Nothing in the document
+  says so: the answer comes from a lookup against the regulatory system, which is the point - the
+  piece cannot be judged from its own text plus a label, because approval is per market and the
+  label in the corpus is the US one. The correction differs too. Under us the UTI claim can be cut
+  and the piece runs; under eu no edit makes it acceptable, so a reviewer must not be offered a
+  rewording. The finding keeps check_type off_label and carries the tag unapproved_market, which is
+  what routes it to its own severity rule without inventing a new check type for every tenant to
+  learn.
+tenant_id: acme_pharma
+product_id: declasal
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: eu
+promo_path: corpus/promo/declasal-investigational-promotion.md
+expected_findings:
+  - check_type: off_label
+    claim_contains: An innovative treatment for skin infections and uncomplicated UTI
+    severity: blocker
+    explanation: >-
+      Declasal has no marketing authorisation in the EU. Until it is approved there, no promotional
+      material may claim it works or that it is safe, whatever the indication. This is not
+      something a change of wording can fix.
+    suggested_fix: >-
+      Do not use this material in the EU. It can only run once Declasal is approved there.
+    note: >-
+      approval_status returns not_approved for declasal/eu. Expect the tag unapproved_market and
+      grading by ACME-SEV-UNAPPROVED rather than ACME-SEV-OFFLABEL.
+expected_route: senior_regulatory
+tags: [off_label, investigational_promotion, unapproved_market, bad_ad, market_scoped]

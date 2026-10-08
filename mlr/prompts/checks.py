@@ -59,6 +59,11 @@ class ReportedFinding(BaseModel):
         description="Only when the question names more than one concern: which of them this "
         "finding is. Use the exact word given. Leave empty otherwise.",
     )
+    tags: list[str] = Field(
+        default_factory=list,
+        description="Only the exact tag words the question tells you to attach, and only when the "
+        "condition it describes holds. Leave empty otherwise. Do not invent tags.",
+    )
     confidence: int = Field(ge=0, le=100, description="0-100. Be honest: a low number is useful.")
     citations: list[ReportedCitation] = Field(
         default_factory=list,
@@ -143,6 +148,11 @@ class CheckPrompt:
     # Whether the check still runs on a piece that yielded no claims. A piece with nothing
     # extractable can still be missing its safety information.
     runs_without_claims: bool = False
+
+    # Tags this check is allowed to attach. A tag lets a tenant grade a subset of one check type
+    # differently -- see SeverityRule.when_tag -- and is filtered against this list on the way in,
+    # so a model cannot mint a tag and with it a severity nobody configured.
+    tags: tuple[str, ...] = ()
 
     # The check_type values this check's findings may carry, most serious first. Empty means the
     # findings are simply the check's own name, which is the usual case.
@@ -273,7 +283,7 @@ under B.""",
 
 OFF_LABEL = CheckPrompt(
     name="off_label",
-    version="off_label-v2",
+    version="off_label-v3",
     tier="strong",
     system=(
         "You are a regulatory reviewer checking for promotion outside the approved label, including "
@@ -292,7 +302,27 @@ Explicit off-label promotion is rare and easy. What you are mainly looking for i
 Judge the piece as a reader encounters it, including captions and copy adjacent to a claim, not the
 claim sentence in isolation. A claim that is itself pre-approved can still be off-label by
 implication once it is placed next to an image or a line that widens it -- the context is exactly
-what was not reviewed when the claim was approved.""",
+what was not reviewed when the claim was approved.
+
+**The market this piece is for.** A <tool_results> block carries a lookup against the company's
+regulatory system: whether this product is approved in this market, and for which indications.
+Approval is per market, so the same piece can be acceptable in one and unacceptable in another, and
+the label in <evidence> is not the whole answer.
+
+  - ``approved``: judge the claims against the indications the lookup lists for THIS market, which
+    may be narrower than the label you were given. A claim for an indication not on that list is
+    off-label.
+  - ``not_approved``: every claim of effectiveness or safety for this product is promotion of an
+    unapproved product. Report each one and attach the tag ``unapproved_market``. This is not a
+    wording problem and ``suggested_fix`` should not suggest rewording: the material cannot run in
+    this market at all. Say which market, and say the product is not approved there.
+  - ``unknown``: the record is missing, which is NOT the same as unapproved. Do not report the
+    piece as promoting an unapproved product. Say the approval status could not be established for
+    this market and report low confidence, so a person checks it.
+
+Attach ``unapproved_market`` only in the ``not_approved`` case, and only to findings about that
+product.""",
+    tags=("unapproved_market",),
 )
 
 PRESENTATION = CheckPrompt(

@@ -31,15 +31,27 @@ def resolve_severity(finding: Finding, config: TenantConfig) -> tuple[str, str]:
     if finding.rule_id:
         return finding.severity_proposed, f"rule:{finding.rule_id}"
 
+    # Three tiers of specificity, most specific first. A tagged rule beats an untagged one for the
+    # same check_type, which is the whole point of a tag: it grades a subset of a check differently
+    # without needing a new check type, and therefore without every tenant having to know about it.
+    #
+    # when_tag was on the SeverityRule schema from the start and read by nothing until now -- a
+    # tenant could write one, seeding would accept it, and it silently never applied.
+    tags = set(finding.tags)
+    tagged: SeverityRule | None = None
     exact: SeverityRule | None = None
     wildcard: SeverityRule | None = None
     for rule in config.severity_rules:
-        if rule.check_type == finding.check_type and exact is None:
+        matches_type = rule.check_type in (finding.check_type, "*")
+        if rule.when_tag:
+            if rule.when_tag in tags and matches_type and tagged is None:
+                tagged = rule
+        elif rule.check_type == finding.check_type and exact is None:
             exact = rule
         elif rule.check_type == "*" and wildcard is None:
             wildcard = rule
 
-    chosen = exact or wildcard
+    chosen = tagged or exact or wildcard
     if chosen is None:
         # No applicable rule. Defaults to advisory and routes to a human rather than being dropped:
         # an unclassified observation is still an observation.

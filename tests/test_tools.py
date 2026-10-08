@@ -130,16 +130,42 @@ def test_minimising_language_is_caught_in_the_safety_block_only():
 # --- Reaching the model --------------------------------------------------------------------------
 
 
-def test_only_the_presentation_node_is_given_the_validators():
+def test_each_check_is_given_only_the_tools_it_needs():
+    """A tool is cost and context, so it goes to the check that asks the question it answers.
+
+    The two validators measure how a piece presents risk, which is presentation's question alone.
+    off_label gets the approval lookup instead, because whether a product may be promoted in a
+    market is not answerable from the piece or from the label in the corpus. substantiation needs
+    neither: it compares claims against retrieved evidence.
+    """
     document, meta = piece("zelvoran-hcp-isi-buried")
-    state = {"document": document, "doc_meta": meta}
-    results = _run_tools("presentation", state, [])
-    assert [r.tool for r in results] == [
+    state = {"document": document, "doc_meta": meta, "product_id": "zelvoran", "market": "us"}
+
+    assert [r.tool for r in _run_tools("presentation", state, [])] == [
         "safety_prominence_validator",
         "fair_balance_validator",
     ]
-    assert _run_tools("off_label", state, []) == []
+    assert [r.tool for r in _run_tools("off_label", state, [])] == ["approval_status"]
     assert _run_tools("substantiation", state, []) == []
+
+
+def test_a_tool_is_not_broken_by_an_input_added_for_another_tool():
+    """The payload is one bag shared by every tool a check calls.
+
+    tools.call used to pass all of it to each tool, so adding `market` for the approval lookup
+    raised TypeError inside the validators -- and since that function never re-raises, it would
+    have surfaced as a silently unavailable measurement rather than as the error it is.
+    """
+    document, meta = piece("zelvoran-hcp-isi-buried")
+    state = {
+        "document": document,
+        "doc_meta": meta,
+        "product_id": "zelvoran",
+        "market": "us",
+        "label_headings": ["Zelvoran label v1.0 — 3. Contraindications"],
+    }
+    for result in _run_tools("presentation", state, []):
+        assert result.ok, f"{result.tool} failed: {result.error}"
 
 
 def test_the_block_the_model_sees_names_each_tool_and_its_version():

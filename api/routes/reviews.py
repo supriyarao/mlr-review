@@ -54,6 +54,7 @@ async def submit_review(
     channel: Annotated[str, Form()] = "",
     market: Annotated[str, Form()] = "",
     label_version: Annotated[str, Form()] = "",
+    sample_name: Annotated[str, Form()] = "",
 ) -> dict[str, str]:
     """Submit a piece for review. Returns at once; the review runs in the background.
 
@@ -91,6 +92,10 @@ async def submit_review(
         audience=audience,
         channel=channel,
         market=market,
+        # Optional, and only meaningful when the UI submitted one of the corpus samples. It lets a
+        # run be shown with its source artwork by anyone who opens it later, rather than only in
+        # the browser session that submitted it.
+        sample_name=sample_name,
     )
     submissions.save(
         run_id,

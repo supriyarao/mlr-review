@@ -5,7 +5,7 @@
 
 tenant_id: acme_pharma
 name: Acme Pharma
-version: "2026.4"
+version: "2026.5"
 
 # Findings below this confidence are flagged low_confidence and escalate. Acme accepts more
 # machine judgement than Borealis does, trading a little safety for review throughput.
@@ -29,6 +29,18 @@ products:
     study_prefixes: [dcl, ztm]
 
 severity_rules:
+  # Promoting a product in a market where it has no approval at all. Matched by tag rather than by
+  # check_type: it is an off_label finding, but a graver one than promoting outside the indication
+  # somewhere the product IS approved -- there, the wording can be corrected; here the material
+  # cannot run at all. A tagged rule wins over an untagged one for the same check_type.
+  - check_type: off_label
+    when_tag: unapproved_market
+    severity: blocker
+    rule_id: ACME-SEV-UNAPPROVED
+    rationale: >-
+      Promotion of a product with no marketing authorisation in the market concerned cannot be
+      corrected by rewording, so it escalates as a blocker on its own rule.
+
   # Promotion outside the approved label is never acceptable, however it arises.
   - check_type: off_label
     severity: blocker

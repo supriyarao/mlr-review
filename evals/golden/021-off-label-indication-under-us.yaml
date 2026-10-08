@@ -1,0 +1,54 @@
+id: 021-off-label-indication-under-us
+title: A sales aid promoting an indication the US label does not carry
+why_hard: >-
+  Declasal is approved in the US for skin and skin-structure infections. The piece promotes it for
+  skin infections AND uncomplicated UTI, and the label says in terms that effectiveness in urinary
+  tract infection has not been established. The UTI half is off-label; the skin half is fine, so a
+  check that judges the piece as a whole rather than claim by claim either passes it or condemns
+  all of it. It also claims effectiveness in elderly patients and patients with comorbidities, whom
+  DCL-301 never enrolled, and calls the product well tolerated with no safety information anywhere.
+  Pairs with case 022: the same file under `eu` is a different and graver finding.
+tenant_id: acme_pharma
+product_id: declasal
+label_version: "1.0"
+audience: hcp
+channel: sales_aid
+market: us
+promo_path: corpus/promo/declasal-investigational-promotion.md
+expected_findings:
+  - check_type: off_label
+    claim_contains: uncomplicated UTI
+    severity: blocker
+    explanation: >-
+      Declasal is approved for skin and skin-structure infections. It is not approved for urinary
+      tract infection, and the label states that effectiveness in UTI has not been established, so
+      promoting it for UTI is promotion outside the licence.
+    suggested_fix: >-
+      Remove urinary tract infection from the piece entirely, including the "Two indications"
+      panel.
+    note: >-
+      Approved in us for skin and skin-structure infections only. The tag unapproved_market must
+      NOT be set here - the product is approved in this market, just not for this indication.
+  - check_type: substantiation
+    claim_contains: Adults, elderly and patients with comorbidities
+    severity: blocker
+    explanation: >-
+      The trial enrolled adults aged 18 to 55 and excluded patients with significant other
+      illnesses, so there is no evidence about older patients or patients with comorbidities.
+    suggested_fix: >-
+      State the population actually studied: adults aged 18 to 55 with mild cellulitis.
+    note: DCL-301 enrolled 18 to 55 and excluded comorbid and hospitalised patients.
+  - check_type: safety_completeness
+    claim_contains: Well tolerated
+    severity: blocker
+    explanation: >-
+      The piece calls Declasal well tolerated and carries no safety information at all, while the
+      label has a Boxed Warning for tendon rupture and nerve damage.
+    suggested_fix: >-
+      Remove the tolerability claim and add the Boxed Warning, contraindications, warnings and
+      precautions and common adverse reactions.
+    note: Minimisation plus total omission, in a piece for a boxed-warning product.
+expected_route: senior_regulatory
+must_not_flag:
+  - Skin & skin-structure infections
+tags: [off_label, investigational_promotion, bad_ad, market_scoped]

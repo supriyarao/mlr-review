@@ -33,6 +33,11 @@ class RunRecord(SQLModel, table=True):
     audience: str = "any"
     channel: str = ""
     market: str = ""
+    # Which corpus sample this run was started from, when it was started from one. Recorded so a
+    # run can be shown with its source artwork by anyone opening it later -- without it the UI can
+    # only pair the two inside the browser session that submitted it. Empty for pasted or uploaded
+    # content, which is most real traffic.
+    sample_name: str = ""
 
     # queued | running | awaiting_human | complete | failed
     status: str = Field(default="queued", index=True)
@@ -67,6 +72,7 @@ def create(
     audience: str = "any",
     channel: str = "",
     market: str = "",
+    sample_name: str = "",
     stepping: bool = False,
 ) -> RunRecord:
     """Register a run as queued, before the graph starts.
@@ -84,6 +90,7 @@ def create(
         audience=audience,
         channel=channel,
         market=market,
+        sample_name=sample_name,
         status="queued",
         stepping=stepping,
     )

@@ -199,6 +199,13 @@ class Finding(BaseModel):
     # Ids of findings the editor merged into this one. Both originals' citations are kept, so a
     # merge never loses evidence.
     merged_from: list[str] = Field(default_factory=list)
+    # Open-ended labels a check may attach, which a tenant's severity rules can match on via
+    # ``SeverityRule.when_tag``. Deliberately free-form strings rather than an enum: a tag exists to
+    # let a tenant grade a *subset* of one check type differently, and which subsets matter is a
+    # policy question, not a schema one. "unapproved_market" is the first -- promoting a product in
+    # a market where it has no approval is an off_label finding, but a graver one than promoting
+    # outside the indication in a market where it is approved.
+    tags: list[str] = Field(default_factory=list)
 
     @property
     def severity(self) -> Severity:
@@ -277,6 +284,9 @@ class ReviewReport(BaseModel):
     audience: str = "any"
     channel: str = ""
     market: str = ""
+    # The corpus sample this run was started from, if any. Lets a client show the source artwork
+    # for a run it did not itself submit.
+    sample_name: str = ""
 
     status: RunStatus
     # The reviewer tier this run is routed to. Always set once routing has run -- there is no

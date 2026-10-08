@@ -6,6 +6,7 @@
   "audience": "hcp",
   "channel": "sales_aid",
   "market": "us",
+  "sample_name": "",
   "status": "running",
   "route": "",
   "escalation": null,
@@ -47,7 +48,8 @@
       "rule_version": 0,
       "model": "claude-sonnet-5",
       "prompt_version": "substantiation-v2",
-      "merged_from": []
+      "merged_from": [],
+      "tags": []
     }
   ],
   "gate_results": [],

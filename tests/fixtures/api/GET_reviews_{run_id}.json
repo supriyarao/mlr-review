@@ -6,6 +6,7 @@
   "audience": "hcp",
   "channel": "sales_aid",
   "market": "us",
+  "sample_name": "",
   "status": "awaiting_human",
   "route": "senior_regulatory",
   "escalation": {
@@ -67,7 +68,8 @@
       "rule_version": 0,
       "model": "claude-sonnet-5",
       "prompt_version": "substantiation-v2",
-      "merged_from": []
+      "merged_from": [],
+      "tags": []
     },
     {
       "id": "f2",
@@ -106,7 +108,8 @@
       "rule_version": 1,
       "model": "claude-sonnet-5",
       "prompt_version": "rule-check-v1",
-      "merged_from": []
+      "merged_from": [],
+      "tags": []
     },
     {
       "id": "f3",
@@ -145,7 +148,8 @@
       "rule_version": 0,
       "model": "claude-sonnet-5",
       "prompt_version": "substantiation-v2",
-      "merged_from": []
+      "merged_from": [],
+      "tags": []
     }
   ],
   "gate_results": [

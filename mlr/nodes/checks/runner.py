@@ -63,6 +63,9 @@ TOOLS_BY_CHECK: dict[str, tuple[str, ...]] = {
     # Two, in order, both feeding the one model call that follows. They answer the check's two
     # concerns separately because a customer would own them separately.
     "presentation": ("safety_prominence_validator", "fair_balance_validator"),
+    # A lookup rather than a measurement: whether this product is approved in the market this
+    # material is for. The label alone cannot answer it, because approval is per market.
+    "off_label": ("approval_status",),
 }
 
 
@@ -321,6 +324,10 @@ def _run_tools(
         # carries; it does not need the label's text, and sending it would be a lot of context for
         # a keyword scan.
         "label_headings": [p.title for p in (label_safety or [])],
+        # For the approval lookup. Each tool receives only the keys it declares, so these reach
+        # approval_status and nothing else.
+        "product_id": str(state.get("product_id") or ""),
+        "market": str(state.get("market") or ""),
     }
     return [tools.call(name, payload) for name in TOOLS_BY_CHECK.get(check, ())]
 
@@ -436,6 +443,9 @@ def run_check(check_name: str, state: dict[str, Any], *, fake: Any = None) -> di
                     issue=reported.issue,
                     explanation=reported.explanation,
                     suggested_fix=reported.suggested_fix,
+                    # Only tags this check declares. A tag changes how a tenant grades the finding,
+                    # so an invented one would be a model quietly choosing its own severity.
+                    tags=[tag for tag in reported.tags if tag in check.tags],
                     citations=[
                         Citation(
                             source_id=c.source_id,

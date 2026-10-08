@@ -6,7 +6,7 @@
 
 tenant_id: borealis_bio
 name: Borealis Bio
-version: "2026.5"
+version: "2026.6"
 
 # Higher bar than Acme: Borealis wants a human to look at anything the system is less than
 # confident about. Costs review throughput, buys fewer missed problems.
@@ -26,6 +26,14 @@ products:
     indication: moderate-to-severe plaque psoriasis in adults
 
 severity_rules:
+  - check_type: off_label
+    when_tag: unapproved_market
+    severity: blocker
+    rule_id: BOR-SEV-UNAPPROVED
+    rationale: >-
+      A product without a marketing authorisation in this market may not be promoted there in any
+      wording, so this escalates on its own rule rather than as ordinary off-label promotion.
+
   - check_type: off_label
     severity: blocker
     rule_id: BOR-SEV-OFFLABEL

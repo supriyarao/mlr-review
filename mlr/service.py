@@ -192,6 +192,7 @@ def start_run(
     audience: str = "any",
     channel: str = "",
     market: str = "",
+    sample_name: str = "",
     doc_meta: dict[str, Any] | None = None,
     run_id: str | None = None,
     step: bool = False,
@@ -240,6 +241,7 @@ def start_run(
         audience=audience or "any",
         channel=channel,
         market=market,
+        sample_name=sample_name,
         stepping=step,
     )
 
@@ -374,6 +376,7 @@ def _report_from(run_id: str, record: store.RunRecord, state: dict[str, Any]) ->
         audience=record.audience,
         channel=record.channel,
         market=record.market,
+        sample_name=record.sample_name,
         status=record.status,  # type: ignore[arg-type]
         route=str(state.get("route") or ""),
         escalation=state.get("escalation"),
@@ -563,6 +566,7 @@ def list_runs(tenant_id: str = "", status: str = "") -> list[ReviewReport]:
                 audience=record.audience,
                 channel=record.channel,
                 market=record.market,
+                sample_name=record.sample_name,
                 status=record.status,  # type: ignore[arg-type]
                 route=record.route,
                 claims_extracted=record.claims,
