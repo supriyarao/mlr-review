@@ -1,0 +1,5 @@
+{
+  "node": "off_label",
+  "prompt_version": "off_label-v3",
+  "response": "{\"findings\":[{\"claim_id\":\"\",\"quote\":\"PASI-90 was achieved and maintained at 12 weeks in the extension study [3].\",\"issue\":\"This is not an off-label population/indication issue per se, but worth noting the claim misrepresents the cited study (ZEL-303 reported PASI-75, not PASI-90, and at Weeks 16/52, not Week 12) \u2014 flagged for awareness though this concerns accuracy rather than promotion outside indication.\",\"explanation\":\"The question asked is about promotion outside the approved indication (population, dose, duration widening). This finding is about data accuracy rather than label scope, so it is only tangentially relevant; flagged with low confidence since it is outside the primary scope of this review.\",\"suggested_fix\":\"\",\"severity\":\"advisory\",\"concern\":\"\",\"tags\":[],\"confidence\":20,\"citations\":[{\"source_id\":\"acme_pharma:label:zelvoran:v1.0:9\",\"passage\":\"ZEL-303 reports PASI-75, not PASI-90, and its timepoints are Week 16 and Week 52. ZEL-303 did not assess PASI-90 and did not report any Week 12 endpoint.\"}]}]}"
+}

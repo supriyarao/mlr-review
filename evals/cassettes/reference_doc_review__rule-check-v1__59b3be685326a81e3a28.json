@@ -1,0 +1,5 @@
+{
+  "node": "reference_doc_review",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"BOR-DOC-001\",\"quote\":\"adults with type 2 diabetes who also have established cardiovascular\\ndisease\",\"issue\":\"The content uses a paraphrased term instead of the required exact terminology \\\"adults with type 2 diabetes and established atherosclerotic cardiovascular disease\\\", omitting \\\"atherosclerotic\\\".\",\"explanation\":\"The style guide requires a specific exact phrase to describe this patient population, including the word \\\"atherosclerotic\\\". The content instead says \\\"established cardiovascular disease\\\", dropping that word, which doesn't match the required terminology.\",\"suggested_fix\":\"\",\"confidence\":80,\"claim_id\":\"c1\",\"clause\":\"Use \\\"adults with type 2 diabetes and established atherosclerotic cardiovascular disease\\\", not \\\"diabetics\\\" or \\\"at-risk patients\\\".\"}]}"
+}

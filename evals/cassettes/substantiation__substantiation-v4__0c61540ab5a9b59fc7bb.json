@@ -1,0 +1,5 @@
+{
+  "node": "substantiation",
+  "prompt_version": "substantiation-v4",
+  "response": "{\"findings\":[{\"claim_id\":\"c4\",\"quote\":\"For many of these adults, that is as close to a cure as current therapy allows.\",\"issue\":\"Overstatement of evidence (Type A5): claim implies a 'cure'-like outcome, which is not an endpoint measured or supported by any cited study.\",\"explanation\":\"The trial measured PASI-75 (75% improvement in skin symptoms), not anything resembling a cure. Calling this result 'as close to a cure as current therapy allows' is an interpretive leap the data don't support, since PASI-75 patients still have residual psoriasis and no study assessed 'cure' as an outcome.\",\"suggested_fix\":\"Remove the 'cure' language. State only the measured outcome, e.g., 'Many patients achieved significant skin clearance (PASI-75) at Week 16,' without characterizing it as a cure.\",\"severity\":\"advisory\",\"concern\":\"\",\"tags\":[],\"confidence\":80,\"citations\":[]}]}"
+}

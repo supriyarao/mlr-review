@@ -1,0 +1,5 @@
+{
+  "node": "reference_doc_review",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"ACME-DOC-001\",\"quote\":\"ZEL-303. Open-label extension, 52 weeks, 610 adults.\",\"issue\":\"The piece cites a 52-week open-label extension study (ZEL-303) but makes no durability claim extending to that timepoint, yet including an unreferenced-to-claim long-term study alongside headline Week 16 data without clarifying it is not a head-to-head or controlled result risks implying durability beyond the 16-week controlled data without the required endpoint/population/timepoint match.\",\"explanation\":\"The Code says any claim about how long an effect lasts can't go beyond the longest timepoint actually supported by data; here a 52-week extension reference is listed but the efficacy claims are only backed by 16-week controlled trials, creating a mismatch risk between what's cited and what's claimed.\",\"suggested_fix\":\"\",\"confidence\":40,\"claim_id\":\"\",\"clause\":\"Claims about how long an effect lasts must not extend beyond the longest timepoint for which data exist.\"}]}"
+}

@@ -1,0 +1,17 @@
+{
+  "node": "preapproved_filter",
+  "version": "preapproved-v2",
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "candidate_0": {
+        "type": "noul",
+        "noul": 0.01
+      }
+    },
+    "usage": {
+      "input_tokens": 493,
+      "output_tokens": 22
+    }
+  }
+}

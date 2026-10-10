@@ -1,0 +1,5 @@
+{
+  "node": "llm_rules",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"ACME-LLM-001\",\"quote\":\"so you can feel like yourself again\",\"issue\":\"The phrase implies a personal expectation of benefit without directing the reader to a healthcare professional.\",\"explanation\":\"The rule requires that patient-directed material must not imply results are typical unless supported by the label, and must direct readers to a healthcare professional. This text uses second-person language ('you can feel') to suggest the reader should expect the described outcome themselves, without any qualifier or direction to consult a healthcare professional.\",\"suggested_fix\":\"Remove or replace the outcome expectation. For example: 'Powerful antibiotic relief for complicated skin infections. Ask your doctor if Declasal is right for you.'\",\"confidence\":85,\"claim_id\":\"c1\",\"clause\":\"\"}]}"
+}
