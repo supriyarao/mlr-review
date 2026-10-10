@@ -153,7 +153,10 @@ st.caption(
 node_grid(nodes.REVIEWERS, prompts)
 
 st.markdown("#### 3. Checking the reviewers' work")
-st.caption("All plain code, in a fixed order. Given the same findings, the result is the same.")
+st.caption(
+    "The checker and the router are plain code, in a fixed order. Given the same findings, the "
+    "result is the same. Between them, a decision model grades the piece as a whole."
+)
 node_grid(nodes.CHECKING, prompts)
 
 st.markdown("#### 4. Wrapping up")

@@ -245,6 +245,30 @@ def checker_panel(step: dict[str, Any]) -> None:
             st.caption(f"{result}.")
 
 
+def risk_panel(step: dict[str, Any]) -> None:
+    summary = step.get("summary")
+    summary = summary if isinstance(summary, dict) else {}
+    st.markdown("**What it produced**")
+    level = summary.get("level")
+    if not level:
+        # Normal, not a failure: the piece was routed exactly as it would be without this step.
+        st.info("The decision model couldn't grade this piece, so this step changed nothing.")
+        return
+    levels = summary.get("levels") or []
+    scale = f" The levels, lowest first: {', '.join(levels)}." if levels else ""
+    st.markdown(f"**{level.capitalize()}.**{scale}")
+    facts = []
+    if summary.get("score") is not None:
+        top = max(len(levels) - 1, 1)
+        facts.append(f"Score {summary['score']:.1f} on a scale of 0 to {top}")
+    if summary.get("confidence") is not None:
+        facts.append(f"{summary['confidence']:.0%} sure")
+    st.caption(
+        ". ".join(facts) + ". This is a signal, not a decision. Whether it sends the piece to a "
+        "more senior reviewer is up to the company's settings."
+    )
+
+
 def generic_panel(step: dict[str, Any], document: str) -> None:
     """For steps without a purpose-built view yet: the step's own summary, and any findings."""
     summary = step.get("summary")
@@ -310,6 +334,8 @@ def step_panel(step: dict[str, Any], document: str) -> None:
             matcher_panel(given, produced, step.get("summary"))
         elif step["node"] == "consolidate":
             checker_panel(step)
+        elif step["node"] == "risk_judgement":
+            risk_panel(step)
         else:
             generic_panel(step, document)
 
@@ -340,6 +366,8 @@ def step_headline(step: dict[str, Any]) -> str:
     if isinstance(summary.get("editor"), dict):
         editor = summary["editor"]
         return f"{count(editor.get('in', 0), 'finding')} in, {editor.get('out', 0)} out"
+    if "level" in summary and "levels" in summary:
+        return summary["level"] or "couldn't tell"
     if summary.get("route"):
         return f"suggests {view.tier_label(summary['route']).lower()}"
     if "matched" in summary:

@@ -141,6 +141,22 @@ CHECKING = [
         "decided its severity.",
     ),
     Node(
+        "risk_judgement",
+        "The risk gauge",
+        "Looks at the whole piece, not one claim, and says how much regulatory risk it carries: "
+        "routine, worth a second look, or serious.",
+        "A decision model picks one of the three levels and says how sure it is. It writes no "
+        "text of its own. It decides nothing by itself: each company chooses whether a level "
+        "sends the piece to a more senior reviewer. Borealis does at serious. Acme ignores it. "
+        "So the same piece can go to a senior reviewer at one company and a standard one at "
+        "the other, and that is a setting, not code.",
+        "The piece and a decision model.",
+        "The level and a score from 0 to 2. If the model couldn't answer, the level is left "
+        "empty and the piece is routed as if this step wasn't there.",
+        model=True,
+        decision=True,
+    ),
+    Node(
         "route",
         "The router",
         "Works out who should look at the result, and lists every reason why.",
