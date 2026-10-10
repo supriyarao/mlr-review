@@ -64,6 +64,7 @@ def preapproved_filter(state: dict[str, Any], *, decider: Any = None) -> dict[st
 
         retriever = TenantRetriever(str(state["tenant_id"]))
         matches: dict[str, str] = {}
+        scores: dict[str, float] = {}
         considered = 0
         failures = 0
 
@@ -111,12 +112,18 @@ def preapproved_filter(state: dict[str, Any], *, decider: Any = None) -> dict[st
             if best_index >= 0 and best_probability >= EQUIVALENCE_THRESHOLD:
                 matched = candidates[best_index]
                 matches[claim.id] = matched.source_id.rsplit(":", 1)[-1]
+                # Rounded, because the display precision is the only precision that means
+                # anything here: the model reports two decimal places.
+                scores[claim.id] = round(best_probability, 4)
 
         run.output = {
             "claims": len(claims),
             "candidates_considered": considered,
             "matched": len(matches),
             "matches": matches,
+            # How sure the model was about each match it made. Only for claims that matched -- a
+            # score beside a claim with no match would invite reading a near-miss as a result.
+            "match_scores": scores,
             "threshold": EQUIVALENCE_THRESHOLD,
             # Worth surfacing rather than hiding: a run where every decision call failed matches
             # nothing, and "matched 0" alone would read as "nothing was pre-approved".

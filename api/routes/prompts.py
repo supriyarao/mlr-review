@@ -27,6 +27,28 @@ def _entry(node: str, version: str, tier: str, file: str, *parts: str) -> dict[s
     }
 
 
+def _decision_question_text() -> str:
+    """The preapproved question as the decision model receives it.
+
+    Built from :func:`mlr.prompts.preapproved.build_questions` rather than written out again, so the
+    page can never show a question the node has stopped asking.
+    """
+    from mlr.nodes.preapproved import EQUIVALENCE_THRESHOLD
+
+    question = preapproved.build_questions(count=1)[preapproved.CANDIDATE_KEY.format(index=0)]
+    threshold = f"{EQUIVALENCE_THRESHOLD:.0%}"
+    return "\n\n".join(
+        (
+            "A yes/no question, asked once per candidate cleared claim. The answer is a "
+            "probability between 0 and 1, not a sentence. The best-scoring candidate wins, and "
+            f"only if it reaches {threshold}.",
+            f"Question: {question['instructions']}",
+            f"Yes means: {question['criteria']['true']}",
+            f"No means: {question['criteria']['false']}",
+        )
+    )
+
+
 def all_prompts() -> list[dict[str, Any]]:
     entries = [
         _entry(
@@ -37,13 +59,16 @@ def all_prompts() -> list[dict[str, Any]]:
             extract_claims.SYSTEM,
             extract_claims.TEMPLATE,
         ),
+        # preapproved_filter asks a decision model, so there is no prompt in the usual sense and no
+        # strong/fast tier -- those name chat models, and this is not one. What a reader wants to see
+        # is still the same thing: the question, and what counts as a yes. Rendered from the question
+        # the node actually sends, so this cannot drift from it.
         _entry(
             "preapproved_filter",
-            preapproved.PROMPT_VERSION,
-            "fast",
+            preapproved.QUESTION_VERSION,
+            "decision",
             "mlr/prompts/preapproved.py",
-            preapproved.SYSTEM,
-            preapproved.TEMPLATE,
+            _decision_question_text(),
         ),
     ]
     for check in checks.CHECKS.values():

@@ -70,6 +70,23 @@ def _decider(answers: dict[str, float]) -> decisions.FakeDecider:
     )
 
 
+def _audit_output(run_id: str = "test-run") -> dict[str, Any]:
+    """The node's output as the audit log stored it.
+
+    Read through the audit API rather than from the node's return value, because this is the exact
+    path the UI takes: /steps serves the audit event's ``output_json`` as the step's ``summary``.
+    A key the node sets but the audit event drops would be invisible to a test that only checked
+    the return value.
+    """
+    import json
+
+    from platform_core import audit
+
+    events = [e for e in audit.events_for_run(run_id) if e.node == "preapproved_filter"]
+    assert events, f"no preapproved_filter audit event for {run_id}"
+    return dict(json.loads(events[-1].output_json))
+
+
 def test_a_confident_match_marks_the_claim_as_already_approved(three_candidates):
     result = preapproved.preapproved_filter(_state(), decider=_decider({"candidate_1": 0.99}))
     assert result["preapproved_matches"] == {"c1": "ACME-PAC-002"}
@@ -149,3 +166,34 @@ def test_no_claims_skips_retrieval_entirely(monkeypatch):
     result = preapproved.preapproved_filter(_state(claims=[]), decider=_decider({}))
     assert result["preapproved_matches"] == {}
     assert called is False
+
+
+def test_a_match_reports_how_sure_the_model_was(three_candidates):
+    """The UI shows this beside the match, so the summary has to carry it."""
+    out = preapproved.preapproved_filter(_state(), decider=_decider({"candidate_1": 0.9712345}))
+    run = _audit_output()
+    assert out["preapproved_matches"] == {"c1": "ACME-PAC-002"}
+    assert run["match_scores"] == {"c1": 0.9712}
+
+
+def test_an_unmatched_claim_gets_no_score(three_candidates):
+    """A score beside a claim with no match invites reading a near-miss as a result."""
+    preapproved.preapproved_filter(_state(), decider=_decider({"candidate_0": 0.5}))
+    assert _audit_output()["match_scores"] == {}
+
+
+def test_the_summary_carries_what_the_ui_reads(three_candidates):
+    """Contract with the frontend: these keys live in the step summary."""
+    preapproved.preapproved_filter(_state(), decider=_decider({"candidate_0": 0.99}))
+    run = _audit_output()
+    for key in (
+        "claims",
+        "candidates_considered",
+        "matched",
+        "matches",
+        "match_scores",
+        "threshold",
+        "decision_failures",
+    ):
+        assert key in run, f"{key} missing from the step summary"
+    assert run["threshold"] == preapproved.EQUIVALENCE_THRESHOLD

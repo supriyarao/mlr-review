@@ -112,7 +112,18 @@ def test_every_model_backed_node_serves_its_prompt(client):
     }
     for prompt in prompts.values():
         assert prompt["version"] and prompt["file"].endswith(".py") and len(prompt["text"]) > 100
-        assert prompt["tier"] in {"strong", "fast"}
+        # "decision" is not a chat tier. preapproved_filter asks a decision model, which has no
+        # strong/fast distinction, and the page needs to be able to say so.
+        assert prompt["tier"] in {"strong", "fast", "decision"}
+
+    decision = prompts["preapproved_filter"]
+    assert decision["tier"] == "decision"
+    assert decision["version"] == "preapproved-v2"
+    # The question, and what counts as a yes. Rendered from what the node sends, so a reader
+    # cannot be shown a question the node has stopped asking.
+    assert "Question:" in decision["text"]
+    assert "Yes means:" in decision["text"]
+    assert "No means:" in decision["text"]
 
 
 def test_the_run_pages_invite_a_submission_when_there_are_no_runs(ui):
