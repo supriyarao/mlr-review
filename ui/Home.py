@@ -63,7 +63,9 @@ def node_card(node: nodes.Node, prompts: dict[str, dict]) -> None:
     # Most model steps make one call, named after the step. The house-rule step makes two.
     asked = [prompts[key] for key in nodes.MODEL_CALLS.get(node.key, (node.key,)) if key in prompts]
     with st.container(border=True):
-        if node.model:
+        if node.decision:
+            kind = view.chip("Asks a decision model")
+        elif node.model:
             size = {"strong": "the larger model", "fast": "the smaller model"}
             if len(asked) == 1:
                 kind = view.chip(f"Asks {size.get(asked[0]['tier'], 'a model')}")
@@ -83,7 +85,11 @@ def node_card(node: nodes.Node, prompts: dict[str, dict]) -> None:
         footer, link = st.columns([3, 2])
         footer.caption(f"Called `{node.key}` in the graph and the audit trail.")
         if asked:
-            with link.popover("Read the prompt" if len(asked) == 1 else "Read the prompts"):
+            if node.decision:
+                label = "Read the question"
+            else:
+                label = "Read the prompt" if len(asked) == 1 else "Read the prompts"
+            with link.popover(label):
                 for prompt in asked:
                     st.caption(f"`{prompt['file']}`, version `{prompt['version']}`")
                     # Plain escaped HTML rather than st.code: the code block loads its highlighter
@@ -104,7 +110,10 @@ def node_grid(stage: list[nodes.Node], prompts: dict[str, dict]) -> None:
 
 st.subheader("How a review flows")
 st.markdown(nodes.flow_diagram(), unsafe_allow_html=True)
-st.caption("Rounded boxes ask a model. Square boxes are plain code. Read left to right.")
+st.caption(
+    "Rounded boxes ask a model. A dashed one asks a decision model, which picks from set answers "
+    "and writes no text. Square boxes are plain code. Read left to right."
+)
 
 st.markdown(
     """

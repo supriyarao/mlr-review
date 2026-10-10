@@ -272,6 +272,9 @@ def tier_label(tier: str) -> str:
 
 
 def money(value: float) -> str:
+    if 0 < value < 0.0001:
+        # A decision-model call costs a few thousandths of a cent. Don't show that as free.
+        return "under $0.0001"
     return f"${value:,.4f}" if value < 1 else f"${value:,.2f}"
 
 

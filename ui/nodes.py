@@ -23,6 +23,9 @@ class Node:
     uses: str  # anything it reads from outside the run
     saves: str
     model: bool = False
+    # A decision model is still a model, but a different kind: it is asked a question with set
+    # answers and gives back how sure it is. It writes no text, so it can't invent a finding.
+    decision: bool = False
 
 
 GETTING_READY = [
@@ -55,11 +58,14 @@ GETTING_READY = [
         "Checks whether a claim is wording the company has signed off before. If so, it skips "
         "the evidence check. It still gets checked for balance and off-label use, because the "
         "wording was cleared, not the page it now sits on.",
-        "A search pulls likely matches from the company's cleared claims. A small model then "
-        "confirms the two really say the same thing.",
-        "The company's cleared-claims list (local search index) and the model.",
+        "A search pulls likely matches from the company's cleared claims. A decision model then "
+        "says how sure it is that each one means the same thing. It only answers that one "
+        "question and writes no text of its own. The best match wins if it is at least 85% sure. "
+        "Anything less and the claim counts as new.",
+        "The company's cleared-claims list (local search index) and a decision model.",
         "Which claims matched which cleared claim.",
         model=True,
+        decision=True,
     ),
 ]
 
@@ -197,6 +203,7 @@ FLOW_CSS = """
   font-size: 0.82rem; line-height: 1.3; background: rgba(128,128,128,.07);
 }
 .flow-node.model { border-radius: 999px; border-color: #1F3A5F; background: rgba(31,58,95,.1); }
+.flow-node.decision { border-style: dashed; }
 .flow-down { text-align: center; font-size: 0.7rem; line-height: 0.6; opacity: 0.55; }
 .prompt-text {
   white-space: pre-wrap; font-size: 0.8rem; line-height: 1.5; max-width: 640px;
@@ -223,6 +230,7 @@ def flow_diagram() -> str:
             if in_sequence and index:
                 pills.append('<div class="flow-down">&#9660;</div>')
             css = "flow-node model" if node.model else "flow-node"
+            css += " decision" if node.decision else ""
             pills.append(f'<div class="{css}">{view.escape(node.name)}</div>')
         wide = "" if in_sequence else " wide"
         stages.append(

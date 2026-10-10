@@ -124,15 +124,32 @@ def matcher_panel(given: dict[str, Any], produced: dict[str, Any], summary: Any)
             claims_table(claims)
     st.markdown("**What it produced**")
     matches = produced.get("preapproved_matches") or {}
-    considered = summary.get("candidates_considered") if isinstance(summary, dict) else None
+    summary = summary if isinstance(summary, dict) else {}
+    considered = summary.get("candidates_considered")
+    undecided = summary.get("decision_failures") or 0
+    if undecided:
+        # "Matched none" and "couldn't tell" are different, and only one of them is a result.
+        st.warning(
+            f"The decision model couldn't answer for {count(undecided, 'claim')}. "
+            f"{'It was' if undecided == 1 else 'They were'} treated as new and went through the "
+            "evidence check, so nothing was skipped. The review just did more work than it "
+            "needed to."
+        )
+    if summary.get("threshold"):
+        st.caption(f"A match counts when the model is at least {summary['threshold']:.0%} sure.")
     if not matches:
         looked = f" It looked at {considered} cleared claim(s)." if considered else ""
         st.info(f"No claim matched wording the company has already cleared.{looked}")
         return
     by_id = {c["id"]: c["original_text"] for c in claims}
+    scores = summary.get("match_scores") or {}
     st.dataframe(
         [
-            {"Claim": by_id.get(claim_id, claim_id), "Matches cleared claim": cleared}
+            {
+                "Claim": by_id.get(claim_id, claim_id),
+                "Matches cleared claim": cleared,
+                "How sure": f"{scores[claim_id]:.0%}" if claim_id in scores else "",
+            }
             for claim_id, cleared in matches.items()
         ],
         hide_index=True,
@@ -265,7 +282,10 @@ def step_panel(step: dict[str, Any], document: str) -> None:
     node = nodes.ALL_NODES.get(step["node"])
     with st.container():
         if step.get("model"):
-            how = view.chip(f"Asked {step['model']}")
+            sort = ", a decision model" if node and node.decision else ""
+            how = view.chip(f"Asked {step['model']}{sort}")
+        elif node and node.decision:
+            how = view.chip("Asks a decision model")
         elif node and node.model:
             how = view.chip("Asks a model")
         else:
@@ -323,7 +343,9 @@ def step_headline(step: dict[str, Any]) -> str:
     if summary.get("route"):
         return f"suggests {view.tier_label(summary['route']).lower()}"
     if "matched" in summary:
-        return f"{summary['matched']} already cleared"
+        undecided = summary.get("decision_failures") or 0
+        unsure = f", {undecided} it couldn't tell" if undecided else ""
+        return f"{summary['matched']} already cleared{unsure}"
     if "claims" in summary:
         return count(summary["claims"], "claim")
     if "document_chars" in summary:
