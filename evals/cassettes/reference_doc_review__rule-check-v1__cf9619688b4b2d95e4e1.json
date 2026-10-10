@@ -1,0 +1,5 @@
+{
+  "node": "reference_doc_review",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[]}"
+}

@@ -1,0 +1,5 @@
+{
+  "node": "llm_rules",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"ACME-LLM-002\",\"quote\":\"Whatever your age, whatever your stage, Zelvoran may be the answer your family has been waiting for.\",\"issue\":\"The phrase 'whatever your age' and 'your family' imply use outside the approved indication of adults only, suggesting use across all ages including children.\",\"explanation\":\"Zelvoran is approved only for adults with moderate-to-severe plaque psoriasis. This sentence uses 'whatever your age' and references 'your family,' which together imply the product is suitable for people of all ages and family members, including children. This violates the rule that imagery, captions, and surrounding copy must not depict or imply use in a population outside the approved indication.\",\"suggested_fix\":\"Replace with language that applies only to adults, such: 'Zelvoran may be the answer you've been waiting for. Talk to your doctor about whether it's right for you.'\",\"confidence\":0,\"claim_id\":\"c4\",\"clause\":\"\"}]}"
+}

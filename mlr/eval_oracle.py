@@ -186,16 +186,6 @@ def build_script(case: GoldenCase, document: str) -> dict[str, list[str]]:
     claims_payload = _claims_for(case, document)
     script: dict[str, list[str]] = {
         "extract_claims": [json.dumps({"claims": claims_payload})],
-        # Only case 009 relies on a pre-approved match; everywhere else a match would wrongly skip
-        # substantiation, so the default is "not equivalent".
-        "preapproved_filter": [
-            json.dumps(
-                {
-                    "equivalent": "preapproved" in case.tags,
-                    "reason": "Oracle verdict derived from the case tags.",
-                }
-            )
-        ],
     }
 
     by_check: dict[str, list[dict[str, Any]]] = {}
@@ -366,3 +356,28 @@ def _rule_findings(case: GoldenCase, document: str, *, kind: str) -> list[dict[s
             )
         out.append(entry)
     return out
+
+
+def build_decider(case: GoldenCase) -> Any:
+    """The synthetic decision model for one case: does this claim match a cleared one?
+
+    The counterpart to :func:`build_script` for ``preapproved_filter``, which asks a decision model
+    rather than a chat model. Derived from the case's tags for the same reason the chat version was:
+    only the cases tagged ``preapproved`` depend on a match, and everywhere else a match would
+    wrongly skip substantiation and the case would fail for a reason that has nothing to do with the
+    thing it tests.
+
+    Answers every candidate the same way, which is enough because no golden case turns on *which*
+    cleared claim matched -- only on whether one did. A case that needed to distinguish them would
+    need per-candidate probabilities here, and the fake supports that already.
+
+    The probabilities are deliberately decisive rather than borderline. An oracle answering 0.86
+    against a 0.85 threshold would make every offline result a referendum on the threshold instead
+    of on the pipeline.
+    """
+    from platform_core import decisions
+
+    equivalent = "preapproved" in case.tags
+    return decisions.FakeDecider(
+        default_answer={"type": "noul", "noul": 0.99 if equivalent else 0.01}
+    )

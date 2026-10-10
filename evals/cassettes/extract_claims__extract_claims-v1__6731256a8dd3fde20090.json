@@ -1,0 +1,5 @@
+{
+  "node": "extract_claims",
+  "prompt_version": "extract_claims-v1",
+  "response": "{\"claims\":[{\"original_text\":\"Three years of sustained response\",\"normalized_claim\":\"Zelvoran provides three years of sustained response in treating moderate-to-severe plaque psoriasis.\",\"claim_type\":\"efficacy\",\"location\":\"Title\",\"reference_markers\":[]},{\"original_text\":\"Zelvoran\u00ae (zelvoran) is indicated for the treatment of moderate-to-severe plaque psoriasis in adults\\nwho are candidates for systemic therapy or phototherapy.\",\"normalized_claim\":\"Zelvoran is indicated for the treatment of moderate-to-severe plaque psoriasis in adults who are candidates for systemic therapy or phototherapy.\",\"claim_type\":\"indication\",\"location\":\"Efficacy\",\"reference_markers\":[]},{\"original_text\":\"Three years of sustained clear skin with Zelvoran [3].\",\"normalized_claim\":\"Patients treated with Zelvoran achieved three years of sustained clear skin, based on a 52-week open-label extension study of 610 adults.\",\"claim_type\":\"efficacy\",\"location\":\"Efficacy\",\"reference_markers\":[\"3\"]}]}"
+}

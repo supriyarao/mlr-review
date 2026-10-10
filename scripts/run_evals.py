@@ -30,7 +30,7 @@ from mlr import eval_metrics, eval_oracle
 from mlr.graph import checkpointer, compile_with
 from mlr.nodes.ingest import normalize_document, parse_front_matter
 from mlr.state import initial_state, report_findings
-from platform_core import audit, runtime
+from platform_core import audit, decisions, runtime
 from platform_core.env import load_env
 from platform_core.evals import harness
 from platform_core.evals.schema import CaseResult, EvalResult, GoldenCase, load_cases
@@ -68,14 +68,23 @@ def make_runner(mode: str, *, record: bool = False):
     def run(case: GoldenCase) -> dict[str, Any]:
         document = prepare_document(case)
         fake = None
+        decider = None
         if mode == "offline":
             fake = FakeLLM(scripted=eval_oracle.build_script(case, document), default_response="{}")
+            decider = eval_oracle.build_decider(case)
         elif mode == "replay":
             fake = FakeLLM(mode="replay")
+            decider = decisions.FakeDecider(mode="replay")
+        elif record:
+            # Live mode with --record. Both recorders are write-only: the real backends answer every
+            # call (dispatch is on the backend name), and these exist solely to save each response
+            # as a cassette, so one paid run makes `make eval-replay` work forever after.
+            fake = FakeLLM(record=True)
+            decider = decisions.FakeDecider(record=True)
 
         run_id = f"eval-{case.id}-{invocation}"
         with checkpointer() as saver:
-            graph = compile_with(saver, fake=fake)
+            graph = compile_with(saver, fake=fake, decider=decider)
             state = initial_state(
                 run_id=run_id,
                 tenant_id=case.tenant_id,
@@ -247,7 +256,7 @@ def provenance(mode: str) -> dict[str, Any]:
     backend = describe_backend()
     from mlr.prompts.checks import PROMPT_VERSIONS
     from mlr.prompts.extract_claims import PROMPT_VERSION as EXTRACT_VERSION
-    from mlr.prompts.preapproved import PROMPT_VERSION as PREAPPROVED_VERSION
+    from mlr.prompts.preapproved import QUESTION_VERSION as PREAPPROVED_VERSION
     from platform_core.policy import policy_version
 
     hashes = {}

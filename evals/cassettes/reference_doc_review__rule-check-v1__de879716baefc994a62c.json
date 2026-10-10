@@ -1,0 +1,5 @@
+{
+  "node": "reference_doc_review",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"ACME-DOC-001\",\"quote\":\"For many of these adults, that is as close to a cure as current therapy allows.\",\"issue\":\"This text implies that Zelvoran can cure psoriasis, which is prohibited language under the Code.\",\"explanation\":\"The Code says promotional material must not say or suggest that a product cures the condition it treats. This sentence tells readers the result is 'as close to a cure as current therapy allows,' which strongly implies a cure. That crosses the line the rule is meant to prevent.\",\"suggested_fix\":\"\",\"confidence\":85,\"claim_id\":\"c4\",\"clause\":\"Promotional material must not state or imply that an Acme product cures the condition it treats, that a result is guaranteed, or that the product is completely safe or free of risk.\"}]}"
+}

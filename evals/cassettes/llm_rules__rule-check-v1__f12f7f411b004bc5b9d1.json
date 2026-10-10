@@ -1,0 +1,5 @@
+{
+  "node": "llm_rules",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[]}"
+}

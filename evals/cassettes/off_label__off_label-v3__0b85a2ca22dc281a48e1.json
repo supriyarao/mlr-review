@@ -1,0 +1,5 @@
+{
+  "node": "off_label",
+  "prompt_version": "off_label-v3",
+  "response": "{\"findings\":[{\"claim_id\":\"c4\",\"quote\":\"For many of these adults, that is as close to a cure as current therapy allows.\",\"issue\":\"Unsubstantiated 'cure' framing that overstates the clinical meaning of PASI-75 and is not part of the approved label or supported claims language.\",\"explanation\":\"The piece states that achieving PASI-75 is 'as close to a cure as current therapy allows.' Neither the label nor the trial data support describing this skin-clearance endpoint as a near-cure; psoriasis is a chronic relapsing disease with no cure, and the product does not carry a cure or disease-modifying claim. This kind of language could lead readers or prescribers to believe the product offers a durable or curative outcome beyond what the trial data show.\",\"suggested_fix\":\"Remove the 'cure' framing and replace with a factual, label-consistent statement, e.g., 'PASI-75 reflects a substantial reduction in psoriasis signs and symptoms at Week 16.'\",\"severity\":\"advisory\",\"concern\":\"\",\"tags\":[],\"confidence\":72,\"citations\":[]}]}"
+}

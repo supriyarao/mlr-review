@@ -1,0 +1,5 @@
+{
+  "node": "reference_doc_review",
+  "prompt_version": "rule-check-v1",
+  "response": "{\"findings\":[{\"rule_id\":\"BOR-DOC-001\",\"quote\":\"Nexapril\u00ae (nexapril) is for adults with type 2 diabetes who also have established cardiovascular\\ndisease, to lower the chance of a heart attack, stroke or death from heart disease.\",\"issue\":\"The content uses 'established cardiovascular disease' instead of the mandated exact terminology 'established atherosclerotic cardiovascular disease'.\",\"explanation\":\"The style guide requires a specific standard phrase for describing the patient population, and this text uses a shortened, non-compliant version that drops 'atherosclerotic', so it breaks the terminology rule.\",\"suggested_fix\":\"Change to 'adults with type 2 diabetes and established atherosclerotic cardiovascular disease'.\",\"confidence\":80,\"claim_id\":\"c1\",\"clause\":\"Use \\\"adults with type 2 diabetes and established atherosclerotic cardiovascular disease\\\", not \\\"diabetics\\\" or \\\"at-risk patients\\\".\"}]}"
+}

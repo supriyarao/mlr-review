@@ -4,7 +4,7 @@
 # Ollama model; the test suite forces the FakeLLM backend so it needs neither.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup seed new-tenant check-tenant api ui demo loop test lint fmt eval eval-offline eval-replay eval-baseline graph fixtures smoke clean
+.PHONY: help setup seed new-tenant check-tenant api ui demo loop test lint fmt eval eval-record eval-offline eval-replay eval-baseline graph fixtures smoke clean
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -77,19 +77,25 @@ fmt: ## Autoformat
 eval: ## Run the golden set against a live model (needs a key; records nothing)
 	uv run python -m scripts.run_evals --mode live --threshold-sweep default
 
+# `make eval --record` does not work -- make reads --record as a second goal -- and the flag needs a
+# target of its own anyway, because this one costs real money and is the only way to fill
+# evals/cassettes/. One run here makes `make eval-replay` work for everyone, with no key.
+eval-record: ## Run the golden set live AND save cassettes (needs a key; costs real money)
+	uv run python -m scripts.run_evals --mode live --record --threshold-sweep default --save
+
 # The offline and replay targets pin the backend instead of inheriting it. These three are the
 # reproducibility contract -- a stranger with no API key must get the committed baseline back -- and
 # they stopped honouring it the moment `.env` started being read, because the ambient backend then
 # became whatever the last person configured for a live demo. An `anthropic` backend made
 # `make eval-offline` hang instead of failing, which is the worst way for a hermetic target to break.
 eval-offline: ## Run the golden set offline and compare against the committed baseline
-	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --compare baseline --threshold-sweep default
+	MLR_DECISIONS_BACKEND=fake MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --compare baseline --threshold-sweep default
 
 eval-replay: ## Replay recorded real-model cassettes (deterministic AND a real measurement)
-	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode replay --compare baseline --threshold-sweep default
+	MLR_DECISIONS_BACKEND=fake MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode replay --compare baseline --threshold-sweep default
 
 eval-baseline: ## Re-record the committed baseline from the current code
-	MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --threshold-sweep default --write-baseline
+	MLR_DECISIONS_BACKEND=fake MLR_LLM_BACKEND=fake uv run python -m scripts.run_evals --mode offline --threshold-sweep default --write-baseline
 
 smoke: ## Run real promo pieces against a live model (local Ollama by default)
 	uv run python -m scripts.smoke
