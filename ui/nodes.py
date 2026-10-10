@@ -150,7 +150,8 @@ CHECKING = [
         "sends the piece to a more senior reviewer. Borealis does at serious. Acme ignores it. "
         "So the same piece can go to a senior reviewer at one company and a standard one at "
         "the other, and that is a setting, not code.",
-        "The piece and a decision model.",
+        "The piece, a short summary of what the reviewers already flagged (counts and the quoted "
+        "words, not their reasoning), and a decision model.",
         "The level and a score from 0 to 2. If the model couldn't answer, the level is left "
         "empty and the piece is routed as if this step wasn't there.",
         model=True,
