@@ -45,6 +45,11 @@ COST_PER_MTOK: dict[str, tuple[float, float]] = {
     "claude-opus-5": (5.00, 25.00),
     "claude-sonnet-5": (2.00, 10.00),
     "claude-haiku-4-5": (1.00, 5.00),
+    # Decision models (see platform_core/decisions.py). Not chat models, but they bill per token and
+    # their usage flows through the same Usage accumulator, so their prices belong in the same table
+    # rather than in a second one that could disagree with it. Output is free, hence the 0.0.
+    "jev-latest": (0.042, 0.0),
+    "jev-1.13.0": (0.042, 0.0),
 }
 
 DEFAULT_MODELS: dict[str, dict[Tier, str]] = {
@@ -236,6 +241,9 @@ class FakeLLM:
     scripted: dict[str, list[str]] = field(default_factory=dict)
     default_response: str = "{}"
     mode: Literal["scripted", "replay"] = "scripted"
+    # Write-only use: set on a *live* run so each validated response is saved as a cassette.
+    # Backend dispatch keys off the backend name, not off whether a fake is present, so a recorder
+    # passed into a live run never answers a call -- it only writes what the real model returned.
     record: bool = False
     _cursor: dict[str, int] = field(default_factory=dict, init=False)
     calls: list[dict[str, Any]] = field(default_factory=list, init=False)
@@ -466,7 +474,6 @@ def call_structured(
     schema: type,
     prompt_version: str,
     fake: FakeLLM | None = None,
-    record: bool = False,
     system: str = "",
 ) -> StructuredResult:
     """Call a model and return output validated against ``schema``.
@@ -534,9 +541,13 @@ def call_structured(
                 last_error=f"{type(exc).__name__}: {exc}",
             ) from exc
 
-        if record and fake is not None:
+        if fake is not None and fake.record:
             # Record the validated JSON, not the raw text: replay then produces exactly what the
             # live run produced, and a cassette can never hold output that would fail validation.
+            # Gated on the recorder rather than on a separate `record` argument, because a flag and
+            # the object that does the writing are two sources of truth: the argument spent a while
+            # being passed as True on live runs where `fake` was None, which silently recorded
+            # nothing. One switch, on the thing that owns `save`.
             fake.save(
                 node=node,
                 prompt_version=prompt_version,

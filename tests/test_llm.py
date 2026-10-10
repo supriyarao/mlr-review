@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from pydantic import BaseModel
 
 from platform_core import llm
 
@@ -230,3 +231,63 @@ def test_describe_backend_reports_what_actually_ran(monkeypatch):
         "model_strong": "qwen2.5:7b",
         "model_fast": "qwen2.5:7b",
     }
+
+
+class _Verdict(BaseModel):
+    ok: bool
+
+
+def test_a_live_run_with_a_recorder_writes_a_cassette(tmp_path, monkeypatch):
+    """The whole point of `--record`: one paid run has to leave something replayable behind.
+
+    Regression test. Recording was gated on a `record` argument to ``call_structured`` that no
+    caller ever passed, and which could not have worked if it had -- saving needs the ``FakeLLM``
+    that does the writing, and live runs passed ``fake=None``. So `--record` cost money and
+    produced an empty evals/cassettes/. Nothing caught it because no test called
+    ``call_structured`` at all.
+    """
+    monkeypatch.setenv("MLR_CASSETTE_DIR", str(tmp_path))
+    monkeypatch.setenv("MLR_LLM_BACKEND", "anthropic")
+
+    def fake_invoke(tier, *, prompt, system, schema):
+        return '{"ok": true}', llm.Usage()
+
+    monkeypatch.setattr(llm, "_invoke_text", fake_invoke)
+
+    recorder = llm.FakeLLM(record=True)
+    result = llm.call_structured(
+        "strong",
+        node="off_label",
+        prompt="is this off label?",
+        schema=_Verdict,
+        prompt_version="off-v1",
+        fake=recorder,
+    )
+
+    assert result.parsed.ok is True
+    assert list(tmp_path.glob("*.json")), "a live run with a recorder recorded nothing"
+
+    # And the recording has to be the thing replay will serve back.
+    player = llm.FakeLLM(mode="replay")
+    assert json.loads(
+        player.respond(node="off_label", prompt_version="off-v1", messages="is this off label?")
+    ) == {"ok": True}
+
+
+def test_a_live_run_without_a_recorder_writes_nothing(tmp_path, monkeypatch):
+    """`make eval` is documented as recording nothing. Keep it that way."""
+    monkeypatch.setenv("MLR_CASSETTE_DIR", str(tmp_path))
+    monkeypatch.setenv("MLR_LLM_BACKEND", "anthropic")
+    monkeypatch.setattr(
+        llm, "_invoke_text", lambda tier, *, prompt, system, schema: ('{"ok": true}', llm.Usage())
+    )
+
+    llm.call_structured(
+        "strong",
+        node="off_label",
+        prompt="q",
+        schema=_Verdict,
+        prompt_version="off-v1",
+        fake=None,
+    )
+    assert not list(tmp_path.glob("*.json"))
