@@ -442,10 +442,10 @@ def test_a_patient_scoped_rule_fires_only_on_a_patient_piece(seeded):
 
 def test_a_schema_failure_escalates_rather_than_looking_clean(seeded):
     """A check that could not run must never be indistinguishable from one that found nothing."""
-    # preapproved=False, so the claim is in scope for substantiation on both halves of its
-    # question and the bad response is certain to be reached.
+    # The default decider matches nothing, so the claim is in scope for substantiation on both
+    # halves of its question and the bad response is certain to be reached.
     quote = "In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved"
-    script = fr.clean_script(quote, quote, preapproved=False)
+    script = fr.clean_script(quote, quote)
     # Two unparseable responses from substantiation: one attempt plus its retry.
     script["substantiation"] = ["not json", "still not json"]
     fake = FakeLLM(scripted=script, default_response="{}")
@@ -501,7 +501,7 @@ def test_the_retry_recovers_a_single_bad_response(seeded):
 def test_an_ungrounded_finding_is_kept_and_escalated_not_dropped(seeded):
     """The single worst behaviour would be turning "I cannot verify this" into silence."""
     quote = "In a 16-week randomised, placebo-controlled trial, 68.4% of adults treated with Zelvoran achieved"
-    script = fr.clean_script(quote, quote, preapproved=False)
+    script = fr.clean_script(quote, quote)
     script["substantiation"] = [
         fr.findings(
             fr.finding(

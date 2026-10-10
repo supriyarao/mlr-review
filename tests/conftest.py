@@ -15,6 +15,12 @@ import pytest
 # Set before any application module is imported, so module-level config reads see it.
 os.environ["MLR_LLM_BACKEND"] = "fake"
 os.environ.pop("ANTHROPIC_API_KEY", None)
+# Same contract for the decisions endpoint: the test suite must never reach a network, and a
+# developer with MLR_DECISIONS_BACKEND=typesafe in their .env must not be able to make `make test`
+# spend money. Both the backend and the key are removed, so a miss fails loudly rather than dialling
+# out.
+os.environ["MLR_DECISIONS_BACKEND"] = "fake"
+os.environ.pop("TYPESAFE_API_KEY", None)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 

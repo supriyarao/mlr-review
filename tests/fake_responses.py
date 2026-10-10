@@ -103,8 +103,16 @@ def rule_finding(
 
 NO_FINDINGS = findings()
 NO_RULE_FINDINGS = rule_findings()
-NOT_EQUIVALENT = json.dumps({"equivalent": False, "reason": "The submitted claim is broader."})
-EQUIVALENT = json.dumps({"equivalent": True, "reason": "Same population, endpoint and timepoint."})
+
+
+# preapproved_filter asks a decision model, not a chat model, so its answers are deciders rather
+# than scripted JSON. See tests/test_preapproved_node.py for the node's own coverage.
+def decider(*, equivalent: bool) -> Any:
+    """A FakeDecider that calls every candidate equivalent, or none of them."""
+    from platform_core import decisions
+
+    probability = 0.99 if equivalent else 0.01
+    return decisions.FakeDecider(default_answer={"type": "noul", "noul": probability})
 
 
 def subgroup_case_script() -> dict[str, list[str]]:
@@ -132,7 +140,6 @@ def subgroup_case_script() -> dict[str, list[str]]:
                 ),
             )
         ],
-        "preapproved_filter": [NOT_EQUIVALENT],
         # One call, both failure families: the evidence question on c1 and the citation question
         # on c2. Before the checks merged these were two scripted responses from two nodes.
         "substantiation": [
@@ -187,19 +194,16 @@ def subgroup_case_script() -> dict[str, list[str]]:
     }
 
 
-def clean_script(quote: str, normalized: str, *, preapproved: bool = True) -> dict[str, list[str]]:
+def clean_script(quote: str, normalized: str) -> dict[str, list[str]]:
     """Responses for a compliant piece: one claim, no findings from any check.
 
-    ``preapproved`` matters more than it looks. A pre-approved claim skips the *evidence* half of
-    substantiation by design -- the committee already did that work -- so a test that scripts a
-    substantiation response and marks the claim approved may never reach it. The claim here carries a
-    reference marker, which keeps it in scope for the *citation* half, but that is a narrow escape
-    hatch and not what a test should lean on. Pass ``preapproved=False`` when the test is about what
-    substantiation does.
+    No longer carries a ``preapproved`` switch. Whether a claim counts as already approved is now
+    decided by the ``decider`` passed to ``compile_with``, not by a scripted chat response, and the
+    graph's default decider matches nothing -- so a claim scripted here always reaches
+    substantiation. A test that wants the pre-approved path takes :func:`decider`.
     """
     return {
         "extract_claims": [claims(claim(quote, normalized=normalized, refs=["1"]))],
-        "preapproved_filter": [EQUIVALENT if preapproved else NOT_EQUIVALENT],
         "substantiation": [NO_FINDINGS],
         "off_label": [NO_FINDINGS],
         "presentation": [NO_FINDINGS],

@@ -55,6 +55,22 @@ class NodeRun:
         if result.recovered_from:
             self.recovered_from = result.recovered_from
 
+    def record_decision(self, result: Any, *, version: str) -> None:
+        """Absorb a :class:`platform_core.decisions.DecisionResult`.
+
+        A separate method rather than a wider :meth:`record`, because a decision has no prompt
+        version and no retry to report -- there is no output shape to fail. The version it carries is
+        the question's, passed in by the caller, and it lands in the same audit column so a reviewer
+        reading the trail cannot tell that one node asked a different kind of model.
+        """
+        self.usage.add(
+            model=result.model,
+            tokens_in=result.tokens_in,
+            tokens_out=result.tokens_out,
+            latency_ms=result.latency_ms,
+        )
+        self.prompt_version = version or self.prompt_version
+
 
 @contextmanager
 def node_run(

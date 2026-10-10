@@ -49,6 +49,7 @@ from mlr.nodes import extract_claims as extract
 from mlr.nodes import route as routing
 from mlr.prompts.checks import CHECKS
 from mlr.state import ReviewState
+from platform_core import decisions
 
 # The three specialist checks, in the order they appear in the audit timeline.
 #
@@ -124,17 +125,38 @@ def fan_out(state: ReviewState) -> list[Send]:
     return sends or [Send("consolidate", payload)]
 
 
-def build(*, fake: Any = None) -> StateGraph:
-    """Build the graph. ``fake`` is threaded into the LLM nodes for offline runs.
+def build(*, fake: Any = None, decider: Any = None) -> StateGraph:
+    """Build the graph. ``fake`` and ``decider`` are threaded into the model nodes for offline runs.
 
-    Passing the fake explicitly rather than reading it from a global keeps the graph a pure function
+    Passing them explicitly rather than reading them from a global keeps the graph a pure function
     of its inputs: two tests can run with different scripted responses in the same process, and an
     eval replay cannot accidentally pick up another run's cassette.
+
+    Two kinds of model node, two wrappers. ``_llm`` nodes send a prompt to a chat model and parse
+    what comes back; ``_decide`` nodes ask a decision model a set of typed questions. Keeping the
+    distinction visible here means a reader can see which nodes generate and which ones only choose,
+    without opening either file.
     """
 
     def _llm(fn: Any) -> Any:
         def node(state: ReviewState) -> dict[str, Any]:
             return fn(state, fake=fake)
+
+        node.__name__ = getattr(fn, "__name__", "node")
+        return node
+
+    def _decide(fn: Any) -> Any:
+        # No decider supplied and no live backend configured means an offline run that was not given
+        # scripted answers. Default to a recorder-less fake that matches nothing, so the run
+        # continues with every claim treated as new. The alternative -- letting the node fail closed
+        # on each claim -- reaches the same result but fills the audit trail with errors that say
+        # nothing except "this was an offline run".
+        resolved = decider
+        if resolved is None and decisions.backend() == "fake":
+            resolved = decisions.FakeDecider(default_answer={"type": "noul", "noul": 0.0})
+
+        def node(state: ReviewState) -> dict[str, Any]:
+            return fn(state, decider=resolved)
 
         node.__name__ = getattr(fn, "__name__", "node")
         return node
@@ -152,7 +174,7 @@ def build(*, fake: Any = None) -> StateGraph:
 
     add("ingest", ingest.ingest)
     add("extract_claims", _llm(extract.extract_claims))
-    add("preapproved_filter", _llm(preapproved.preapproved_filter))
+    add("preapproved_filter", _decide(preapproved.preapproved_filter))
 
     add("substantiation", _llm(checks.substantiation))
     add("off_label", _llm(checks.off_label))
@@ -202,7 +224,7 @@ def checkpointer() -> Iterator[Any]:
         yield saver
 
 
-def compile_with(saver: Any, *, fake: Any = None, step: bool = False) -> Any:
+def compile_with(saver: Any, *, fake: Any = None, decider: Any = None, step: bool = False) -> Any:
     """Compile the graph with a checkpointer. The checkpointer is what makes the human step work.
 
     ``step=True`` pauses before every node, so a caller can advance the run one node at a time and read
@@ -217,4 +239,6 @@ def compile_with(saver: Any, *, fake: Any = None, step: bool = False) -> Any:
     from platform_core.runtime import compile_graph
 
     interrupt_before = list(STEPPABLE_NODES) if step else None
-    return compile_graph(build(fake=fake), saver=saver, interrupt_before=interrupt_before)
+    return compile_graph(
+        build(fake=fake, decider=decider), saver=saver, interrupt_before=interrupt_before
+    )
