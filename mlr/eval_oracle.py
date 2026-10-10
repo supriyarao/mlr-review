@@ -375,9 +375,24 @@ def build_decider(case: GoldenCase) -> Any:
     against a 0.85 threshold would make every offline result a referendum on the threshold instead
     of on the pipeline.
     """
+    from mlr.prompts.risk_judgement import LEVELS, QUESTION_NAME
     from platform_core import decisions
 
     equivalent = "preapproved" in case.tags
     return decisions.FakeDecider(
-        default_answer={"type": "noul", "noul": 0.99 if equivalent else 0.01}
+        # The risk judgement is pinned to the lowest level, which makes it inert offline: no tenant
+        # escalates on "routine", so no golden case's route can turn on it. That is deliberate. The
+        # signal is a judgement about a whole piece, and an oracle derived from the case's own
+        # expectations cannot measure a judgement -- it can only agree with itself. Measure this one
+        # against a live model or a recorded one, never here.
+        scripted={
+            QUESTION_NAME: {
+                "type": "score",
+                "score": 0.0,
+                "confidence": 1.0,
+                "legend": dict(enumerate(LEVELS)),
+                "probabilities": {str(i): (1.0 if i == 0 else 0.0) for i in range(len(LEVELS))},
+            }
+        },
+        default_answer={"type": "noul", "noul": 0.99 if equivalent else 0.01},
     )

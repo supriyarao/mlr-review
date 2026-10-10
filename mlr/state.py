@@ -105,6 +105,13 @@ class ReviewState(TypedDict, total=False):
     # Deduped, merged and confidence-calibrated. Everything downstream reads this, not `findings`.
     final_findings: list[Finding]
 
+    # --- Produced by risk_judgement -------------------------------------------------------------
+    # How much regulatory exposure the piece carries, as one of mlr.prompts.risk_judgement.LEVELS,
+    # and the probability-weighted score behind it. Empty when the judgement could not be made --
+    # the signal is additive, so its absence simply removes a reason code nobody may be routing on.
+    risk_level: str
+    risk_score: float
+
     # --- Produced by route ----------------------------------------------------------------------
     # The reviewer tier this run goes to. There is no state in which a run has no destination:
     # a clean piece still routes to a standard reviewer.
@@ -137,6 +144,8 @@ REPLACEABLE_KEYS: frozenset[str] = frozenset(
         "doc_meta",
         "claims",
         "preapproved_matches",
+        "risk_level",
+        "risk_score",
         "rules_applied",
         "final_findings",
         "route",

@@ -115,6 +115,27 @@ class Answer:
     # choice and score only. noul carries its own certainty in the probability itself.
     confidence: float = 0.0
     probabilities: dict[str, float] = field(default_factory=dict)
+    # score only: which level each index means, e.g. {"0": "routine", "2": "serious"}. The score
+    # scale is zero-based, so a three-level question answers somewhere in 0.0..2.0.
+    legend: dict[str, str] = field(default_factory=dict)
+
+    def level(self) -> str:
+        """The most likely level of a ``score``, by name.
+
+        The argmax of the probabilities, not the rounded ``value``. ``value`` is a
+        probability-weighted average, so a question genuinely torn between "routine" and "serious"
+        averages to the middle level the model never actually chose. Rounding it would invent a
+        verdict; taking the most likely level reports one the model really assigned, and the number
+        it assigned stays available as ``value`` for anyone who wants it.
+        """
+        if self.kind != "score":
+            raise DecisionError(
+                f"{self.name}: level() is only meaningful for a score, not {self.kind}"
+            )
+        if not self.probabilities:
+            return ""
+        index = max(self.probabilities, key=lambda k: self.probabilities[k])
+        return self.legend.get(index, index)
 
     def is_yes(self, threshold: float = 0.5) -> bool:
         """Collapse a ``noul`` to a boolean at an explicit threshold.
@@ -238,7 +259,8 @@ def _parse(body: dict[str, Any]) -> dict[str, Answer]:
             chosen=str(raw.get("choice") or ""),
             value=float(raw.get("score") or 0.0),
             confidence=float(raw.get("confidence") or 0.0),
-            probabilities=dict(raw.get("probabilities") or {}),
+            probabilities={str(k): float(v) for k, v in (raw.get("probabilities") or {}).items()},
+            legend={str(k): str(v) for k, v in (raw.get("legend") or {}).items()},
         )
     return answers
 

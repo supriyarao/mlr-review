@@ -257,6 +257,7 @@ def provenance(mode: str) -> dict[str, Any]:
     from mlr.prompts.checks import PROMPT_VERSIONS
     from mlr.prompts.extract_claims import PROMPT_VERSION as EXTRACT_VERSION
     from mlr.prompts.preapproved import QUESTION_VERSION as PREAPPROVED_VERSION
+    from mlr.prompts.risk_judgement import QUESTION_VERSION as RISK_VERSION
     from platform_core.policy import policy_version
 
     hashes = {}
@@ -274,6 +275,7 @@ def provenance(mode: str) -> dict[str, Any]:
             **PROMPT_VERSIONS,
             "extract_claims": EXTRACT_VERSION,
             "preapproved_filter": PREAPPROVED_VERSION,
+            "risk_judgement": RISK_VERSION,
         },
         "tenant_config_hashes": hashes,
     }

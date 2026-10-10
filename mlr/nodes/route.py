@@ -136,6 +136,38 @@ def _escalation_reasons(state: dict[str, Any], findings: list[Finding]) -> list[
                 )
             )
 
+    # The graded risk judgement, but only if this tenant asked to route on it. The flag names the
+    # lowest level that escalates, so a tenant sets `escalate_on_risk_judgement: serious` and gets
+    # exactly that. A tenant that sets nothing is unaffected, which is why adding this signal could
+    # not change an existing routing decision.
+    #
+    # Trade-off: this is the one escalation reason that comes from a judgement rather than a fact.
+    # It is opt-in for that reason, and the explanation says so in words a reviewer reads, because
+    # "a model thought this looked serious" and "this claim has no evidence" deserve different
+    # amounts of trust even when they route to the same person.
+    from mlr.prompts.risk_judgement import LEVELS
+
+    escalate_from = str(
+        load_tenant(str(state["tenant_id"])).policy_flags.get("escalate_on_risk_judgement", "")
+    ).strip()
+    level = str(state.get("risk_level") or "")
+    if (
+        escalate_from in LEVELS
+        and level in LEVELS
+        and LEVELS.index(level) >= LEVELS.index(escalate_from)
+    ):
+        reasons.append(
+            EscalationReason(
+                code="high_risk_judgement",
+                explanation=(
+                    f"Graded {level!r} for overall regulatory exposure, at or above this "
+                    f"tenant's {escalate_from!r} threshold. This is a judgement about the "
+                    f"piece as a whole, not a finding about any one claim."
+                ),
+                items=[],
+            )
+        )
+
     # Gate failures. Each carries its own reason code so a tenant can route on it.
     for gate in state.get("gate_results") or []:
         if gate.passed or not gate.reason_code:

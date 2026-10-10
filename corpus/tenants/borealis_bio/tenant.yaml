@@ -86,6 +86,13 @@ escalation:
       tier: legal
 
 policy_flags:
+  # Borealis routes on the graded risk judgement; Acme does not. The same piece can therefore reach
+  # a senior reviewer here and a standard one at Acme, which is the point: this is a risk-appetite
+  # decision, and it belongs in config rather than in the routing code.
+  #
+  # Set to the lowest level that escalates. Omit the key entirely to ignore the signal, which is
+  # what Acme does.
+  escalate_on_risk_judgement: serious
   require_head_to_head_for_superiority: true
   # The second key divergence: safety information must sit with the first efficacy claim, not
   # merely somewhere in the piece.

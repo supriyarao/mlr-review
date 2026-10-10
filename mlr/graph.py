@@ -46,7 +46,9 @@ from langgraph.types import Send
 from mlr import trace
 from mlr.nodes import checks, consolidate, finalize, human_review, ingest, preapproved, rules
 from mlr.nodes import extract_claims as extract
+from mlr.nodes import risk_judgement as risk
 from mlr.nodes import route as routing
+from mlr.prompts import risk_judgement as risk_prompt
 from mlr.prompts.checks import CHECKS
 from mlr.state import ReviewState
 from platform_core import decisions
@@ -80,6 +82,7 @@ STEPPABLE_NODES: tuple[str, ...] = (
     "extract_claims",
     "preapproved_filter",
     "consolidate",
+    "risk_judgement",
     "route",
 )
 
@@ -91,6 +94,7 @@ PIPELINE: tuple[str, ...] = (
     *CORE_CHECKS,
     *RULE_BRANCHES,
     "consolidate",
+    "risk_judgement",
     "route",
     "human_review",
     "finalize",
@@ -153,7 +157,24 @@ def build(*, fake: Any = None, decider: Any = None) -> StateGraph:
         # nothing except "this was an offline run".
         resolved = decider
         if resolved is None and decisions.backend() == "fake":
-            resolved = decisions.FakeDecider(default_answer={"type": "noul", "noul": 0.0})
+            resolved = decisions.FakeDecider(
+                # The questions in this graph are not all the same kind, so a single default answer
+                # cannot serve them: a noul handed to a score question is not a weaker answer, it is
+                # an unreadable one. The graded question gets the lowest level, which is the inert
+                # answer -- nothing escalates on "routine".
+                scripted={
+                    risk_prompt.QUESTION_NAME: {
+                        "type": "score",
+                        "score": 0.0,
+                        "confidence": 1.0,
+                        "legend": {str(i): n for i, n in enumerate(risk_prompt.LEVELS)},
+                        "probabilities": {
+                            str(i): (1.0 if i == 0 else 0.0) for i in range(len(risk_prompt.LEVELS))
+                        },
+                    }
+                },
+                default_answer={"type": "noul", "noul": 0.0},
+            )
 
         def node(state: ReviewState) -> dict[str, Any]:
             return fn(state, decider=resolved)
@@ -183,6 +204,7 @@ def build(*, fake: Any = None, decider: Any = None) -> StateGraph:
     add("house_rules", _llm(rules.house_rules))
 
     add("consolidate", consolidate.consolidate)
+    add("risk_judgement", _decide(risk.risk_judgement))
     add("route", routing.route)
     add("human_review", human_review.human_review)
     add("finalize", finalize.finalize)
@@ -201,7 +223,8 @@ def build(*, fake: Any = None, decider: Any = None) -> StateGraph:
     for branch in (*CORE_CHECKS, *RULE_BRANCHES):
         builder.add_edge(branch, "consolidate")
 
-    builder.add_edge("consolidate", "route")
+    builder.add_edge("consolidate", "risk_judgement")
+    builder.add_edge("risk_judgement", "route")
     builder.add_edge("route", "human_review")
     builder.add_edge("human_review", "finalize")
     builder.add_edge("finalize", END)
