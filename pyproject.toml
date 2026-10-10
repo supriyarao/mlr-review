@@ -17,6 +17,8 @@ dependencies = [
     # Schemas and storage
     "pydantic>=2.10",
     "sqlmodel>=0.0.22",
+    # Decisions (typed yes/no, choice and score answers -- not a chat model)
+    "httpx>=0.27",
     # Retrieval
     "chromadb>=0.5.23",
     "rank-bm25>=0.2.2",
